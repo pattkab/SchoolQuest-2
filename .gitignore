@@ -23,6 +23,11 @@
 # misc
 .DS_Store
 *.pem
+.idea/
+.agents/
+.claude/
+.cursor/
+.devin/
 
 # debug
 npm-debug.log*
@@ -39,3 +44,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# SQLite local DB
+*.db
+*.db-journal

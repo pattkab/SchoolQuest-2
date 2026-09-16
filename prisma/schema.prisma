@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// User & Authentication Models
+model User {
+  id                 String    @id @default(cuid())
+  phone              String?   @unique
+  email              String?   @unique
+  name               String?
+  role               String    @default("STUDENT") // Enum Role: STUDENT, TEACHER, ADMIN, SUPER_ADMIN
+  trialStartsAt      DateTime?
+  trialEndsAt        DateTime?
+  subscriptionEndsAt DateTime?
+  
+  // Relations
+  attempts           Attempt[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+// Hierarchy: Level -> Subject -> Paper
+model Level {
+  id        String    @id @default(cuid())
+  name      String    @unique // e.g., "Nursery", "Primary", "Secondary O-Level", "Secondary A-Level", "University"
+  order     Int       @default(0)
+  subjects  Subject[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  levelId   String
+  level     Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  papers    Paper[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, levelId])
+}
+
+model Paper {
+  id        String     @id @default(cuid())
+  title     String     // e.g., "PLE Mathematics 2022"
+  year      Int?
+  subjectId String
+  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  pdfUrl    String?    // Original source if available
+  questions Question[]
+  attempts  Attempt[]
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// Examination Engine
+model Question {
+  id            String       @id @default(cuid())
+  paperId       String
+  paper         Paper        @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  type          String       // Enum QuestionType: MULTIPLE_CHOICE, FILL_BLANK, etc.
+  prompt        String
+  options       String?      // Stringified JSON array of options
+  correctAnswer String       // Stringified JSON
+  points        Int          @default(1)
+  order         Int
+  
+  answers       Answer[]
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+// Student Tracking
+model Attempt {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paperId     String
+  paper       Paper     @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  score       Int       @default(0)
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  
+  answers     Answer[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Answer {
+  id            String   @id @default(cuid())
+  attemptId     String
+  attempt       Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  studentAnswer String?  // Stringified JSON
+  isCorrect     Boolean? // Null if needs manual/AI marking
+  pointsAwarded Int?     // Could be partial points
+  teacherNote   String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([attemptId, questionId])
+}
