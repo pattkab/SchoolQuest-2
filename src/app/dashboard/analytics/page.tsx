@@ -72,8 +72,8 @@ export default async function AnalyticsPage() {
   const badges = [];
   if (totalAttempts >= 1) {
     badges.push({
-      title: "First Step",
-      desc: "Completed your first past paper practice!",
+      title: "UNEB Starter 🇺🇬",
+      desc: "Attempted your first UNEB-style practice paper.",
       icon: Trophy,
       color: "text-blue-500 bg-blue-50"
     });
@@ -84,16 +84,16 @@ export default async function AnalyticsPage() {
   });
   if (hasPerfectScore) {
     badges.push({
-      title: "Perfect Score",
-      desc: "Scored 100% on a past paper!",
+      title: "Division One Candidate",
+      desc: "Scored 100%! Ready to secure a super grade in the national exams.",
       icon: Award,
       color: "text-yellow-500 bg-yellow-50"
     });
   }
   if (totalAttempts >= 3) {
     badges.push({
-      title: "Quest Veteran",
-      desc: "Finished 3 or more exam practices.",
+      title: "Academic Giant",
+      desc: "Completed 3 or more full past paper revisions.",
       icon: Award,
       color: "text-green-500 bg-green-50"
     });
@@ -101,8 +101,8 @@ export default async function AnalyticsPage() {
   const isSubscriber = user.subscriptionEndsAt && user.subscriptionEndsAt > new Date();
   if (isSubscriber) {
     badges.push({
-      title: "Momo Supporter",
-      desc: "Active School Quest paying subscriber.",
+      title: "MoMo Champion",
+      desc: "Active paid subscriber. Supporting Ugandan digital education!",
       icon: Award,
       color: "text-purple-500 bg-purple-50"
     });
@@ -181,7 +181,7 @@ export default async function AnalyticsPage() {
                     <div className="bg-red-500 h-2 rounded-full" style={{ width: `${area.percentage}%` }} />
                   </div>
                   <p className="text-xs text-gray-400 italic">
-                    Tip: Try reviewing questions under {area.name} again in practice mode.
+                    Tip: Ask your teacher or a classmate in your discussion group to review previous UNEB questions under {area.name} with you.
                   </p>
                 </div>
               ))

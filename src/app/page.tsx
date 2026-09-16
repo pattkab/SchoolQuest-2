@@ -43,7 +43,7 @@ export default function Home() {
             Master your exams with <span className="text-primary block sm:inline">confidence.</span>
           </h2>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            The easiest way for Nursery to University students to practice real past papers, draw answers, and get instant AI grading.
+            The easiest way for Ugandan students to practice real UNEB past papers (PLE, UCE, UACE) from Nursery to University, draw answers, and get instant AI grading.
           </p>
           
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -66,9 +66,9 @@ export default function Home() {
             <div className="bg-blue-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
               <BookOpen className="h-7 w-7 text-secondary" />
             </div>
-            <h3 className="text-xl font-bold mb-3">All Past Papers</h3>
+            <h3 className="text-xl font-bold mb-3">UNEB Past Papers</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Access hundreds of digitized papers from P1 to A-Level. Clean, readable, and structured for your phone.
+              Access hundreds of digitized national exam papers from PLE (Primary), UCE (O-Level), to UACE (A-Level) structured for your mobile screen.
             </p>
           </div>
 
