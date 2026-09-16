@@ -70,7 +70,7 @@ async function solvePapers() {
 
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-1.5-flash",
+          model: "gemini-2.5-flash",
           contents: [
             JSON.stringify(questionsList),
             systemPrompt
@@ -80,15 +80,26 @@ async function solvePapers() {
         const cleaned = (response.text || "").replace(/```json/g, "").replace(/```/g, "").trim();
         const answersMap = JSON.parse(cleaned) as Record<string, string>;
 
+        let batchUpdated = 0;
         for (const [qId, ans] of Object.entries(answersMap)) {
-          await prisma.question.update({
-            where: { id: qId },
-            data: {
-              correctAnswer: JSON.stringify(ans)
+          try {
+            const exists = await prisma.question.findUnique({
+              where: { id: qId }
+            });
+            if (exists) {
+              await prisma.question.update({
+                where: { id: qId },
+                data: {
+                  correctAnswer: JSON.stringify(ans)
+                }
+              });
+              batchUpdated++;
             }
-          });
+          } catch (updateErr) {
+            console.error(`⚠️ Failed to update question ${qId}:`, updateErr);
+          }
         }
-        console.log(`Successfully solved and updated ${Object.keys(answersMap).length} questions.`);
+        console.log(`Successfully solved and updated ${batchUpdated} questions in this batch.`);
       } catch (err) {
         console.error(`❌ Failed to solve batch for paper "${paper.title}":`, err);
       }
