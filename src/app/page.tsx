@@ -53,6 +53,16 @@ export default function Home() {
               </Button>
             </Link>
           </div>
+
+          {/* Authentic Ugandan school children in uniform product image */}
+          <div className="mt-12 w-full max-w-3xl rounded-[2rem] overflow-hidden border-4 border-white shadow-xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80" 
+              alt="Ugandan Primary School Students Smiling in Uniform"
+              className="w-full h-auto object-cover max-h-[380px] object-center"
+            />
+          </div>
         </motion.div>
 
         {/* Feature Grid */}

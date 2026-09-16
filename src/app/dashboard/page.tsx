@@ -77,9 +77,9 @@ export default async function DashboardPage() {
         <div className="w-full md:w-2/5 h-48 md:h-64 relative rounded-2xl overflow-hidden z-20 shadow-md">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80"
-            alt="Smiling Ugandan Primary Students in School Uniform"
-            className="w-full h-full object-cover object-top"
+            src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80"
+            alt="Smiling Ugandan Students in Yellow and Blue Uniforms"
+            className="w-full h-full object-cover object-center"
           />
         </div>
       </div>
