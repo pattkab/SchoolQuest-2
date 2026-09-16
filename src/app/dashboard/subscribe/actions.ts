@@ -4,7 +4,11 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 
-export async function processMoMoPayment(phone: string, provider: "MTN" | "AIRTEL") {
+export async function processMoMoPayment(
+  phone: string, 
+  provider: "MTN" | "AIRTEL",
+  plan: "weekly" | "monthly" | "term" = "monthly"
+) {
   const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
@@ -12,16 +16,18 @@ export async function processMoMoPayment(phone: string, provider: "MTN" | "AIRTE
 
   const userId = session.user.id;
 
-  // In production:
-  // 1. Initialize Flutterwave or Pesapal Mobile Money collection
-  // 2. Await webhook confirmation
-  // For Phase 1 / local MVP testing:
-  // 1. Instantly approve the transaction after 1s mock wait.
-  
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Simulate MoMo net processing latency
+  await new Promise((resolve) => setTimeout(resolve, 1200));
 
   const subscriptionEnds = new Date();
-  subscriptionEnds.setDate(subscriptionEnds.getDate() + 30);
+  
+  if (plan === "weekly") {
+    subscriptionEnds.setDate(subscriptionEnds.getDate() + 7);
+  } else if (plan === "term") {
+    subscriptionEnds.setDate(subscriptionEnds.getDate() + 90);
+  } else {
+    subscriptionEnds.setDate(subscriptionEnds.getDate() + 30);
+  }
 
   await db.user.update({
     where: { id: userId },
