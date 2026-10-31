@@ -21,54 +21,33 @@ export interface ExtractedQuestion {
 }
 
 export async function extractQuestionsFromPDF(pdfBuffer: Buffer): Promise<ExtractedQuestion[]> {
+  return readDocument(pdfBuffer, "application/pdf", "practice");
+}
+
+export async function readDocument(buffer: Buffer, mime: string, output: "practice" | "notes") {
   const ai = getGeminiClient();
-
-  // Convert buffer to base64
-  const pdfBase64 = pdfBuffer.toString("base64");
-
-  const prompt = `
-    You are an elite education-tech system specializing in the Ugandan curriculum (PLE, UCE, UACE).
-    Analyze this exam paper PDF and extract all questions into a clean structured JSON array.
-    
-    Format the output as a valid JSON array, where each object matches this structure:
-    {
-      "type": "MULTIPLE_CHOICE" | "FILL_BLANK" | "MATCHING" | "ORDERING" | "SHORT_ANSWER" | "COMPREHENSION" | "DRAWING",
-      "prompt": "The full, clear text of the question. Ensure any spelling mistakes from low-quality scans are corrected.",
-      "options": ["Option A", "Option B", ...] or null,
-      "correctAnswer": "The exact correct answer or list of acceptable correct answers. (For multiple choice, provide the exact correct text from options. For fill blanks, provide a string or an array of acceptable answers like ['3', 'three'])",
-      "points": number (default 1 for multiple choice, 2 for fill blank/short answer)
-    }
-
-    Rules:
-    1. Extract ALL questions sequentially.
-    2. Maintain the integrity of the Ugandan curriculum topics.
-    3. Correct any scanning/OCR errors directly in the text to make it readable.
-    4. Provide only the JSON array back. Do not wrap in markdown \`\`\`json blocks.
-  `;
+  const prompt = output === "practice"
+    ? `You turn Ugandan exam papers into practice questions.
+The file may be a scanned page, a searchable PDF, or a GitHub paper. Read it either way.
+Return a JSON array only. Each item:
+{"type":"MULTIPLE_CHOICE"|"FILL_BLANK"|"SHORT_ANSWER"|"NUMERIC"|"COMPREHENSION"|"LONG_ANSWER","prompt":"","options":["A","B"] or null,"correctAnswer":"","explanation":"","points":1}
+Use MULTIPLE_CHOICE, FILL_BLANK, SHORT_ANSWER, or NUMERIC when the answer is exact.
+Use COMPREHENSION or LONG_ANSWER when a teacher or AI must judge the writing.
+Fix OCR mistakes. Keep the original question order.`
+    : `You turn a Ugandan exam or notes file into revision notes.
+The file may be a scan, a searchable PDF, or a GitHub paper.
+Return JSON only: {"title":"","summary":"","markdown":""}
+markdown uses short headings and bullets a learner can revise from. Do not invent questions.`;
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: [
-      {
-        inlineData: {
-          data: pdfBase64,
-          mimeType: "application/pdf"
-        }
-      },
-      prompt
-    ],
+    contents: [{ inlineData: { data: buffer.toString("base64"), mimeType: mime } }, prompt],
   });
-
-  const text = response.text || "";
-  
-  // Clean up any markdown code blocks
-  const cleanedJson = text.replace(/```json/g, "").replace(/```/g, "").trim();
-
+  const cleaned = (response.text || "").replace(/```json/g, "").replace(/```/g, "").trim();
   try {
-    return JSON.parse(cleanedJson) as ExtractedQuestion[];
-  } catch (err) {
-    console.error("Failed to parse extracted JSON from Gemini. Raw text:", text);
-    throw new Error("Gemini returned invalid JSON structure.");
+    return JSON.parse(cleaned);
+  } catch {
+    throw new Error("The file was read, but the result was not usable. Try a clearer scan or PDF.");
   }
 }
 

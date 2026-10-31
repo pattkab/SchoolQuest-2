@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { extractQuestionsFromPDF, ExtractedQuestion } from "@/lib/gemini";
 import { uploadFileToFirebase } from "@/lib/firebase";
 import { redirect } from "next/navigation";
+import { topicIdForTitle } from "@/lib/topics";
 
 export async function parseUploadedPDF(formData: FormData) {
   const session = await auth();
@@ -16,8 +17,8 @@ export async function parseUploadedPDF(formData: FormData) {
     where: { id: session.user.id }
   });
 
-  if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
-    throw new Error("Access denied: Admins only.");
+  if (!user || !["ADMIN", "SUPER_ADMIN", "TEACHER"].includes(user.role)) {
+    throw new Error("Access denied: accredited teachers and admins only.");
   }
 
   const file = formData.get("pdf") as File;
@@ -70,18 +71,26 @@ export async function saveParsedPaper(payload: SavePaperPayload) {
     where: { id: session.user.id }
   });
 
-  if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
-    throw new Error("Access denied: Admins only.");
+  if (!user || !["ADMIN", "SUPER_ADMIN", "TEACHER"].includes(user.role)) {
+    throw new Error("Access denied: accredited teachers and admins only.");
   }
 
   const { title, year, subjectId, pdfUrl, questions } = payload;
+  const subject = await db.subject.findUnique({ where: { id: subjectId } });
+  const topicId = await topicIdForTitle(subjectId, title);
 
   const paper = await db.paper.create({
     data: {
       title,
       year: Number(year),
       subjectId,
+      classGradeId: subject?.classGradeId,
+      topicId,
       pdfUrl: pdfUrl || null,
+      kind: "PAST_PAPER",
+      sourceType: "UPLOAD",
+      authorId: user.id,
+      status: "PUBLISHED",
     }
   });
 
@@ -96,10 +105,11 @@ export async function saveParsedPaper(payload: SavePaperPayload) {
         options: q.options ? JSON.stringify(q.options) : null,
         correctAnswer: JSON.stringify(q.correctAnswer),
         points: q.points,
+        topicId,
         order: i + 1,
       }
     });
   }
 
-  redirect(`/dashboard/subjects/${subjectId}`);
+  redirect(`/dashboard/papers/${paper.id}`);
 }

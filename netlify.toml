@@ -1,7 +1,14 @@
 [build]
-  command = "npm run build"
-  publish = ".next"
+  command = "npx prisma generate && npx prisma db push && npx tsx prisma/seed.ts && npx next build"
 
-[plugins]
-  [[plugins]]
-    package = "@netlify/plugin-nextjs"
+[build.environment]
+  NODE_VERSION = "22"
+  AUTH_TRUST_HOST = "true"
+  AUTH_URL = "https://schoolquestweb.netlify.app"
+
+# The seeded SQLite file is created during the build. Bundle it with the server.
+[functions]
+  included_files = ["prisma/dev.db"]
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

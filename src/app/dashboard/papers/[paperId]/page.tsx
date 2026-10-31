@@ -1,65 +1,52 @@
+import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { auth } from "@/auth";
-import { redirect, notFound } from "next/navigation";
 import ExamPlayer from "./ExamPlayer";
+import { shortSubjectName } from "@/lib/taxonomy";
 
-interface PaperPageProps {
-  params: Promise<{
-    paperId: string;
-  }>;
+function publicMatchOptions(correctAnswer: string, options: string | null) {
+  try {
+    const pairs = JSON.parse(correctAnswer);
+    if (Array.isArray(pairs) && pairs.length && Array.isArray(pairs[0])) {
+      const rights = Array.from(new Set(pairs.map((p: unknown[]) => String(p[1])))).sort();
+      return JSON.stringify(pairs.map((p: unknown[]) => [String(p[0]), rights]));
+    }
+  } catch {
+    return options;
+  }
+  return options;
 }
 
-export default async function PaperPage({ params }: PaperPageProps) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
-
-  const user = await db.user.findUnique({
-    where: { id: session.user.id }
-  });
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Active check
-  const now = new Date();
-  const hasActiveTrial = user.trialEndsAt && user.trialEndsAt > now;
-  const hasActiveSubscription = user.subscriptionEndsAt && user.subscriptionEndsAt > now;
-
-  if (!hasActiveTrial && !hasActiveSubscription) {
-    redirect("/dashboard/subscribe");
-  }
-
+export default async function PaperPage({ params }: { params: Promise<{ paperId: string }> }) {
   const { paperId } = await params;
-
   const paper = await db.paper.findUnique({
     where: { id: paperId },
     include: {
-      questions: {
-        orderBy: { order: "asc" }
-      }
-    }
+      subject: { include: { classGrade: true } },
+      topic: true,
+      questions: { orderBy: { order: "asc" } },
+    },
   });
-
-  if (!paper) {
-    notFound();
-  }
+  if (!paper) notFound();
 
   return (
-    <div className="py-6">
-      <ExamPlayer
-        paperId={paper.id}
-        paperTitle={paper.title}
-        questions={paper.questions.map((q) => ({
-          id: q.id,
-          type: q.type,
-          prompt: q.prompt,
-          options: q.options,
-          points: q.points,
-        }))}
-      />
-    </div>
+    <ExamPlayer
+      paper={{
+        id: paper.id,
+        title: paper.title,
+        kind: paper.kind,
+        subject: shortSubjectName(paper.subject.name),
+        className: paper.subject.classGrade.shortName,
+        topic: paper.topic?.name || null,
+        backHref: `/dashboard/classes/${paper.subject.classGrade.slug}/${paper.subject.slug}`,
+      }}
+      questions={paper.questions.map((q) => ({
+        id: q.id,
+        type: q.type,
+        prompt: q.prompt,
+        stimulus: q.stimulus,
+        options: q.type === "MATCHING" ? publicMatchOptions(q.correctAnswer, q.options) : q.options,
+        points: q.points,
+      }))}
+    />
   );
 }

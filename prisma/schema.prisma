@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -7,93 +8,283 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-// User & Authentication Models
+// ─────────────────────────────────────────────────────────────────────────────
+// Users, roles & accreditation
+// ─────────────────────────────────────────────────────────────────────────────
+
 model User {
   id                 String    @id @default(cuid())
   phone              String?   @unique
   email              String?   @unique
   name               String?
-  role               String    @default("STUDENT") // Enum Role: STUDENT, TEACHER, ADMIN, SUPER_ADMIN
+  passwordHash       String?
+  role               String    @default("STUDENT") // STUDENT | TEACHER | SCHOOL_ADMIN | ADMIN | SUPER_ADMIN | PARENT
+  profileComplete    Boolean   @default(true)
+  classGradeId       String?
+  classGrade         ClassGrade? @relation(fields: [classGradeId], references: [id], onDelete: SetNull)
+  school             String?
+  district           String?
+  avatarSeed         String?
+  studentNumber      String?   @unique
+  schoolId           String?
+  schoolMember       School?   @relation("SchoolMember", fields: [schoolId], references: [id], onDelete: SetNull)
+  ownedSchool        School?   @relation("SchoolOwner")
+
+  // Monetisation
   trialStartsAt      DateTime?
   trialEndsAt        DateTime?
   subscriptionEndsAt DateTime?
-  
-  // Relations
+
+  // Engagement
+  xp                 Int       @default(0)
+  currentStreak      Int       @default(0)
+  longestStreak      Int       @default(0)
+  lastActiveOn       DateTime?
+
   attempts           Attempt[]
+  teacherProfile     TeacherProfile?
+  markedAnswers      Answer[]  @relation("MarkedBy")
+  authoredNotes      Note[]    @relation("NoteAuthor")
+  authoredPapers     Paper[]   @relation("PaperAuthor")
+  reviewedTeachers   TeacherProfile[] @relation("TeacherReviewer")
+  feedback           Feedback[]
+  syncLogs           SyncLog[]
+  classroomsTaught   Classroom[]  @relation("ClassroomTeacher")
+  enrollments        Enrollment[]
+  feeCharges         FeeCharge[]
+  feePayments        FeePayment[]
+  attendance         AttendanceMark[] @relation("StudentAttendance")
+  attendanceTaken    AttendanceMark[] @relation("TeacherAttendance")
+  messagesSent       SchoolMessage[]  @relation("MessageFrom")
+  messagesReceived   SchoolMessage[]  @relation("MessageTo")
+
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 }
 
-// Hierarchy: Level -> Subject -> Paper
+model TeacherProfile {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName           String
+  registrationNumber String    @unique // MoES / UTS teacher registration number
+  nationalId         String?
+  school             String
+  district           String
+  qualification      String    // Grade III | Grade V | Bachelor's | Master's | Other
+  yearsExperience    Int       @default(0)
+  subjects           String    @default("[]") // JSON string[] of subject names
+  classes            String    @default("[]") // JSON string[] of class slugs
+  bio                String?
+  status             String    @default("PENDING") // PENDING | ACCREDITED | REJECTED | SUSPENDED
+  reviewedById       String?
+  reviewedBy         User?     @relation("TeacherReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt         DateTime?
+  reviewNote         String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Curriculum hierarchy: Level → ClassGrade → Subject → Topic
+// ─────────────────────────────────────────────────────────────────────────────
+
 model Level {
-  id        String    @id @default(cuid())
-  name      String    @unique // e.g., "Nursery", "Primary", "Secondary O-Level", "Secondary A-Level", "University"
-  order     Int       @default(0)
-  subjects  Subject[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          String       @id @default(cuid())
+  slug        String       @unique // pre-primary | primary | o-level | a-level | university
+  name        String       @unique
+  order       Int          @default(0)
+  description String?
+  classGrades ClassGrade[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model ClassGrade {
+  id              String   @id @default(cuid())
+  slug            String   @unique // baby | middle | top | p1..p7 | s1..s6 | university
+  name            String   // "Primary Four"
+  shortName       String   // "P.4"
+  levelId         String
+  level           Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  order           Int      @default(0)
+  phase           String?  // "Transition year"
+  description     String?
+  color           String   @default("#10b981")
+  freshTeacherKey String?  // "PrimaryFour"
+  isActive        Boolean  @default(true)
+
+  subjects   Subject[]
+  students   User[]
+  papers     Paper[]
+  resources  ExternalResource[]
+  classrooms Classroom[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Subject {
-  id        String   @id @default(cuid())
-  name      String
-  levelId   String
-  level     Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
-  papers    Paper[]
-  
+  id              String     @id @default(cuid())
+  slug            String
+  name            String
+  classGradeId    String
+  classGrade      ClassGrade @relation(fields: [classGradeId], references: [id], onDelete: Cascade)
+  color           String     @default("#0ea5e9")
+  icon            String     @default("book")
+  order           Int        @default(0)
+  description     String?
+  freshTeacherKey String?    // "MTC", "Science", "SST" ...
+  isExaminable    Boolean    @default(true)
+
+  topics     Topic[]
+  papers     Paper[]
+  notes      Note[]
+  resources  ExternalResource[]
+  classrooms Classroom[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([name, levelId])
+  @@unique([slug, classGradeId])
+}
+
+model Topic {
+  id        String   @id @default(cuid())
+  slug      String
+  name      String
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  term      Int?     // 1 | 2 | 3
+  order     Int      @default(0)
+  summary   String?
+
+  notes     Note[]
+  papers    Paper[]
+  questions Question[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slug, subjectId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Learning content
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Note {
+  id             String   @id @default(cuid())
+  slug           String
+  title          String
+  subjectId      String
+  subject        Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topicId        String?
+  topic          Topic?   @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  summary        String?
+  content        String   // Markdown
+  readingMinutes Int      @default(5)
+  order          Int      @default(0)
+  sourceType     String   @default("LOCAL") // LOCAL | FRESH_TEACHER | UPLOAD
+  sourceUrl      String?
+  pdfUrl         String?
+  attribution    String?
+  status         String   @default("PUBLISHED") // DRAFT | PUBLISHED
+  authorId       String?
+  author         User?    @relation("NoteAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slug, subjectId])
 }
 
 model Paper {
-  id        String     @id @default(cuid())
-  title     String     // e.g., "PLE Mathematics 2022"
-  year      Int?
-  subjectId String
-  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  pdfUrl    String?    // Original source if available
+  id              String     @id @default(cuid())
+  title           String
+  description     String?
+  kind            String     @default("PAST_PAPER") // PAST_PAPER | TOPIC_QUIZ | PRACTICE_SET | HOLIDAY_PACKAGE | MOCK
+  year            Int?
+  term            Int?
+  examBody        String?    // UNEB, school name, etc.
+  subjectId       String
+  subject         Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  classGradeId    String?
+  classGrade      ClassGrade? @relation(fields: [classGradeId], references: [id], onDelete: SetNull)
+  topicId         String?
+  topic           Topic?     @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  pdfUrl          String?
+  sourceUrl       String?
+  sourceType      String     @default("LOCAL") // LOCAL | FRESH_TEACHER | UPLOAD | LEGACY_OCR
+  attribution     String?
+  externalId      String?    @unique
+  status          String     @default("PUBLISHED") // DRAFT | PUBLISHED | ARCHIVED
+  durationMinutes Int?
+  difficulty      String?    // EASY | MEDIUM | HARD
+  authorId        String?
+  author          User?      @relation("PaperAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
   questions Question[]
   attempts  Attempt[]
-  
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  resources ExternalResource[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// Examination Engine
 model Question {
-  id            String       @id @default(cuid())
-  paperId       String
-  paper         Paper        @relation(fields: [paperId], references: [id], onDelete: Cascade)
-  type          String       // Enum QuestionType: MULTIPLE_CHOICE, FILL_BLANK, etc.
-  prompt        String
-  options       String?      // Stringified JSON array of options
-  correctAnswer String       // Stringified JSON
-  points        Int          @default(1)
-  order         Int
-  
-  answers       Answer[]
-  
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id               String   @id @default(cuid())
+  paperId          String
+  paper            Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  topicId          String?
+  topic            Topic?   @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  type             String   // MULTIPLE_CHOICE | FILL_BLANK | SHORT_ANSWER | NUMERIC | TRUE_FALSE | MATCHING | COMPREHENSION | LONG_ANSWER | DRAWING
+  displayNumber    String?
+  section          String?
+  stimulus         String?  // Passage / instruction shared with the question (markdown)
+  imageUrl         String?
+  prompt           String
+  options          String?  // JSON string[]
+  correctAnswer    String   // JSON (string | string[] | number | pairs)
+  acceptedAnswers  String?  // JSON string[] alternative accepted spellings
+  explanation      String?
+  markingGuide     String?  // Rubric / keywords for teacher & AI
+  numericTolerance Float?
+  caseSensitive    Boolean  @default(false)
+  requiresTeacher  Boolean  @default(false)
+  points           Float    @default(1)
+  order            Int
+
+  answers Answer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// Student Tracking
+// ─────────────────────────────────────────────────────────────────────────────
+// Attempts & marking
+// ─────────────────────────────────────────────────────────────────────────────
+
 model Attempt {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  paperId     String
-  paper       Paper     @relation(fields: [paperId], references: [id], onDelete: Cascade)
-  score       Int       @default(0)
-  startedAt   DateTime  @default(now())
-  completedAt DateTime?
-  
-  answers     Answer[]
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paperId          String
+  paper            Paper     @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  mode             String    @default("PRACTICE") // PRACTICE | EXAM
+  status           String    @default("SUBMITTED") // IN_PROGRESS | SUBMITTED | NEEDS_REVIEW | GRADED
+  score            Float     @default(0)
+  maxScore         Float     @default(0)
+  pendingCount     Int       @default(0)
+  timeSpentSeconds Int?
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+  gradedAt         DateTime?
+
+  answers Answer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Answer {
@@ -102,14 +293,163 @@ model Answer {
   attempt       Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   questionId    String
   question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  
-  studentAnswer String?  // Stringified JSON
-  isCorrect     Boolean? // Null if needs manual/AI marking
-  pointsAwarded Int?     // Could be partial points
+
+  studentAnswer String?  // Raw text / JSON / data-url for drawings
+  isCorrect     Boolean?
+  pointsAwarded Float?
+  gradingStatus String   @default("PENDING_TEACHER") // UNANSWERED | AUTO | AI | PENDING_TEACHER | TEACHER_MARKED
+  feedback      String?  // Shown to the student
   teacherNote   String?
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+  markedById    String?
+  markedBy      User?    @relation("MarkedBy", fields: [markedById], references: [id], onDelete: SetNull)
+  markedAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([attemptId, questionId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// External content (Fresh Teacher library) & operations
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ExternalResource {
+  id             String      @id @default(cuid())
+  source         String      @default("FRESH_TEACHER")
+  kind           String      // PAST_PAPER | LESSON_NOTES | SCHEME_OF_WORK | HOLIDAY_PACKAGE
+  feed           String      // e.g. PrimarySevenSciencePastPapers
+  classGradeId   String?
+  classGrade     ClassGrade? @relation(fields: [classGradeId], references: [id], onDelete: SetNull)
+  subjectId      String?
+  subject        Subject?    @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  subjectKey     String?
+  title          String
+  description    String?
+  pdfUrl         String      @unique
+  year           Int?
+  term           Int?
+  status         String      @default("LISTED") // LISTED | IMPORTED | HIDDEN | BROKEN
+  importedPaperId String?
+  importedPaper  Paper?      @relation(fields: [importedPaperId], references: [id], onDelete: SetNull)
+  firstSeenAt    DateTime    @default(now())
+  lastSeenAt     DateTime    @default(now())
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model SyncLog {
+  id          String   @id @default(cuid())
+  source      String   @default("FRESH_TEACHER")
+  feed        String
+  itemCount   Int      @default(0)
+  newCount    Int      @default(0)
+  status      String   @default("OK") // OK | ERROR | EMPTY
+  message     String?
+  triggeredById String?
+  triggeredBy User?    @relation(fields: [triggeredById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+}
+
+model Classroom {
+  id          String     @id @default(cuid())
+  name        String
+  code        String     @unique
+  description String?
+  teacherId   String
+  teacher     User       @relation("ClassroomTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  classGradeId String
+  classGrade  ClassGrade @relation(fields: [classGradeId], references: [id], onDelete: Cascade)
+  subjectId   String?
+  subject     Subject?   @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  enrollments Enrollment[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  classroomId String
+  classroom   Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([classroomId, userId])
+}
+
+model School {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  district  String?
+  ownerId   String   @unique
+  owner     User     @relation("SchoolOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members   User[]   @relation("SchoolMember")
+  charges   FeeCharge[]
+  payments  FeePayment[]
+  attendance AttendanceMark[]
+  messages  SchoolMessage[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FeeCharge {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String
+  amount    Int
+  createdAt DateTime @default(now())
+}
+
+model FeePayment {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model AttendanceMark {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("StudentAttendance", fields: [userId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   User     @relation("TeacherAttendance", fields: [teacherId], references: [id], onDelete: Cascade)
+  day       String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, day])
+}
+
+model SchoolMessage {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  fromId    String
+  from      User     @relation("MessageFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toId      String
+  to        User     @relation("MessageTo", fields: [toId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Feedback {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  category   String   // CONTESTED_ANSWER | CONTENT_ISSUE | FEATURE_REQUEST | GENERAL
+  message    String
+  paperId    String?
+  questionId String?
+  status     String   @default("OPEN") // OPEN | RESOLVED
+  createdAt  DateTime @default(now())
 }

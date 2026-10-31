@@ -1,113 +1,69 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { BookOpen, CheckCircle, GraduationCap, ChevronRight, PenTool } from "lucide-react";
-import * as motion from "framer-motion/client";
+import { BookOpenCheck, PenLine, Users } from "lucide-react";
+import { BrandMark } from "@/components/shell";
+import { SiteFooter } from "@/components/site-footer";
+
+const rooms = ["Baby–Top", "P.1–P.3", "P.4–P.6", "P.7"];
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Navbar */}
-      <header className="px-6 py-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-50 border-b">
-        <div className="flex items-center gap-2">
-          <div className="bg-primary text-white p-2 rounded-xl">
-            <GraduationCap className="h-6 w-6" />
-          </div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight">School Quest</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/login">
-            <Button variant="ghost" className="font-bold text-base hidden sm:inline-flex">
-              Sign In
-            </Button>
-          </Link>
-          <Link href="/login">
-            <Button className="font-bold rounded-full px-6 shadow-sm hover:shadow-md transition-all">
-              Start Free Trial
-            </Button>
+    <div className="min-h-screen flex flex-col">
+      <header className="px-5 md:px-10 py-5 flex items-center justify-between">
+        <BrandMark />
+        <div className="flex items-center gap-3">
+          <Link href="/login" className="hidden sm:inline text-sm font-bold">Sign in</Link>
+          <Link href="/login" className="rounded-full bg-primary text-white px-5 py-2.5 text-sm font-bold shadow-lg">
+            Start
           </Link>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center text-center px-4 pt-16 pb-24 max-w-4xl mx-auto w-full">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="space-y-6"
-        >
-          <span className="inline-block bg-primary/10 text-primary font-bold px-4 py-1.5 rounded-full text-sm mb-2">
-            Built for the Ugandan Curriculum 🇺🇬
-          </span>
-          <h2 className="text-5xl md:text-7xl font-black text-foreground leading-[1.1] tracking-tight">
-            Master your exams with <span className="text-primary block sm:inline">confidence.</span>
-          </h2>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            The easiest way for Ugandan students to practice real UNEB past papers (PLE, UCE, UACE) from Nursery to University, draw answers, and get instant AI grading.
-          </p>
-          
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/login" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all gap-2">
-                Start Practicing Now <ChevronRight className="h-5 w-5" />
-              </Button>
-            </Link>
+      <main className="px-5 md:px-10 pb-10 flex-1">
+        <section className="max-w-6xl mx-auto grid lg:grid-cols-[1.15fr_0.85fr] gap-10 items-center pt-6">
+          <div className="space-y-6">
+            <h1 className="font-display text-5xl md:text-7xl leading-[0.95] text-[var(--ink)]">
+              Baby Class to P.7.
+            </h1>
+            <p className="text-lg text-muted-foreground">Read. Practice. Get marked.</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link href="/login" className="rounded-full bg-primary text-white px-7 py-3.5 text-base font-bold text-center shadow-xl">
+                Enter
+              </Link>
+              <Link href="/register/teacher" className="rounded-full bg-white border px-7 py-3.5 text-base font-bold text-center">
+                Teach
+              </Link>
+            </div>
           </div>
-
-          {/* Authentic Ugandan school children in uniform product image */}
-          <div className="mt-12 w-full max-w-3xl rounded-[2rem] overflow-hidden border-4 border-white shadow-xl">
+          <div className="relative overflow-hidden rounded-[2.2rem] min-h-[280px] shadow-2xl">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80" 
-              alt="Ugandan Primary School Students Smiling in Uniform"
-              className="w-full h-auto object-cover max-h-[380px] object-center"
-            />
+            <img src="/hero-students.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
           </div>
-        </motion.div>
+        </section>
 
-        {/* Feature Grid */}
-        <motion.div 
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-24 w-full"
-        >
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-border/50 text-left hover:shadow-md transition-shadow">
-            <div className="bg-blue-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
-              <BookOpen className="h-7 w-7 text-secondary" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">UNEB Past Papers</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Access hundreds of digitized national exam papers from PLE (Primary), UCE (O-Level), to UACE (A-Level) structured for your mobile screen.
-            </p>
-          </div>
+        <section className="max-w-6xl mx-auto mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {rooms.map((title) => (
+            <Link key={title} href="/login" className="room-card rounded-3xl p-5 border">
+              <p className="font-display text-2xl">{title}</p>
+            </Link>
+          ))}
+        </section>
 
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-border/50 text-left hover:shadow-md transition-shadow">
-            <div className="bg-green-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
-              <CheckCircle className="h-7 w-7 text-primary" />
+        <section className="max-w-6xl mx-auto mt-8 grid md:grid-cols-3 gap-3">
+          {[
+            [BookOpenCheck, "Read"],
+            [PenLine, "Practice"],
+            [Users, "Teacher marks"],
+          ].map(([Icon, title]) => (
+            <div key={String(title)} className="rounded-3xl bg-white border p-5 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary grid place-items-center">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h3 className="font-display text-2xl">{title as string}</h3>
             </div>
-            <h3 className="text-xl font-bold mb-3">Instant AI Grading</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Submit your answers and get immediate feedback. Our AI understands your typed answers and guides your learning.
-            </p>
-          </div>
-
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-border/50 text-left hover:shadow-md transition-shadow">
-            <div className="bg-amber-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
-              <PenTool className="h-7 w-7 text-accent" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">Interactive Canvas</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Drawing questions are no longer a problem. Use your touch screen to draw shapes and diagrams right in the app.
-            </p>
-          </div>
-        </motion.div>
+          ))}
+        </section>
       </main>
-      
-      {/* Footer */}
-      <footer className="bg-white border-t py-8 text-center text-muted-foreground">
-        <p className="font-medium">© {new Date().getFullYear()} School Quest Uganda. All rights reserved.</p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

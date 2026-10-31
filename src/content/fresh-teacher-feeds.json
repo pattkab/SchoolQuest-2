@@ -1,0 +1,2822 @@
+[
+ {
+  "feed": "BabyAllLessonNotes",
+  "classKey": "BabyClass",
+  "subjectKey": "All",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "BabyClassAllSchemesofWork",
+  "classKey": "BabyClass",
+  "subjectKey": "All",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "BabyClassEnglishPastPapers",
+  "classKey": "BabyClass",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "BabyClassGeneralKnowledgePastPapers",
+  "classKey": "BabyClass",
+  "subjectKey": "GeneralKnowledge",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "BabyClassHealthHabitsPastPapers",
+  "classKey": "BabyClass",
+  "subjectKey": "HealthHabits",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "BabyClassHolidayPackages",
+  "classKey": "BabyClass",
+  "subjectKey": "All",
+  "kind": "HOLIDAY_PACKAGE"
+ },
+ {
+  "feed": "BabyClassLanguageDevelopmentPastPapers",
+  "classKey": "BabyClass",
+  "subjectKey": "LanguageDevelopment",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "BabyClassLiteracyPastPapers",
+  "classKey": "BabyClass",
+  "subjectKey": "Literacy",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "BabyClassMathemeticalConceptsPastPapers",
+  "classKey": "BabyClass",
+  "subjectKey": "MathemeticalConcepts",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "BabyClassReadingPastPapers",
+  "classKey": "BabyClass",
+  "subjectKey": "Reading",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "BabyClassSocialDevelopmentPastPapers",
+  "classKey": "BabyClass",
+  "subjectKey": "SocialDevelopment",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "BabyClassWritingTheologyPastPapers",
+  "classKey": "BabyClass",
+  "subjectKey": "WritingTheology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "MiddleClassAllPastPapers",
+  "classKey": "MiddleClass",
+  "subjectKey": "All",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "MiddleClassAllSchemesofWork",
+  "classKey": "MiddleClass",
+  "subjectKey": "All",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "MiddleClassEnglishPastPapers",
+  "classKey": "MiddleClass",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "MiddleClassHealthHabitsPastPapers",
+  "classKey": "MiddleClass",
+  "subjectKey": "HealthHabits",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "MiddleClassHolidayPackages",
+  "classKey": "MiddleClass",
+  "subjectKey": "All",
+  "kind": "HOLIDAY_PACKAGE"
+ },
+ {
+  "feed": "MiddleClassLanguageDevelopmentPastPapers",
+  "classKey": "MiddleClass",
+  "subjectKey": "LanguageDevelopment",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "MiddleClassLessonNotes",
+  "classKey": "MiddleClass",
+  "subjectKey": "All",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "MiddleClassMathemeticalConceptsPastPapers",
+  "classKey": "MiddleClass",
+  "subjectKey": "MathemeticalConcepts",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "MiddleClassReadingPastPapers",
+  "classKey": "MiddleClass",
+  "subjectKey": "Reading",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "MiddleClassSocialDevelopmentPastPapers",
+  "classKey": "MiddleClass",
+  "subjectKey": "SocialDevelopment",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "MiddleClassWritingTheologyPastPapers",
+  "classKey": "MiddleClass",
+  "subjectKey": "WritingTheology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFiveArtSchemesofWork",
+  "classKey": "PrimaryFive",
+  "subjectKey": "Art",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryFiveEnglishLessonNotes",
+  "classKey": "PrimaryFive",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryFiveEnglishPastPapers",
+  "classKey": "PrimaryFive",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFiveEnglishSchemesofWork",
+  "classKey": "PrimaryFive",
+  "subjectKey": "English",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryFiveICTPastPapers",
+  "classKey": "PrimaryFive",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFiveMTCLessonNotes",
+  "classKey": "PrimaryFive",
+  "subjectKey": "MTC",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryFiveMTCPastPapers",
+  "classKey": "PrimaryFive",
+  "subjectKey": "MTC",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFiveMTCSchemesofWork",
+  "classKey": "PrimaryFive",
+  "subjectKey": "MTC",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryFivePESchemesofWork",
+  "classKey": "PrimaryFive",
+  "subjectKey": "PE",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryFivePackagesPastPapers",
+  "classKey": "PrimaryFive",
+  "subjectKey": "Packages",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFiveRELessonNotes",
+  "classKey": "PrimaryFive",
+  "subjectKey": "RE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryFiveREPastPapers",
+  "classKey": "PrimaryFive",
+  "subjectKey": "RE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFiveRESchemesofWork",
+  "classKey": "PrimaryFive",
+  "subjectKey": "RE",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryFiveSSTLessonNotes",
+  "classKey": "PrimaryFive",
+  "subjectKey": "SST",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryFiveSSTPastPapers",
+  "classKey": "PrimaryFive",
+  "subjectKey": "SST",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFiveSSTSchemesofWork",
+  "classKey": "PrimaryFive",
+  "subjectKey": "SST",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryFiveScienceLessonNotes",
+  "classKey": "PrimaryFive",
+  "subjectKey": "Science",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryFiveSciencePastPapers",
+  "classKey": "PrimaryFive",
+  "subjectKey": "Science",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFiveScienceSchemesofWork",
+  "classKey": "PrimaryFive",
+  "subjectKey": "Science",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryFiveTheologyPastPapers",
+  "classKey": "PrimaryFive",
+  "subjectKey": "Theology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFourAllLessonNotes",
+  "classKey": "PrimaryFour",
+  "subjectKey": "All",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryFourAllSchemesofWork",
+  "classKey": "PrimaryFour",
+  "subjectKey": "All",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryFourEnglishPastPapers",
+  "classKey": "PrimaryFour",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFourICTPastPapers",
+  "classKey": "PrimaryFour",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFourIREPastPapers",
+  "classKey": "PrimaryFour",
+  "subjectKey": "IRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFourKiswahiliPastPapers",
+  "classKey": "PrimaryFour",
+  "subjectKey": "Kiswahili",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFourMTCPastPapers",
+  "classKey": "PrimaryFour",
+  "subjectKey": "MTC",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFourPackagesPastPapers",
+  "classKey": "PrimaryFour",
+  "subjectKey": "Packages",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFourREPastPapers",
+  "classKey": "PrimaryFour",
+  "subjectKey": "RE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFourSSTPastPapers",
+  "classKey": "PrimaryFour",
+  "subjectKey": "SST",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFourSciencePastPapers",
+  "classKey": "PrimaryFour",
+  "subjectKey": "Science",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryFourTheologyPastPapers",
+  "classKey": "PrimaryFour",
+  "subjectKey": "Theology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryOneAllSchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "All",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOneEnglishLessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneEnglishPastPapers",
+  "classKey": "PrimaryOne",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryOneEnglishSchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "English",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOneICTLessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "ICT",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneICTPastPapers",
+  "classKey": "PrimaryOne",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryOneLit1LessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Lit1",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneLit1PastPapers",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Lit1",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryOneLit1SchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Lit1",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOneLit2LSchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Lit2",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOneLit2LessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Lit2",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneLit2PastPapers",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Lit2",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryOneLugandaLessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Luganda",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneLugandaPastPapers",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Luganda",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryOneLugandaSchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Luganda",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOneMTCLessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "MTC",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneMTCPastPapers",
+  "classKey": "PrimaryOne",
+  "subjectKey": "MTC",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryOneMTCSchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "MTC",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOneMusicSchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Music",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOneNewsLessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "News",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneOralLiteratureLessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "OralLiterature",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOnePESchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "PE",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOnePackagesPastPapers",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Packages",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryOneRELessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "RE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneREPastPapers",
+  "classKey": "PrimaryOne",
+  "subjectKey": "RE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryOneRESchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "RE",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOneReadingLessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Reading",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneReadingPastPapers",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Reading",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryOneReadingSchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Reading",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOneRunyankoreRukigaLessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "RunyankoreRukiga",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneThematicLessonNotes",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Thematic",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryOneThematicSchemesofWork",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Thematic",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryOneTheologyPastPapers",
+  "classKey": "PrimaryOne",
+  "subjectKey": "Theology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySevenArtLessonNotes",
+  "classKey": "PrimarySeven",
+  "subjectKey": "Art",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySevenArtSchemesofWork",
+  "classKey": "PrimarySeven",
+  "subjectKey": "Art",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySevenEnglishLessonNotes",
+  "classKey": "PrimarySeven",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySevenEnglishPastPapers",
+  "classKey": "PrimarySeven",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySevenEnglishSchemesofWork",
+  "classKey": "PrimarySeven",
+  "subjectKey": "English",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySevenICTLessonNotes",
+  "classKey": "PrimarySeven",
+  "subjectKey": "ICT",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySevenMTCLessonNotes",
+  "classKey": "PrimarySeven",
+  "subjectKey": "MTC",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySevenMTCPastPapers",
+  "classKey": "PrimarySeven",
+  "subjectKey": "MTC",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySevenMTCSchemesofWork",
+  "classKey": "PrimarySeven",
+  "subjectKey": "MTC",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySevenRELessonNotes",
+  "classKey": "PrimarySeven",
+  "subjectKey": "RE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySevenRESchemesofWork",
+  "classKey": "PrimarySeven",
+  "subjectKey": "RE",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySevenSSTLessonNotes",
+  "classKey": "PrimarySeven",
+  "subjectKey": "SST",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySevenSSTPastPapers",
+  "classKey": "PrimarySeven",
+  "subjectKey": "SST",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySevenSSTSchemesofWork",
+  "classKey": "PrimarySeven",
+  "subjectKey": "SST",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySevenScienceLessonNotes",
+  "classKey": "PrimarySeven",
+  "subjectKey": "Science",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySevenSciencePastPapers",
+  "classKey": "PrimarySeven",
+  "subjectKey": "Science",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySevenScienceSchemesofWork",
+  "classKey": "PrimarySeven",
+  "subjectKey": "Science",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySixArtSchemesofWork",
+  "classKey": "PrimarySix",
+  "subjectKey": "Art",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySixEnglishLessonNotes",
+  "classKey": "PrimarySix",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySixEnglishPastPapers",
+  "classKey": "PrimarySix",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySixEnglishSchemesofWork",
+  "classKey": "PrimarySix",
+  "subjectKey": "English",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySixICTLessonNotes",
+  "classKey": "PrimarySix",
+  "subjectKey": "ICT",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySixICTPastPapers",
+  "classKey": "PrimarySix",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySixKiswahiliPastPapers",
+  "classKey": "PrimarySix",
+  "subjectKey": "Kiswahili",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySixMTCLessonNotes",
+  "classKey": "PrimarySix",
+  "subjectKey": "MTC",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySixMTCPastPapers",
+  "classKey": "PrimarySix",
+  "subjectKey": "MTC",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySixMTCSchemesofWork",
+  "classKey": "PrimarySix",
+  "subjectKey": "MTC",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySixPackagesPastPapers",
+  "classKey": "PrimarySix",
+  "subjectKey": "Packages",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySixRELessonNotes",
+  "classKey": "PrimarySix",
+  "subjectKey": "RE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySixREPastPapers",
+  "classKey": "PrimarySix",
+  "subjectKey": "RE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySixRESchemesofWork",
+  "classKey": "PrimarySix",
+  "subjectKey": "RE",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySixSSTLessonNotes",
+  "classKey": "PrimarySix",
+  "subjectKey": "SST",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySixSSTPastPapers",
+  "classKey": "PrimarySix",
+  "subjectKey": "SST",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySixSSTSchemesofWork",
+  "classKey": "PrimarySix",
+  "subjectKey": "SST",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimarySixScienceLessonNotes",
+  "classKey": "PrimarySix",
+  "subjectKey": "Science",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimarySixSciencePastPapers",
+  "classKey": "PrimarySix",
+  "subjectKey": "Science",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimarySixScienceSchemesofWork",
+  "classKey": "PrimarySix",
+  "subjectKey": "Science",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeAgricSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Agric",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeAllSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "All",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeArtLessonNotes",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Art",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryThreeArtSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Art",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeEnglishLessonNotes",
+  "classKey": "PrimaryThree",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryThreeEnglishPastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryThreeEnglishSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "English",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeICTPastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryThreeICTSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "ICT",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeKiswahiliPastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Kiswahili",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryThreeLit1LessonNotes",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Lit1",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryThreeLit1PastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Lit1",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryThreeLit2LessonNotes",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Lit2",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryThreeLit2PastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Lit2",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryThreeLugandaLessonNotes",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Luganda",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryThreeLugandaPastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Luganda",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryThreeLugandaSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Luganda",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeMTCLessonNotes",
+  "classKey": "PrimaryThree",
+  "subjectKey": "MTC",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryThreeMTCPastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "MTC",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryThreeMTCSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "MTC",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreePESchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "PE",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreePackagesPastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Packages",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryThreeRELessonNotes",
+  "classKey": "PrimaryThree",
+  "subjectKey": "RE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryThreeREPastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "RE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryThreeRESchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "RE",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeReadingLessonNotes",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Reading",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryThreeReadingPastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Reading",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryThreeReadingSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Reading",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeRunyankoreRukigaLessonNotes",
+  "classKey": "PrimaryThree",
+  "subjectKey": "RunyankoreRukiga",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryThreeSSTSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "SST",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeScienceSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Science",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeThematicSchemesofWork",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Thematic",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryThreeWritingLessonNotes",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Writing",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryThreeWritingPastPapers",
+  "classKey": "PrimaryThree",
+  "subjectKey": "Writing",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryTwoAllLessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "All",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoAllSchemesofWork",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "All",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryTwoEnglishLessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoEnglishPastPapers",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryTwoEnglishSchemesofWork",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "English",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryTwoHolidayPackages",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "All",
+  "kind": "HOLIDAY_PACKAGE"
+ },
+ {
+  "feed": "PrimaryTwoICTLessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "ICT",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoICTPastPapers",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryTwoLit1LessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Lit1",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoLit1PastPapers",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Lit1",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryTwoLit1SchemesofWork",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Lit1",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryTwoLit2LessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Lit2",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoLit2PastPapers",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Lit2",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryTwoLit2SchemesofWork",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Lit2",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryTwoLugandaLessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Luganda",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoLugandaPastPapers",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Luganda",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryTwoLugandaSchemesofWork",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Luganda",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryTwoMTCLessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "MTC",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoMTCPastPapers",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "MTC",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryTwoMTCSchemesofWork",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "MTC",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryTwoNewsLessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "News",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoPELessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "PE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoPESchemesofWork",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "PE",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryTwoRELessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "RE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoREPastPapers",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "RE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryTwoRESchemesofWork",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "RE",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryTwoReadingLessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Reading",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoReadingPastPapers",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Reading",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryTwoReadingSchemesofWork",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Reading",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryTwoRunyankoreRukigaLessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "RunyankoreRukiga",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoThematicLessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Thematic",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoThematicSchemesofWork",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Thematic",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "PrimaryTwoTheologyPastPapers",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Theology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "PrimaryTwoWritingLessonNotes",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Writing",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "PrimaryTwoWritingPastPapers",
+  "classKey": "PrimaryTwo",
+  "subjectKey": "Writing",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveAgriculturePastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Agriculture",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveAllPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "All",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveArtPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Art",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveBiologyLessonNotes",
+  "classKey": "SeniorFive",
+  "subjectKey": "Biology",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFiveBiologyPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Biology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveChemistryPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Chemistry",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveDivinityPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Divinity",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveEconomicsPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Economics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveEntrepreneurshipPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Entrepreneurship",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveGPLessonNotes",
+  "classKey": "SeniorFive",
+  "subjectKey": "GP",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFiveGeneralPaperPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "GeneralPaper",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveGeographyPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Geography",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveGermanPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "German",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveHistoryLessonNotes",
+  "classKey": "SeniorFive",
+  "subjectKey": "History",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFiveHistoryPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "History",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveICTPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveIREPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "IRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveKiswahiliPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Kiswahili",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveLiteratureLessonNotes",
+  "classKey": "SeniorFive",
+  "subjectKey": "Literature",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFiveLiteraturePastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Literature",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveLugandaPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Luganda",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFiveMathematicsLessonNotes",
+  "classKey": "SeniorFive",
+  "subjectKey": "Mathematics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFiveMathematicsPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Mathematics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFivePhysicsLessonNotes",
+  "classKey": "SeniorFive",
+  "subjectKey": "Physics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFivePhysicsPastPapers",
+  "classKey": "SeniorFive",
+  "subjectKey": "Physics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourAccountsPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Accounts",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourAgricultureLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Agriculture",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourAgriculturePastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Agriculture",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourArabicLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Arabic",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourArabicPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Arabic",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourArtLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Art",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourArtPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Art",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourBiologyLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Biology",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourBiologyPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Biology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourCRELessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "CRE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourCREPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "CRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourChemistryLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Chemistry",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourChemistryPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Chemistry",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourChineseLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Chinese",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourCommerceLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Commerce",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourCommercePastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Commerce",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourEconomicsLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Economics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourEconomicsPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Economics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourEnglishLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourEnglishPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourEntrepreneurshipLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Entrepreneurship",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourEntreprenuershipPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Entreprenuership",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourFNLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "FN",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourFNPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "FN",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourFrenchLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "French",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourFrenchPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "French",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourGeographyLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Geography",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourGermanLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "German",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourHistoryLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "History",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourHistoryPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "History",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourHolidayPackages",
+  "classKey": "SeniorFour",
+  "subjectKey": "All",
+  "kind": "HOLIDAY_PACKAGE"
+ },
+ {
+  "feed": "SeniorFourICTLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "ICT",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourICTPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourIPSPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "IPS",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourIRELessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "IRE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourIREPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "IRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourKiswahiliLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Kiswahili",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourKiswahiliPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Kiswahili",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourLatinLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Latin",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourLiteratureLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Literature",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourLiteraturePastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Literature",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourLugandaLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Luganda",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourLugandaPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Luganda",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourLumasabaPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Lumasaba",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourLusogaPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Lusoga",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourMathematicsLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Mathematics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourMathematicsPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Mathematics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourPhysicsLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "Physics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorFourPhysicsPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Physics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourRunyoroPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "Runyoro",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourStudioTechnologyPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "StudioTechnology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourTDPastPapers",
+  "classKey": "SeniorFour",
+  "subjectKey": "TD",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorFourTechnologyandDesignLessonNotes",
+  "classKey": "SeniorFour",
+  "subjectKey": "TechnologyandDesign",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneAgricultureLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Agriculture",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneAgriculturePastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Agriculture",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneAllPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "All",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneArabicLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Arabic",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneArtLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Art",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneArtPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Art",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneBiologyLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Biology",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneBiologyPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Biology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneCRELessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "CRE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneCREPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "CRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneChemistryLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Chemistry",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneChemistryPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Chemistry",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneCommerceLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Commerce",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneCommercePastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Commerce",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneEnglishLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneEnglishPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneEntrepreneurshipLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Entrepreneurship",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneEntrepreneurshipPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Entrepreneurship",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneFNLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "FN",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneFNPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "FN",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneFrenchLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "French",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneGeographyLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Geography",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneGeographyPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Geography",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneGermanLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "German",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneHistoryLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "History",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneHistoryPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "History",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneHolidayPackages",
+  "classKey": "SeniorOne",
+  "subjectKey": "All",
+  "kind": "HOLIDAY_PACKAGE"
+ },
+ {
+  "feed": "SeniorOneICTLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "ICT",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneICTPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneIRELessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "IRE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneIREPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "IRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneKiswahiliLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Kiswahili",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneKiswahiliPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Kiswahili",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneLatinLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Latin",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneLiteratureLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Literature",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneLiteraturePastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Literature",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneLugandaLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Luganda",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneMathematicsLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Mathematics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneMathematicsPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Mathematics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneMusicPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Music",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOnePhysicalEducationPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "PhysicalEducation",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOnePhysicsLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "Physics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOnePhysicsPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "Physics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorOneSignLanguageLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "SignLanguage",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneTDLessonNotes",
+  "classKey": "SeniorOne",
+  "subjectKey": "TD",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorOneTDPastPapers",
+  "classKey": "SeniorOne",
+  "subjectKey": "TD",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixAgricultureLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Agriculture",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixAgriculturePastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Agriculture",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixAllPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "All",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixArabicPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Arabic",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixArtLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Art",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixArtPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Art",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixBiologyLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Biology",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixBiologyPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Biology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixChemistryLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Chemistry",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixChemistryPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Chemistry",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixCommercePastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Commerce",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixDivinityLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Divinity",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixDivityPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Divity",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixEconomicsLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Economics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixEnglishLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixEnglishPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixEntrepreneurshipLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Entrepreneurship",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixEntrepreneurshipPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Entrepreneurship",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixFNPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "FN",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixFrenchPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "French",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixGPLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "GP",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixGPPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "GP",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixGeographyLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Geography",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixGeographyPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Geography",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixGermanPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "German",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixHistoryLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "History",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixHistoryPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "History",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixICTLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "ICT",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixICTPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixIPSLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "IPS",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixIRELessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "IRE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixIREPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "IRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixKiswahiliLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Kiswahili",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixKiswahiliPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Kiswahili",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixLiteratureLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Literature",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixLiteraturePastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Literature",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixLugandaLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Luganda",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixLugandaPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Luganda",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixLumasabaPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Lumasaba",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixLusogaPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Lusoga",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixMathematicsLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Mathematics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixMathematicsPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Mathematics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixMixedLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Mixed",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixMusicPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Music",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixPhysicsLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "Physics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixPhysicsPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "Physics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixTDLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "TD",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorSixTDPastPapers",
+  "classKey": "SeniorSix",
+  "subjectKey": "TD",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorSixTechnicalDrawingLessonNotes",
+  "classKey": "SeniorSix",
+  "subjectKey": "TechnicalDrawing",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeAccountsPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Accounts",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeAgricultureLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Agriculture",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeAgriculturePastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Agriculture",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeAllPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "All",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeArtLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Art",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeArtPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Art",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeBiologyLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Biology",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeBiologyPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Biology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeCRELessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "CRE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeCREPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "CRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeChemistryLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Chemistry",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeChemistryPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Chemistry",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeCommerceLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Commerce",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeCommercePastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Commerce",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeEnglishLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeEnglishPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeEntrepreneurshipLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Entrepreneurship",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeEntrepreneurshipPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Entrepreneurship",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeFNLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "FN",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeFNPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "FN",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeGeographyLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Geography",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeGeographyPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Geography",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeHistoryLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "History",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeHistoryPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "History",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeHolidayPackages",
+  "classKey": "SeniorThree",
+  "subjectKey": "All",
+  "kind": "HOLIDAY_PACKAGE"
+ },
+ {
+  "feed": "SeniorThreeICTLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "ICT",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeICTPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeIRELessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "IRE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeIREPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "IRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeKiswahiliLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Kiswahili",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeKiswahiliPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Kiswahili",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeLatinLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Latin",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeLiteratureLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Literature",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeLiteraturePastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Literature",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeLugandaLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Luganda",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeLugandaPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Luganda",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeMathematicsLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Mathematics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeMathematicsPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Mathematics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreePhysicsLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "Physics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreePhysicsPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "Physics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorThreeTDLessonNotes",
+  "classKey": "SeniorThree",
+  "subjectKey": "TD",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorThreeTDPastPapers",
+  "classKey": "SeniorThree",
+  "subjectKey": "TD",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoAgricultureLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Agriculture",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoAgriculturePastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Agriculture",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoAllPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "All",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoArtLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Art",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoArtPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Art",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoBiologyLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Biology",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoBiologyPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Biology",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoCRELessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "CRE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoCREPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "CRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoChemistryLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Chemistry",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoChemistryPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Chemistry",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoChineseLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Chinese",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoChinesePastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Chinese",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoCommerceLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Commerce",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoCommercePastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Commerce",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoEnglishLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "English",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoEnglishPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoEntrepreneurshipLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Entrepreneurship",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoEntrepreneurshipPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Entrepreneurship",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoFNLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "FN",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoFNPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "FN",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoFrenchLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "French",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoFrenchPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "French",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoGeographyLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Geography",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoGeographyPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Geography",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoGermanLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "German",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoHistoryLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "History",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoHistoryPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "History",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoHolidayPackages",
+  "classKey": "SeniorTwo",
+  "subjectKey": "All",
+  "kind": "HOLIDAY_PACKAGE"
+ },
+ {
+  "feed": "SeniorTwoICTLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "ICT",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoICTPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "ICT",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoIRELessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "IRE",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoIREPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "IRE",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoKiswahiliLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Kiswahili",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoKiswahiliPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Kiswahili",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoLatinLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Latin",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoLiteratureLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Literature",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoLiteraturePastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Literature",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoLugandaLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Luganda",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoLugandaPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Luganda",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoMathematicsLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Mathematics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoMathematicsPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Mathematics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoMusicPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Music",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoPhysicalEducationPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "PhysicalEducation",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoPhysicsLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Physics",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoPhysicsPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "Physics",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoSignLanguageLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "SignLanguage",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoTDPastPapers",
+  "classKey": "SeniorTwo",
+  "subjectKey": "TD",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "SeniorTwoTechnicalDrawingLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "TechnicalDrawing",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "SeniorTwoTechnologyandDesignLessonNotes",
+  "classKey": "SeniorTwo",
+  "subjectKey": "TechnologyandDesign",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "TopAllLessonNotes",
+  "classKey": "TopClass",
+  "subjectKey": "All",
+  "kind": "LESSON_NOTES"
+ },
+ {
+  "feed": "TopClassAllSchemesofWork",
+  "classKey": "TopClass",
+  "subjectKey": "All",
+  "kind": "SCHEME_OF_WORK"
+ },
+ {
+  "feed": "TopClassEnglishPastPapers",
+  "classKey": "TopClass",
+  "subjectKey": "English",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "TopClassHealthHabitsPastPapers",
+  "classKey": "TopClass",
+  "subjectKey": "HealthHabits",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "TopClassHolidayPackages",
+  "classKey": "TopClass",
+  "subjectKey": "All",
+  "kind": "HOLIDAY_PACKAGE"
+ },
+ {
+  "feed": "TopClassLanguageDevelopmentPastPapers",
+  "classKey": "TopClass",
+  "subjectKey": "LanguageDevelopment",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "TopClassLiteracyPastPapers",
+  "classKey": "TopClass",
+  "subjectKey": "Literacy",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "TopClassMathemeticalConceptsPastPapers",
+  "classKey": "TopClass",
+  "subjectKey": "MathemeticalConcepts",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "TopClassReadingPastPapers",
+  "classKey": "TopClass",
+  "subjectKey": "Reading",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "TopClassSocialDevelopmentPastPapers",
+  "classKey": "TopClass",
+  "subjectKey": "SocialDevelopment",
+  "kind": "PAST_PAPER"
+ },
+ {
+  "feed": "TopClassWritingTheologyPastPapers",
+  "classKey": "TopClass",
+  "subjectKey": "WritingTheology",
+  "kind": "PAST_PAPER"
+ }
+]

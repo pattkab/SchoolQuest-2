@@ -1,65 +1,101 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import bcrypt from "bcryptjs";
 import { db } from "./lib/db";
 
+if (!process.env.AUTH_SECRET) process.env.AUTH_SECRET = "schoolquest-web-auth-secret";
+
+const googleReady = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [
+    ...(googleReady
+      ? [Google({ clientId: process.env.AUTH_GOOGLE_ID!, clientSecret: process.env.AUTH_GOOGLE_SECRET! })]
+      : []),
     Credentials({
       name: "Phone Number",
       credentials: {
-        phone: { label: "Phone Number", type: "text", placeholder: "07..." },
-        password: { label: "Password", type: "password" }
+        phone: { label: "Phone Number", type: "text" },
+        password: { label: "Password", type: "password" },
+        intent: { label: "Intent", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.phone || !credentials?.password) return null;
-        
-        // Find user by phone
+        const phone = String(credentials?.phone || "").replace(/\s+/g, "");
+        const password = String(credentials?.password || "");
+        const intent = String(credentials?.intent || "STUDENT");
+        if (!phone || !password) return null;
+
         const user = await db.user.findUnique({
-          where: { phone: credentials.phone as string }
+          where: { phone },
+          include: { teacherProfile: true },
         });
 
-        // For MVP Phase 1: auto-create if not found or verify password (skip password hashing for initial speed if desired, but let's mock it)
-        if (!user) {
-          // Auto-register for easy onboarding during this prototyping phase
-          const trialEnds = new Date();
-          trialEnds.setDate(trialEnds.getDate() + 3);
-
-          const newUser = await db.user.create({
-            data: {
-              phone: credentials.phone as string,
-              trialStartsAt: new Date(),
-              trialEndsAt: trialEnds,
-              // In production, HASH the password!
-            }
-          });
-          return { id: newUser.id, phone: newUser.phone, role: newUser.role };
+        if (!user) return null;
+        if (user.passwordHash && !bcrypt.compareSync(password, user.passwordHash)) {
+          return null;
         }
 
-        // Return user
-        return { id: user.id, phone: user.phone || undefined, role: user.role } as any;
-      }
-    })
+        if (intent === "TEACHER" && user.role === "STUDENT") return null;
+        if (intent === "ADMIN" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") return null;
+
+        return {
+          id: user.id,
+          name: user.name,
+          phone: user.phone || undefined,
+          role: user.role,
+        };
+      },
+    }),
   ],
   callbacks: {
-    async jwt({ token, user }: any) {
-      if (user) {
+    async signIn({ account, profile }) {
+      if (account?.provider !== "google") return true;
+      const email = profile?.email;
+      if (!email) return false;
+      const name = profile.name || "Learner";
+      await db.user.upsert({
+        where: { email },
+        update: { name },
+        create: {
+          email,
+          name,
+          role: "STUDENT",
+          profileComplete: false,
+          trialStartsAt: new Date(),
+          trialEndsAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
+        },
+      });
+      return true;
+    },
+    async jwt({ token, user, account }) {
+      if (account?.provider === "google" && user?.email) {
+        const row = await db.user.findUnique({ where: { email: user.email } });
+        if (row) {
+          token.id = row.id;
+          token.role = row.role;
+          token.phone = row.phone;
+          token.name = row.name;
+        }
+      } else if (user) {
         token.id = user.id;
         token.role = user.role;
         token.phone = user.phone;
+        token.name = user.name;
       }
       return token;
     },
-    async session({ session, token }: any) {
-      if (token && session.user) {
-        session.user.id = token.id;
-        session.user.role = token.role;
-        session.user.phone = token.phone;
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.phone = token.phone as string;
+        session.user.name = token.name as string;
       }
       return session;
-    }
+    },
   },
-  pages: {
-    signIn: "/login",
-  },
-  session: { strategy: "jwt" }
+  pages: { signIn: "/login" },
+  session: { strategy: "jwt" },
 });

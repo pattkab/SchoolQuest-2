@@ -1,32 +1,45 @@
 import { db } from "@/lib/db";
-import { auth } from "@/auth";
+import { requireUser, isAccreditedTeacher } from "@/lib/session";
 import { redirect } from "next/navigation";
 import UploadForm from "./UploadForm";
 
 export default async function TeacherUploadPage() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/login");
+  const user = await requireUser();
+  if (!isAccreditedTeacher(user) && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
+    redirect("/dashboard/teacher");
   }
 
-  // Fetch all levels with subjects for the form selectors
   const levels = await db.level.findMany({
     orderBy: { order: "asc" },
     include: {
-      subjects: true,
+      classGrades: {
+        where: { isActive: true },
+        include: { subjects: { orderBy: { order: "asc" } } },
+      },
     },
   });
 
+  const adapted = levels.map((level) => ({
+    id: level.id,
+    name: level.name,
+    subjects: level.classGrades.flatMap((cls) =>
+      cls.subjects.map((subject) => ({
+        id: subject.id,
+        name: `${cls.shortName} · ${subject.name}`,
+        levelId: level.id,
+      }))
+    ),
+  }));
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-3xl font-black text-gray-800">Teacher Panel</h2>
-        <p className="text-gray-500">
-          Upload any examination past paper PDF. Gemini will execute OCR and output interactive structured modules.
+      <div>
+        <h1 className="font-display text-4xl">Upload a paper</h1>
+        <p className="text-muted-foreground mt-2">
+          Drop a scanned past paper. Gemini reads it, then you approve the questions before learners see them.
         </p>
       </div>
-
-      <UploadForm levels={levels} />
+      <UploadForm levels={adapted} />
     </div>
   );
 }

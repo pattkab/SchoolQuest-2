@@ -1,21 +1,25 @@
 import { auth } from "@/auth";
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth;
-  const isAuthPage = req.nextUrl.pathname.startsWith('/login');
+const PUBLIC_PREFIXES = ["/", "/login", "/register", "/api"];
 
-  if (isAuthPage) {
-    if (isLoggedIn) {
-      return Response.redirect(new URL('/dashboard', req.nextUrl));
+export default auth((req) => {
+  const { pathname } = req.nextUrl;
+  const isPublic = PUBLIC_PREFIXES.some((prefix) =>
+    prefix === "/" ? pathname === "/" : pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+
+  if (isPublic) {
+    if (req.auth && (pathname === "/login" || pathname.startsWith("/register"))) {
+      return Response.redirect(new URL("/dashboard", req.nextUrl));
     }
     return null;
   }
 
-  if (!isLoggedIn && req.nextUrl.pathname.startsWith('/dashboard')) {
-    return Response.redirect(new URL('/login', req.nextUrl));
+  if (!req.auth && (pathname.startsWith("/dashboard") || pathname.startsWith("/setup"))) {
+    return Response.redirect(new URL("/login", req.nextUrl));
   }
 });
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };

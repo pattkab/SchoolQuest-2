@@ -1,42 +1,34 @@
 @import "tailwindcss";
-
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Calm Educational Theme - Soft Emerald & Sky */
-  --background: 150 20% 98%; /* Soft mint/stone background #f4fdf8 */
-  --foreground: 220 20% 20%; /* Deep slate text */
-  
-  --card: 0 0% 100%;
-  --card-foreground: 220 20% 20%;
-  
-  --popover: 0 0% 100%;
-  --popover-foreground: 220 20% 20%;
-  
-  /* Primary: Emerald Green (Calm, Success, Growth) */
-  --primary: 150 60% 45%; 
-  --primary-foreground: 0 0% 100%;
-  
-  /* Secondary: Sky Blue (Focus, Clarity) */
-  --secondary: 200 70% 50%;
+  --background: 42 38% 96%;
+  --foreground: 162 28% 12%;
+  --card: 40 45% 99%;
+  --card-foreground: 162 28% 12%;
+  --popover: 40 45% 99%;
+  --popover-foreground: 162 28% 12%;
+  --primary: 152 58% 32%;
+  --primary-foreground: 40 40% 98%;
+  --secondary: 199 72% 42%;
   --secondary-foreground: 0 0% 100%;
-  
-  --muted: 150 15% 95%;
-  --muted-foreground: 150 10% 45%;
-  
-  --accent: 40 90% 55%; /* Warm amber for highlights/badges */
-  --accent-foreground: 0 0% 100%;
-  
-  --destructive: 0 70% 60%;
+  --muted: 42 24% 92%;
+  --muted-foreground: 160 10% 36%;
+  --accent: 36 88% 52%;
+  --accent-foreground: 24 40% 12%;
+  --destructive: 4 72% 50%;
   --destructive-foreground: 0 0% 100%;
-
-  --border: 150 20% 85%;
-  --input: 150 20% 85%;
-  --ring: 150 60% 45%;
-  
-  --radius: 1rem; /* Extremely rounded, friendly UI */
+  --border: 40 18% 82%;
+  --input: 40 18% 82%;
+  --ring: 152 58% 32%;
+  --radius: 1.15rem;
+  --ink: #10241c;
+  --paper: #f7f1e6;
+  --forest: #146b4a;
+  --gold: #e3a008;
+  --sky: #1d7eb5;
 }
 
 @theme inline {
@@ -59,20 +51,80 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
+  --font-sans: var(--font-plus-jakarta);
+  --font-serif: var(--font-source-serif);
 }
 
+* { border-color: hsl(var(--border)); }
+
+html, body { min-height: 100%; }
+
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background-color: var(--color-background);
-  color: var(--color-foreground);
+  font-family: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(20, 107, 74, 0.08), transparent 50%),
+    radial-gradient(900px 420px at 100% 0%, rgba(227, 160, 8, 0.08), transparent 45%),
+    hsl(var(--background));
+  color: hsl(var(--foreground));
   -webkit-font-smoothing: antialiased;
 }
 
-/* Touch optimizations for low-end Androids */
-button, a, input, select {
-  touch-action: manipulation;
+button, a, input, select, textarea { touch-action: manipulation; }
+
+.font-display { font-family: var(--font-source-serif), Georgia, serif; }
+
+.room-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.92)),
+    hsl(var(--card));
+  box-shadow: 0 18px 50px -28px rgba(16, 36, 28, 0.45);
+}
+
+.room-card:hover { transform: translateY(-2px); }
+
+.prose-notes h1 { font-family: var(--font-source-serif), Georgia, serif; font-size: 2rem; margin: 0 0 0.8rem; }
+.prose-notes h2 { font-size: 1.2rem; margin: 1.6rem 0 0.5rem; color: var(--forest); }
+.prose-notes h3 { font-size: 1.05rem; margin: 1.2rem 0 0.4rem; }
+.prose-notes p, .prose-notes li { line-height: 1.7; margin: 0.4rem 0; }
+.prose-notes ul { list-style: disc; padding-left: 1.2rem; }
+.prose-notes ol { list-style: decimal; padding-left: 1.2rem; }
+.prose-notes table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
+.prose-notes th, .prose-notes td { border: 1px solid hsl(var(--border)); padding: 0.5rem 0.7rem; text-align: left; }
+.prose-notes th { background: hsl(var(--muted)); }
+.prose-notes blockquote {
+  border-left: 4px solid var(--gold);
+  background: rgba(227, 160, 8, 0.08);
+  padding: 0.7rem 1rem;
+  border-radius: 0 1rem 1rem 0;
+  margin: 1rem 0;
+}
+.prose-notes code { background: hsl(var(--muted)); padding: 0.1rem 0.35rem; border-radius: 0.35rem; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: affiliations 36s linear infinite;
+}
+
+.marquee-track:hover { animation-play-state: paused; }
+
+@keyframes affiliations {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; flex-wrap: wrap; width: auto; justify-content: center; }
+}
+
+@media print {
+  aside, header, nav, footer, .no-print { display: none !important; }
+  body { background: white; }
+  .lg\:pl-\[270px\] { padding-left: 0 !important; }
 }

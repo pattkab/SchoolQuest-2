@@ -1,288 +1,257 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import DrawingCanvas from "@/components/DrawingCanvas";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ArrowRight, CheckCircle2, RefreshCw, Loader2 } from "lucide-react";
-import { submitExam } from "./actions";
-import DrawingCanvas from "@/components/DrawingCanvas";
-import Link from "next/link";
+import { questionTypeLabel } from "@/lib/marking";
+import { submitExam } from "@/app/actions/marking";
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 
-interface Question {
+type Question = {
   id: string;
   type: string;
   prompt: string;
-  options: string | null; // JSON string array of options
+  stimulus?: string | null;
+  options: string | null;
   points: number;
+};
+
+type Result = {
+  attemptId: string;
+  score: number;
+  maxScore: number;
+  pendingCount: number;
+  totalQuestions: number;
+};
+
+function parseOptions(raw: string | null) {
+  if (!raw) return [];
+  try {
+    const value = JSON.parse(raw);
+    return Array.isArray(value) ? value.map(String) : [];
+  } catch {
+    return [];
+  }
 }
 
-interface ExamPlayerProps {
-  paperId: string;
-  paperTitle: string;
+export default function ExamPlayer({
+  paper,
+  questions,
+}: {
+  paper: { id: string; title: string; kind: string; subject: string; className: string; topic: string | null; backHref: string };
   questions: Question[];
-}
-
-export default function ExamPlayer({ paperId, paperTitle, questions }: ExamPlayerProps) {
-  const [currentIdx, setCurrentIdx] = useState(0);
+}) {
+  const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [results, setResults] = useState<{
-    score: number;
-    totalQuestions: number;
-    maxPoints: number;
-    attemptId: string;
-  } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<Result | null>(null);
+  const question = questions[index];
+  const options = useMemo(() => parseOptions(question?.options), [question]);
+  const matchPairs = question?.type === "MATCHING" ? parseMatch(question.options, question) : [];
 
-  if (questions.length === 0) {
+  if (!questions.length) {
     return (
-      <div className="p-8 text-center bg-white rounded-lg border border-dashed max-w-lg mx-auto my-12">
-        <p className="text-gray-500">This paper does not have any questions yet.</p>
-        <Link href="/dashboard" className="mt-4 inline-block">
-          <Button>Back to Dashboard</Button>
-        </Link>
+      <div className="rounded-[1.8rem] border bg-white p-8 text-center">
+        <p>This set has no questions yet.</p>
+        <Link href={paper.backHref} className="font-bold text-primary">Back to subject</Link>
       </div>
     );
   }
 
-  // Display results if submitted
-  if (results) {
+  if (result) {
+    const percent = result.maxScore ? Math.round((result.score / result.maxScore) * 100) : 0;
     return (
-      <div className="max-w-2xl mx-auto my-8 space-y-6 animate-fade-in">
-        <Card className="border-green-200 bg-green-50/30 text-center py-8 px-4">
-          <CardHeader>
-            <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
-            <CardTitle className="text-3xl font-extrabold text-green-800 mt-4">
-              Exam Submitted!
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-600">Great job completing {paperTitle}!</p>
-            <div className="inline-block bg-white border border-green-200 px-8 py-4 rounded-xl shadow-sm">
-              <span className="text-5xl font-black text-green-600">{results.score}</span>
-              <span className="text-gray-400 text-xl"> / {results.maxPoints} pts</span>
-            </div>
-            <p className="text-sm text-green-700 font-medium">
-              You answered {results.totalQuestions} questions.
-            </p>
-          </CardContent>
-          <CardFooter className="justify-center gap-4">
-            <Link href="/dashboard">
-              <Button size="lg" variant="outline">
-                Back to Dashboard
-              </Button>
-            </Link>
-            <Button size="lg" onClick={() => {
-              setAnswers({});
-              setResults(null);
-              setCurrentIdx(0);
-            }} className="gap-2">
-              <RefreshCw className="h-4 w-4" /> Practice Again
-            </Button>
-          </CardFooter>
-        </Card>
+      <div className="max-w-2xl mx-auto rounded-[2rem] bg-white border p-8 text-center space-y-4">
+        <CheckCircle2 className="h-14 w-14 text-primary mx-auto" />
+        <h1 className="font-display text-4xl">Paper in.</h1>
+        <p className="text-muted-foreground">{paper.title}</p>
+        <p className="font-display text-6xl text-primary">{percent}%</p>
+        <p className="font-bold">{result.score} / {result.maxScore} marks</p>
+        {result.pendingCount > 0 && (
+          <p className="rounded-2xl bg-amber-50 text-amber-800 px-4 py-3 text-sm">
+            {result.pendingCount} with the teacher.
+          </p>
+        )}
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link href={`/dashboard/attempts/${result.attemptId}`} className="rounded-2xl bg-primary text-white px-5 py-3 font-bold">
+            Results
+          </Link>
+          <Button variant="outline" className="rounded-2xl h-12" onClick={() => { setResult(null); setAnswers({}); setIndex(0); }}>
+            <RefreshCw className="h-4 w-4" /> Try again
+          </Button>
+          <Link href={paper.backHref} className="rounded-2xl border px-5 py-3 font-bold">Subject</Link>
+        </div>
       </div>
     );
   }
 
-  const currentQuestion = questions[currentIdx];
-  const progressPercent = Math.round(((currentIdx + 1) / questions.length) * 100);
+  const setAnswer = (value: string) => setAnswers((prev) => ({ ...prev, [question.id]: value }));
 
-  // Parse options for multiple choice
-  let parsedOptions: string[] = [];
-  if (currentQuestion.options) {
-    try {
-      parsedOptions = JSON.parse(currentQuestion.options);
-    } catch {
-      parsedOptions = [];
-    }
-  }
+  return (
+    <div className="max-w-3xl mx-auto space-y-5">
+      <div>
+        <Link href={paper.backHref} className="text-sm font-bold text-primary">← {paper.className} {paper.subject}</Link>
+        <h1 className="font-display text-3xl mt-2">{paper.title}</h1>
+        <p className="text-sm text-muted-foreground">{paper.topic || paper.kind.replaceAll("_", " ")} · Question {index + 1} of {questions.length}</p>
+        <div className="h-2 rounded-full bg-muted mt-3">
+          <div className="h-2 rounded-full bg-primary" style={{ width: `${((index + 1) / questions.length) * 100}%` }} />
+        </div>
+      </div>
 
-  const handleAnswer = (val: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [currentQuestion.id]: val,
-    }));
-  };
+      <div className="rounded-[2rem] bg-white border p-5 md:p-7 space-y-5">
+        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          {questionTypeLabel(question.type)} · {question.points} mark{question.points === 1 ? "" : "s"}
+        </p>
+        {question.stimulus && (
+          <div className="rounded-2xl bg-amber-50 border border-amber-100 p-4 text-sm leading-relaxed whitespace-pre-wrap">
+            {question.stimulus}
+          </div>
+        )}
+        <h2 className="font-display text-2xl leading-snug">{question.prompt}</h2>
 
-  const handleNext = () => {
-    if (currentIdx < questions.length - 1) {
-      setCurrentIdx((prev) => prev + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentIdx > 0) {
-      setCurrentIdx((prev) => prev - 1);
-    }
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const res = await submitExam({
-        paperId,
-        answers,
-      });
-      setResults(res);
-    } catch (err: any) {
-      alert(err.message || "Something went wrong submitting your paper.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const renderInputArea = () => {
-    switch (currentQuestion.type) {
-      case "MULTIPLE_CHOICE":
-        return (
-          <div className="grid grid-cols-1 gap-3">
-            {parsedOptions.map((opt, i) => {
-              const isSelected = answers[currentQuestion.id] === opt;
+        {question.type === "MULTIPLE_CHOICE" && (
+          <div className="grid gap-2">
+            {options.map((opt) => {
+              const selected = answers[question.id] === opt;
               return (
                 <button
-                  key={i}
-                  onClick={() => handleAnswer(opt)}
-                  className={`w-full text-left p-4 rounded-xl border-2 font-semibold text-lg transition-all flex items-center justify-between active:scale-[0.98] ${
-                    isSelected
-                      ? "border-primary bg-primary/5 text-primary shadow-sm"
-                      : "border-gray-200 hover:border-gray-300 bg-white"
-                  }`}
+                  key={opt}
+                  onClick={() => setAnswer(opt)}
+                  className={`text-left rounded-2xl border-2 px-4 py-3 font-semibold ${selected ? "border-primary bg-primary/8 text-primary" : "border-border bg-white"}`}
                 >
-                  <span>{opt}</span>
-                  <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center ${
-                    isSelected ? "border-primary bg-primary" : "border-gray-300"
-                  }`}>
-                    {isSelected && <div className="h-2.5 w-2.5 rounded-full bg-white" />}
-                  </div>
+                  {opt}
                 </button>
               );
             })}
           </div>
-        );
+        )}
 
-      case "DRAWING":
-        return (
-          <div className="space-y-2">
-            <span className="text-sm font-semibold text-gray-500 block mb-2">Draw inside the canvas:</span>
-            <DrawingCanvas
-              onChange={handleAnswer}
-              defaultValue={answers[currentQuestion.id]}
-            />
+        {question.type === "TRUE_FALSE" && (
+          <div className="grid grid-cols-2 gap-3">
+            {["True", "False"].map((opt) => (
+              <button
+                key={opt}
+                onClick={() => setAnswer(opt)}
+                className={`rounded-2xl border-2 py-5 font-black text-xl ${answers[question.id] === opt ? "border-primary bg-primary/8 text-primary" : "border-border"}`}
+              >
+                {opt}
+              </button>
+            ))}
           </div>
-        );
+        )}
 
-      case "COMPREHENSION":
-      case "SHORT_ANSWER":
-        return (
-          <div className="space-y-2">
-            <span className="text-sm font-semibold text-gray-500 block mb-2">Write your complete answer below:</span>
-            <Textarea
-              placeholder="Start typing your response..."
-              value={answers[currentQuestion.id] || ""}
-              onChange={(e) => handleAnswer(e.target.value)}
-              className="min-h-[120px] text-lg p-4 border-2 font-medium"
-            />
+        {question.type === "DRAWING" && (
+          <DrawingCanvas onChange={setAnswer} defaultValue={answers[question.id]} />
+        )}
+
+        {question.type === "MATCHING" && (
+          <div className="space-y-3">
+            {matchPairs.map(([left, rights]) => (
+              <label key={left} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="font-semibold sm:w-1/2">{left}</span>
+                <select
+                  className="flex-1 h-11 rounded-2xl border px-3"
+                  value={readMatch(answers[question.id], left)}
+                  onChange={(e) => setAnswer(writeMatch(answers[question.id], left, e.target.value))}
+                >
+                  <option value="">Choose…</option>
+                  {rights.map((right) => (
+                    <option key={right} value={right}>{right}</option>
+                  ))}
+                </select>
+              </label>
+            ))}
           </div>
-        );
+        )}
 
-      default: // FILL_BLANK & standard fallback
-        return (
-          <div className="space-y-2 max-w-md">
-            <span className="text-sm font-semibold text-gray-500 block mb-2">Write your answer below:</span>
-            <Input
-              type="text"
-              placeholder="Type answer here..."
-              value={answers[currentQuestion.id] || ""}
-              onChange={(e) => handleAnswer(e.target.value)}
-              className="py-7 px-4 text-xl font-semibold border-2"
-            />
-          </div>
-        );
-    }
-  };
-
-  const getQuestionTypeLabel = (type: string) => {
-    switch (type) {
-      case "MULTIPLE_CHOICE": return "Multiple Choice";
-      case "FILL_BLANK": return "Fill in the Blank";
-      case "SHORT_ANSWER": return "Short Answer";
-      case "COMPREHENSION": return "Comprehension";
-      case "DRAWING": return "Drawing Question";
-      default: return "Question";
-    }
-  };
-
-  return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header & Progress */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-sm font-semibold text-gray-500">
-          <span>{paperTitle}</span>
-          <span>Question {currentIdx + 1} of {questions.length}</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-3">
-          <div
-            className="bg-primary h-3 rounded-full transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
+        {["SHORT_ANSWER", "COMPREHENSION", "LONG_ANSWER"].includes(question.type) && (
+          <Textarea
+            value={answers[question.id] || ""}
+            onChange={(e) => setAnswer(e.target.value)}
+            className="min-h-32 rounded-2xl text-base"
+            placeholder="Write your answer"
           />
-        </div>
-      </div>
+        )}
 
-      {/* Main Question Card */}
-      <Card className="shadow-lg border-2 border-gray-100 min-h-[350px] flex flex-col justify-between">
-        <CardHeader>
-          <span className="text-xs font-black tracking-wider uppercase text-gray-400">
-            {getQuestionTypeLabel(currentQuestion.type)} ({currentQuestion.points} pt)
-          </span>
-          <CardTitle className="text-2xl font-bold text-gray-800 leading-snug mt-2">
-            {currentQuestion.prompt}
-          </CardTitle>
-        </CardHeader>
+        {["FILL_BLANK", "NUMERIC"].includes(question.type) && (
+          <Input
+            value={answers[question.id] || ""}
+            onChange={(e) => setAnswer(e.target.value)}
+            className="h-14 rounded-2xl text-lg"
+            placeholder={question.type === "NUMERIC" ? "Number" : "Answer"}
+          />
+        )}
 
-        <CardContent className="flex-1 py-4">
-          {renderInputArea()}
-        </CardContent>
-
-        <CardFooter className="flex items-center justify-between border-t bg-gray-50/50 py-4 px-6 rounded-b-lg">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={handlePrev}
-            disabled={currentIdx === 0 || isSubmitting}
-            className="gap-2 text-md py-6"
-          >
-            <ArrowLeft className="h-5 w-5" /> Back
+        <div className="flex justify-between gap-3 pt-2">
+          <Button variant="outline" className="rounded-2xl h-12" disabled={index === 0} onClick={() => setIndex((i) => i - 1)}>
+            <ArrowLeft className="h-4 w-4" /> Back
           </Button>
-
-          {currentIdx === questions.length - 1 ? (
+          {index === questions.length - 1 ? (
             <Button
-              size="lg"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="px-8 text-md font-bold py-6 gap-2"
+              className="rounded-2xl h-12 px-6 font-bold"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  const res = await submitExam({ paperId: paper.id, answers });
+                  setResult(res);
+                } catch (error) {
+                  alert(error instanceof Error ? error.message : "Could not submit.");
+                } finally {
+                  setBusy(false);
+                }
+              }}
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" /> Grading Paper with AI...
-                </>
-              ) : (
-                "Submit Paper"
-              )}
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {busy ? "Marking…" : "Submit"}
             </Button>
           ) : (
-            <Button
-              size="lg"
-              onClick={handleNext}
-              disabled={isSubmitting}
-              className="gap-2 text-md py-6 px-6"
-            >
-              Next <ArrowRight className="h-5 w-5" />
+            <Button className="rounded-2xl h-12" onClick={() => setIndex((i) => i + 1)}>
+              Next <ArrowRight className="h-4 w-4" />
             </Button>
           )}
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   );
+}
+
+function parseMatch(options: string | null, question: Question): [string, string[]][] {
+  try {
+    const fromOptions = options ? JSON.parse(options) : null;
+    if (Array.isArray(fromOptions) && fromOptions.length && Array.isArray(fromOptions[0])) {
+      const rights = Array.from(
+        new Set(
+          fromOptions.flatMap((p: unknown[]) => (Array.isArray(p[1]) ? p[1] : [p[1]]).map(String))
+        )
+      );
+      return fromOptions.map((p: unknown[]) => [String(p[0]), rights]);
+    }
+  } catch {
+    /* continue */
+  }
+  void question;
+  return [];
+}
+
+function readMatch(raw: string | undefined, left: string) {
+  try {
+    return JSON.parse(raw || "{}")[left] || "";
+  } catch {
+    return "";
+  }
+}
+
+function writeMatch(raw: string | undefined, left: string, right: string) {
+  let current: Record<string, string> = {};
+  try {
+    current = JSON.parse(raw || "{}");
+  } catch {
+    current = {};
+  }
+  current[left] = right;
+  return JSON.stringify(current);
 }
