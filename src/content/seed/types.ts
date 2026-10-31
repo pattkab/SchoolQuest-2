@@ -41,20 +41,40 @@ export type SubjectContent = { subject: string; topics: TopicContent[] };
 export type ClassContent = { class: string; subjects: SubjectContent[] };
 
 // ── Terse authoring helpers ──────────────────────────────────────────────────
-export const mcq = (prompt: string, options: string[], answer: string, explanation?: string, points = 1): QuestionSeed => ({
-  type: "MULTIPLE_CHOICE", prompt, options, answer, explanation, points,
+function note(value?: string | string[]) {
+  return Array.isArray(value) ? undefined : value;
+}
+
+function acceptedAnswers(answer: string | string[], extra?: string | string[]) {
+  const accepted = [...(Array.isArray(answer) ? answer.slice(1) : []), ...(Array.isArray(extra) ? extra : [])];
+  return accepted.length ? accepted : undefined;
+}
+
+export const mcq = (prompt: string, options: string[], answer: string, explanation?: string | string[], points = 1): QuestionSeed => ({
+  type: "MULTIPLE_CHOICE", prompt, options, answer, accepted: acceptedAnswers(answer, explanation), explanation: note(explanation), points,
 });
-export const fill = (prompt: string, answer: string | string[], explanation?: string, points = 1): QuestionSeed => ({
-  type: "FILL_BLANK", prompt, answer: Array.isArray(answer) ? answer[0] : answer, accepted: Array.isArray(answer) ? answer.slice(1) : undefined, explanation, points,
+export const fill = (prompt: string, answer: string | string[], explanation?: string | string[], points = 1): QuestionSeed => ({
+  type: "FILL_BLANK", prompt, answer: Array.isArray(answer) ? answer[0] : answer, accepted: acceptedAnswers(answer, explanation), explanation: note(explanation), points,
 });
-export const num = (prompt: string, answer: number, explanation?: string, tolerance = 0, points = 2): QuestionSeed => ({
-  type: "NUMERIC", prompt, answer, tolerance, explanation, points,
+export const num = (prompt: string, answer: number, explanation?: string | string[], tolerance = 0, points = 2): QuestionSeed => ({
+  type: "NUMERIC", prompt, answer, tolerance, explanation: note(explanation), points,
 });
-export const short = (prompt: string, answer: string | string[], explanation?: string, points = 2): QuestionSeed => ({
-  type: "SHORT_ANSWER", prompt, answer: Array.isArray(answer) ? answer[0] : answer, accepted: Array.isArray(answer) ? answer.slice(1) : undefined, explanation, points,
+export const short = (
+  prompt: string,
+  answer: string | string[],
+  extra?: string | string[],
+  explanation?: string,
+  points = 2,
+): QuestionSeed => ({
+  type: "SHORT_ANSWER",
+  prompt,
+  answer: Array.isArray(answer) ? answer[0] : answer,
+  accepted: acceptedAnswers(answer, extra),
+  explanation: Array.isArray(extra) ? explanation : extra,
+  points,
 });
-export const tf = (prompt: string, answer: boolean, explanation?: string): QuestionSeed => ({
-  type: "TRUE_FALSE", prompt, options: ["True", "False"], answer, explanation, points: 1,
+export const tf = (prompt: string, answer: boolean, explanation?: string | string[]): QuestionSeed => ({
+  type: "TRUE_FALSE", prompt, options: ["True", "False"], answer, explanation: note(explanation), points: 1,
 });
 export const long = (prompt: string, markingGuide: string, points = 4, stimulus?: string): QuestionSeed => ({
   type: "LONG_ANSWER", prompt, answer: markingGuide, markingGuide, points, stimulus,
@@ -65,6 +85,6 @@ export const comp = (stimulus: string, prompt: string, answer: string, accepted?
 export const draw = (prompt: string, markingGuide: string, points = 2): QuestionSeed => ({
   type: "DRAWING", prompt, answer: markingGuide, markingGuide, points, requiresTeacher: false,
 });
-export const match = (prompt: string, pairs: [string, string][], explanation?: string): QuestionSeed => ({
-  type: "MATCHING", prompt, answer: pairs, explanation, points: pairs.length,
+export const match = (prompt: string, pairs: [string, string][], explanation?: string | string[]): QuestionSeed => ({
+  type: "MATCHING", prompt, answer: pairs, explanation: note(explanation), points: pairs.length,
 });
