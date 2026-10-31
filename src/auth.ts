@@ -2,14 +2,13 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
+import { authConfig } from "./auth.config";
 import { db } from "./lib/db";
-
-if (!process.env.AUTH_SECRET) process.env.AUTH_SECRET = "schoolquest-web-auth-secret";
 
 const googleReady = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  trustHost: true,
+  ...authConfig,
   providers: [
     ...(googleReady
       ? [Google({ clientId: process.env.AUTH_GOOGLE_ID!, clientSecret: process.env.AUTH_GOOGLE_SECRET! })]
@@ -50,6 +49,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    ...authConfig.callbacks,
     async signIn({ account, profile }) {
       if (account?.provider !== "google") return true;
       const email = profile?.email;
@@ -96,6 +96,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-  pages: { signIn: "/login" },
-  session: { strategy: "jwt" },
 });
