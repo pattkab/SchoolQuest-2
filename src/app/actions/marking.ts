@@ -162,7 +162,7 @@ export async function markAnswerAsTeacher(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
   const user = await db.user.findUnique({
-    where: { id: userId },
+    where: { id: session.user.id },
     include: { teacherProfile: true },
   });
   if (!user || !isAccreditedTeacher(user)) throw new Error("Only an accredited teacher can mark this work.");
@@ -217,9 +217,9 @@ export async function joinClassroomAction(formData: FormData) {
   const room = await db.classroom.findUnique({ where: { code } });
   if (!room) throw new Error("Classroom code not found");
   await db.enrollment.upsert({
-    where: { classroomId_userId: { classroomId: room.id, userId: userId } },
+    where: { classroomId_userId: { classroomId: room.id, session.user.id: session.user.id } },
     update: {},
-    create: { classroomId: room.id, userId: userId },
+    create: { classroomId: room.id, session.user.id: session.user.id },
   });
   revalidatePath("/dashboard");
 }
@@ -228,7 +228,7 @@ export async function createClassroomAction(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
   const user = await db.user.findUnique({
-    where: { id: userId },
+    where: { id: session.user.id },
     include: { teacherProfile: true },
   });
   if (!user || !isAccreditedTeacher(user)) throw new Error("Only accredited teachers can open a classroom.");
@@ -247,7 +247,7 @@ export async function createClassroomAction(formData: FormData) {
 export async function reviewTeacherAction(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
-  const admin = await db.user.findUnique({ where: { id: userId } });
+  const admin = await db.user.findUnique({ where: { id: session.user.id } });
   if (!admin || (admin.role !== "ADMIN" && admin.role !== "SUPER_ADMIN")) throw new Error("Admin only");
 
   const profileId = String(formData.get("profileId") || "");
@@ -267,7 +267,7 @@ export async function syncLibraryAction(formData: FormData) {
   if (!session?.user?.id) throw new Error("Unauthorized");
   const { syncFeeds } = await import("@/lib/fresh-teacher");
   const classKey = String(formData.get("classKey") || "") || undefined;
-  await syncFeeds({ classKey, triggeredById: userId });
+  await syncFeeds({ classKey, triggeredById: session.user.id });
   revalidatePath("/dashboard/admin/library");
   revalidatePath("/dashboard/library");
 }
