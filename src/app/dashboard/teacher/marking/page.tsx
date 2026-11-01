@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { requireUser, isAccreditedTeacher } from "@/lib/session";
+import { reviewableAnswersWhere } from "@/lib/access";
 import { markAnswerAsTeacher } from "@/app/actions/marking";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,7 @@ export default async function MarkingQueuePage() {
   }
 
   const answers = await db.answer.findMany({
-    where: { gradingStatus: "PENDING_TEACHER" },
+    where: reviewableAnswersWhere(user),
     include: {
       question: true,
       attempt: { include: { user: true, paper: { include: { subject: { include: { classGrade: true } } } } } },

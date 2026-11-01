@@ -7,14 +7,14 @@ export default async function AdminHomePage() {
   const user = await requireUser();
   if (!isAdmin(user.role)) redirect("/dashboard");
 
-  const [people, learners, teachers, pendingTeachers, notes, quizzes, pendingMarks] = await Promise.all([
-    db.user.count(),
+  const [learners, teachers, pendingTeachers, notes, quizzes, pendingMarks, people] = await Promise.all([
     db.user.count({ where: { role: "STUDENT" } }),
     db.teacherProfile.count({ where: { status: "ACCREDITED" } }),
     db.teacherProfile.count({ where: { status: "PENDING" } }),
     db.note.count(),
     db.paper.count(),
     db.answer.count({ where: { gradingStatus: "PENDING_TEACHER" } }),
+    db.user.count(),
   ]);
 
   return (
@@ -30,6 +30,7 @@ export default async function AdminHomePage() {
         <Tile href="/dashboard/admin/library" label="Notes & practice" value={String(notes + quizzes)} note={`${notes} notes · ${quizzes} papers`} />
         <Tile href="/dashboard/admin/store" label="SchoolQuest Store" value="Manage" note="Products and order requests" />
         <Tile href="/dashboard/admin/analytics" label="Users" value={String(people)} note="Weekly and monthly curves" />
+        <Tile href="/dashboard/admin/readiness" label="Impact and funding" value="Internal" note="Real counts only" />
       </div>
     </div>
   );

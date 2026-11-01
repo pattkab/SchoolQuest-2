@@ -90,7 +90,7 @@ Set your actual deployed SchoolQuest origin in the ignored `.env.mobile.local`:
 
 ```env
 SCHOOLQUEST_MOBILE_MODE=hosted
-SCHOOLQUEST_APP_URL=https://YOUR-REAL-SCHOOLQUEST-DOMAIN
+SCHOOLQUEST_APP_URL=https://schoolquestweb.netlify.app
 ```
 
 Then run `npm run android` or `npm run ios` to test that deployment.

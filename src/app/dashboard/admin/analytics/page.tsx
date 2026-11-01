@@ -19,6 +19,7 @@ export default async function AdminAnalyticsPage() {
       <div>
         <p className="text-xs font-bold uppercase tracking-widest text-primary">Site admin</p>
         <h1 className="font-display text-4xl">Users</h1>
+        <p className="text-muted-foreground mt-2">These curves include demonstration accounts. Use Impact and funding for counts that exclude them.</p>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Stat label="All users" value={String(users.length)} />

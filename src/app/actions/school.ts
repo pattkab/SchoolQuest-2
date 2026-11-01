@@ -118,15 +118,17 @@ export async function enrolStudentAction(formData: FormData) {
   const phone = cleanPhone(formData.get("phone"));
   const classGradeId = String(formData.get("classGradeId") || "");
   const requested = String(formData.get("studentNumber") || "").trim().toUpperCase();
-  const pin = String(formData.get("pin") || "1234");
-  if (!name || !phone || !classGradeId || pin.length < 4) redirect("/dashboard/school?error=missing");
+  const pin = String(formData.get("pin") || "");
+  if (!name || !phone || !classGradeId) redirect("/dashboard/school?error=missing");
 
   const studentNumber = requested || randomCode("SQ", 6);
   const takenNumber = await db.user.findUnique({ where: { studentNumber } });
   if (takenNumber) redirect("/dashboard/school?error=number");
 
   const existing = await db.user.findUnique({ where: { phone } });
+  if (existing && existing.role !== "STUDENT") redirect("/dashboard/school?error=phone");
   if (existing && existing.schoolId && existing.schoolId !== school.id) redirect("/dashboard/school?error=phone");
+  if (!existing?.passwordHash && pin.length < 4) redirect("/dashboard/school?error=missing");
 
   const data = {
     name,
@@ -157,6 +159,8 @@ export async function addChargeAction(formData: FormData) {
   const label = String(formData.get("label") || "").trim();
   const amount = Number(formData.get("amount") || 0);
   if (!userId || !label || !Number.isFinite(amount) || amount <= 0) redirect("/dashboard/school/fees?error=missing");
+  const learner = await db.user.findFirst({ where: { id: userId, schoolId: school.id, role: "STUDENT" } });
+  if (!learner) redirect("/dashboard/school/fees?error=learner");
   await db.feeCharge.create({ data: { schoolId: school.id, userId, label, amount: Math.round(amount) } });
   revalidatePath("/dashboard/school/fees");
   redirect("/dashboard/school/fees");
@@ -170,6 +174,8 @@ export async function addPaymentAction(formData: FormData) {
   const amount = Number(formData.get("amount") || 0);
   const note = String(formData.get("note") || "").trim() || null;
   if (!userId || !Number.isFinite(amount) || amount <= 0) redirect("/dashboard/school/fees?error=missing");
+  const learner = await db.user.findFirst({ where: { id: userId, schoolId: school.id, role: "STUDENT" } });
+  if (!learner) redirect("/dashboard/school/fees?error=learner");
   await db.feePayment.create({ data: { schoolId: school.id, userId, amount: Math.round(amount), note } });
   revalidatePath("/dashboard/school/fees");
   redirect("/dashboard/school/fees");

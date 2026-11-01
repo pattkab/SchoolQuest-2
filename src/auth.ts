@@ -1,10 +1,10 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import bcrypt from "bcryptjs";
 import { authConfig } from "./auth.config";
 import { db } from "./lib/db";
 import { accountFromFirebaseToken } from "./lib/firebase-account";
+import { passwordMatches } from "./lib/password";
 
 const googleReady = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 
@@ -57,10 +57,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           include: { teacherProfile: true },
         });
 
-        if (!user) return null;
-        if (!user.passwordHash || !bcrypt.compareSync(password, user.passwordHash)) {
-          return null;
-        }
+        if (!user || !passwordMatches(user.passwordHash, password)) return null;
 
         if (intent === "TEACHER" && user.role === "STUDENT") return null;
         if (intent === "ADMIN" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") return null;
