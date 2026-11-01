@@ -21,12 +21,12 @@ function SubmitButton() {
 export function SignInForm({ pathway }: { pathway?: string }) {
   const [role, setRole] = useState<PathwayId>(pathwayById(pathway).id);
   const [showPassword, setShowPassword] = useState(false);
-  return <form action={loginAction} className="space-y-5">
+  return <form action={loginAction} className="space-y-4">
     <input type="hidden" name="pathway" value={role} />
     <input type="hidden" name="intent" value={role === 'site' ? 'ADMIN' : role === 'teacher' ? 'TEACHER' : 'STUDENT'} />
     <fieldset>
-      <legend className="mb-3 text-sm font-bold text-[var(--ink)]">I’m here as a…</legend>
-      <div className="grid grid-cols-2 gap-2.5">
+      <legend className="mb-2 text-sm font-bold text-[var(--ink)]">I’m here as a…</legend>
+      <div className="grid grid-cols-2 gap-2">
         {PATHWAYS.map(item => {
           const Icon = roleIcons[item.id];
           const selected = role === item.id;
@@ -38,11 +38,11 @@ export function SignInForm({ pathway }: { pathway?: string }) {
         })}
       </div>
     </fieldset>
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <label htmlFor="phone" className="text-sm font-bold">Phone number</label>
       <div className="quest-input-wrap"><Phone className="h-4 w-4" aria-hidden="true" /><input id="phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" required placeholder="e.g. 0700 123 456" /></div>
     </div>
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <label htmlFor="password" className="text-sm font-bold">PIN or password</label>
       <div className="quest-input-wrap"><LockKeyhole className="h-4 w-4" aria-hidden="true" /><input id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required placeholder="Enter your PIN or password" />
         <button type="button" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl hover:bg-muted" aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} onClick={() => setShowPassword(value => !value)}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
