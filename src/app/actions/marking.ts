@@ -28,10 +28,11 @@ function toMarkable(question: {
 export async function submitExam(payload: { paperId: string; answers: Record<string, string>; mode?: string }) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Please sign in to submit.");
+  const userId: string = session.user.id;
 
   const paper = await db.paper.findUnique({ where: { id: payload.paperId }, select: { subjectId: true, status: true } });
   if (!paper || paper.status !== "PUBLISHED") throw new Error("This paper is unavailable.");
-  const access = await practiceAccess(session.user.id, paper.subjectId);
+  const access = await practiceAccess(userId, paper.subjectId);
   if (!access.allowed) throw new Error("Your free practice for this subject is complete. Upgrade to Pro to continue.");
   const questions = await db.question.findMany({
     where: { paperId: payload.paperId },
@@ -39,7 +40,7 @@ export async function submitExam(payload: { paperId: string; answers: Record<str
   });
   if (!questions.length) throw new Error("This paper has no questions.");
 
-  const results = [];
+  const results: Array<{ questionId: string; studentAnswer: string; isCorrect: boolean | null; pointsAwarded: number | null; gradingStatus: string; feedback: string | null }> = [];
   let score = 0;
   let pendingCount = 0;
   const maxScore = questions.reduce((sum, q) => sum + q.points, 0);
@@ -101,20 +102,20 @@ export async function submitExam(payload: { paperId: string; answers: Record<str
   let attempt;
   try {
     attempt = await db.$transaction(async (tx) => {
-      const current = await tx.user.findUnique({ where: { id: session.user.id }, select: { subscriptionEndsAt: true } });
+      const current = await tx.user.findUnique({ where: { id: userId }, select: { subscriptionEndsAt: true } });
       if (!current) throw new Error("Sign in again.");
       const pro = hasProAccess(current);
       if (!pro) {
         const historic = await tx.attempt.findFirst({
-          where: { userId: session.user.id, paper: { subjectId: paper.subjectId }, completedAt: { not: null } },
+          where: { userId: userId, paper: { subjectId: paper.subjectId }, completedAt: { not: null } },
           select: { id: true },
         });
         if (historic) throw new Error("Free practice already used in this subject. Upgrade to Pro.");
-        await tx.freeSubjectClaim.create({ data: { userId: session.user.id, subjectId: paper.subjectId } });
+        await tx.freeSubjectClaim.create({ data: { userId: userId, subjectId: paper.subjectId } });
       }
       const saved = await tx.attempt.create({
         data: {
-          userId: session.user.id,
+          userId: userId,
           paperId: payload.paperId,
           mode: payload.mode || "PRACTICE",
           status: pendingCount ? "NEEDS_REVIEW" : "GRADED",
@@ -131,11 +132,11 @@ export async function submitExam(payload: { paperId: string; answers: Record<str
         },
       });
       if (!pro) await tx.freeSubjectClaim.update({
-        where: { userId_subjectId: { userId: session.user.id, subjectId: paper.subjectId } },
+        where: { userId_subjectId: { userId: userId, subjectId: paper.subjectId } },
         data: { attemptId: saved.id },
       });
       await tx.user.update({
-        where: { id: session.user.id },
+        where: { id: userId },
         data: { xp: { increment: Math.round(score * 4) }, lastActiveOn: new Date() },
       });
       return saved;
@@ -161,7 +162,7 @@ export async function markAnswerAsTeacher(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
   const user = await db.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: userId },
     include: { teacherProfile: true },
   });
   if (!user || !isAccreditedTeacher(user)) throw new Error("Only an accredited teacher can mark this work.");
@@ -216,9 +217,9 @@ export async function joinClassroomAction(formData: FormData) {
   const room = await db.classroom.findUnique({ where: { code } });
   if (!room) throw new Error("Classroom code not found");
   await db.enrollment.upsert({
-    where: { classroomId_userId: { classroomId: room.id, userId: session.user.id } },
+    where: { classroomId_userId: { classroomId: room.id, userId: userId } },
     update: {},
-    create: { classroomId: room.id, userId: session.user.id },
+    create: { classroomId: room.id, userId: userId },
   });
   revalidatePath("/dashboard");
 }
@@ -227,7 +228,7 @@ export async function createClassroomAction(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
   const user = await db.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: userId },
     include: { teacherProfile: true },
   });
   if (!user || !isAccreditedTeacher(user)) throw new Error("Only accredited teachers can open a classroom.");
@@ -246,7 +247,7 @@ export async function createClassroomAction(formData: FormData) {
 export async function reviewTeacherAction(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
-  const admin = await db.user.findUnique({ where: { id: session.user.id } });
+  const admin = await db.user.findUnique({ where: { id: userId } });
   if (!admin || (admin.role !== "ADMIN" && admin.role !== "SUPER_ADMIN")) throw new Error("Admin only");
 
   const profileId = String(formData.get("profileId") || "");
@@ -266,7 +267,7 @@ export async function syncLibraryAction(formData: FormData) {
   if (!session?.user?.id) throw new Error("Unauthorized");
   const { syncFeeds } = await import("@/lib/fresh-teacher");
   const classKey = String(formData.get("classKey") || "") || undefined;
-  await syncFeeds({ classKey, triggeredById: session.user.id });
+  await syncFeeds({ classKey, triggeredById: userId });
   revalidatePath("/dashboard/admin/library");
   revalidatePath("/dashboard/library");
 }
