@@ -68,10 +68,17 @@ try {
     cap(['open', checkPlatform()]);
   } else if (command === 'run') {
     sync();
-    if (platform === 'android') {
+    // ADB port forwarding applies ONLY to deliberate localhost development.
+    if (platform === 'android' && mobileServer().url === 'http://localhost:3001') {
       run(path.join(env.ANDROID_HOME, 'platform-tools/adb'), ['reverse', 'tcp:3001', 'tcp:3001']);
     }
     cap(['run', checkPlatform(), '--no-sync']);
+  } else if (command === 'hosted') {
+    // Override old .env.mobile.local files that still select localhost.
+    process.env.SCHOOLQUEST_MOBILE_MODE = env.SCHOOLQUEST_MOBILE_MODE = 'hosted';
+    sync();
+    console.log(`Android Studio Run will load ${mobileServer().url}; no local web server required.`);
+    cap(['open', checkPlatform()]);
   } else if (command === 'release') {
     process.env.SCHOOLQUEST_MOBILE_MODE = env.SCHOOLQUEST_MOBILE_MODE = 'hosted';
     mobileServer();
@@ -85,7 +92,7 @@ try {
     run(path.join(env.ANDROID_HOME, 'platform-tools/adb'), ['devices']);
     run('xcodebuild', ['-version']);
   } else {
-    throw new Error('Usage: mobile.ts doctor|update|setup|sync|open|run|release [android|ios]');
+    throw new Error('Usage: mobile.ts doctor|update|setup|sync|open|run|hosted|release [android|ios]');
   }
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
