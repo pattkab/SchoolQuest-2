@@ -23,7 +23,9 @@
     "ios:run": "tsx scripts/mobile.ts run ios",
     "android:release": "tsx scripts/mobile.ts release android",
     "ios:release": "tsx scripts/mobile.ts release ios",
-    "mobile:test": "tsx --test tests/mobile-config.test.ts"
+    "mobile:test": "tsx --test tests/mobile-config.test.ts",
+    "android:hosted": "tsx scripts/mobile.ts hosted android",
+    "ios:hosted": "tsx scripts/mobile.ts hosted ios"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
