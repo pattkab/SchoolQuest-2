@@ -48,6 +48,7 @@ model User {
 
   freeSubjectClaims  FreeSubjectClaim[]
   subscriptionPayments SubscriptionPayment[]
+  storeOrders        StoreOrder[]
   attempts           Attempt[]
   teacherProfile     TeacherProfile?
   markedAnswers      Answer[]  @relation("MarkedBy")
@@ -493,4 +494,74 @@ model SubscriptionPayment {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   @@index([userId, createdAt])
+}
+
+// SchoolQuest physical goods catalogue. No digital textbooks may be offered here
+// without separate licensing and app-store payment policy review.
+model StoreProduct {
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  title             String
+  description       String?
+  category          String   // TABLET | TSHIRT | TEXTBOOK
+  priceUgx          Int
+  stockQuantity     Int      @default(0)
+  imageUrl          String?
+  audience          String?
+  publisher         String?
+  isbn              String?
+  rightsConfirmed   Boolean  @default(false)
+  isPhysical        Boolean  @default(true)
+  bundleMonth       Boolean  @default(false)
+  status            String   @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  orderLines        StoreOrderLine[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status, category])
+}
+
+model StoreOrder {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  customerName      String
+  contactPhone      String
+  deliveryLocation  String
+  totalUgx          Int
+  status            String   @default("REQUESTED") // REQUESTED | CONFIRMED | PAID | FULFILLED | CANCELLED
+  paymentReference  String?
+  paymentVerifiedAt DateTime?
+  verifiedByUserId  String?
+  fulfilledAt       DateTime?
+  lines             StoreOrderLine[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model StoreOrderLine {
+  id              String @id @default(cuid())
+  orderId         String
+  order           StoreOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  productId       String
+  product         StoreProduct @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity        Int
+  unitPriceUgx    Int
+  bundleMonth     Boolean @default(false)
+  @@index([productId])
+}
+
+// Single non-recurring, 30-day trial linked to one physically fulfilled tablet.
+// Not an automatically recurring paid subscription. Subject to store policy review.
+model StoreBundleGrant {
+  id           String   @id @default(cuid())
+  orderId      String   @unique
+  userId       String
+  grantedAt    DateTime @default(now())
+  expiresAt    DateTime
+  notes        String?
+  @@index([userId, expiresAt])
 }

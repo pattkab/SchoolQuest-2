@@ -28,6 +28,7 @@ export default async function AdminHomePage() {
         <Tile href="/dashboard/teacher/marking" label="Scripts to mark" value={String(pendingMarks)} note={`${learners} learners`} />
         <Tile href="/dashboard/admin/engine" label="Engine" value="Read a paper" note="Scan, GitHub link, or PDF" />
         <Tile href="/dashboard/admin/library" label="Notes & practice" value={String(notes + quizzes)} note={`${notes} notes · ${quizzes} papers`} />
+        <Tile href="/dashboard/admin/store" label="SchoolQuest Store" value="Manage" note="Products and order requests" />
         <Tile href="/dashboard/admin/analytics" label="Users" value={String(people)} note="Weekly and monthly curves" />
       </div>
     </div>
