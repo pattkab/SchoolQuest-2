@@ -29,18 +29,20 @@ export default async function SchoolHomePage({
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-primary">School manager</p>
           <h1 className="font-display text-4xl">{school.name}</h1>
-          <p className="text-sm text-muted-foreground">Teacher code {school.code}</p>
+          <p className="text-sm text-muted-foreground">School code {school.code} · Your school community, connected.</p>
         </div>
+        <section className="grid sm:grid-cols-3 gap-3"><Link href="/dashboard/school" className="metric-card tone-mint"><strong>{students.length}</strong><span>Enrolled learners</span></Link><Link href="/dashboard/school/fees" className="quest-panel font-bold text-sm">💳 Fees & payments<span className="block mt-2 text-xs font-normal text-muted-foreground">View school fee records →</span></Link><Link href="/dashboard/school/attendance" className="quest-panel font-bold text-sm">📋 Attendance<span className="block mt-2 text-xs font-normal text-muted-foreground">Keep track of each school day →</span></Link></section>
+        <h2 className="font-display text-xl">Welcome a new learner</h2>
         {error && <p className="rounded-2xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">Check the form and try again.</p>}
         <form action={enrolStudentAction} className="rounded-3xl border bg-white p-4 grid sm:grid-cols-2 gap-3">
-          <input name="name" required placeholder="Student name" className="h-12 rounded-2xl border px-3" />
-          <input name="phone" required placeholder="Phone" className="h-12 rounded-2xl border px-3" />
-          <select name="classGradeId" required className="h-12 rounded-2xl border px-3">
+          <label className="space-y-2 text-xs font-bold">Learner’s name<input name="name" autoComplete="off" required placeholder="Full name" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
+          <label className="space-y-2 text-xs font-bold">Phone number<input name="phone" type="tel" required placeholder="e.g. 0700 123 456" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
+          <label className="space-y-2 text-xs font-bold">Class<select name="classGradeId" required className="block w-full h-12 rounded-2xl border px-3 font-normal">
             {classes.map((cls) => <option key={cls.id} value={cls.id}>{cls.shortName}</option>)}
-          </select>
-          <input name="studentNumber" placeholder="Reg. number (optional)" className="h-12 rounded-2xl border px-3" />
-          <input name="pin" placeholder="PIN 1234" className="h-12 rounded-2xl border px-3" />
-          <button type="submit" className="h-12 rounded-2xl bg-primary text-white font-bold">Enrol</button>
+          </select></label>
+          <label className="space-y-2 text-xs font-bold">Registration number (optional)<input name="studentNumber" placeholder="School registration number" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
+          <label className="space-y-2 text-xs font-bold">Temporary PIN<input name="pin" type="password" autoComplete="new-password" minLength={4} required placeholder="At least 4 characters" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
+          <button type="submit" className="quest-button self-end">Enrol learner</button>
         </form>
         <div className="grid sm:grid-cols-2 gap-3">
           {students.map((student) => (

@@ -33,11 +33,11 @@ export function GoogleSignInButton() {
   }, []);
 
   return (
-    <div className="max-w-md mb-4">
+    <div className="w-full">
       <button
         type="button"
         disabled={pending}
-        className="w-full h-12 rounded-2xl border bg-white font-bold disabled:opacity-60"
+        className="w-full min-h-12 rounded-2xl border bg-white font-bold disabled:opacity-60 inline-flex items-center justify-center gap-3 hover:bg-muted transition-colors"
         onClick={async () => {
           setPending(true);
           setFailed(false);
@@ -66,6 +66,7 @@ export function GoogleSignInButton() {
           }
         }}
       >
+        <span aria-hidden="true" className="text-lg font-extrabold text-blue-600">G</span>
         {pending ? "Opening Google…" : "Continue with Google"}
       </button>
       {failed && (

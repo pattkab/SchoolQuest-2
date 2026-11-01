@@ -48,7 +48,7 @@ export default async function SetupPage({
           />
         </div>
         {user.profileComplete && (
-          <Link href="/dashboard" className="inline-block mt-4 text-sm font-bold text-primary">Back</Link>
+          <Link href="/dashboard/profile" className="inline-block mt-4 text-sm font-bold text-primary">Back to my profile</Link>
         )}
       </main>
       <SiteFooter />
