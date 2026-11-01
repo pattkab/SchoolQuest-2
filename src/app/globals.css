@@ -255,3 +255,12 @@ h2.font-display { line-height: 1.15; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }.quest-button:hover, .subject-tile:hover, .role-choice:hover { transform: none; } }
 
 .teacher-hero { display: block; }
+
+/* Keep animated illustrations within their own paint region on mobile WebViews. */
+.quest-art { contain: layout paint; isolation: isolate; }
+.learning-hero { isolation: isolate; }
+@keyframes page-appear { from { opacity: 0; } to { opacity: 1; } }
+.page-rise { animation-name: page-appear; }
+@media (width < 64rem) {
+  .mobile-app-bar, .mobile-bottom-nav { backdrop-filter: none; background: #fff; }
+}
