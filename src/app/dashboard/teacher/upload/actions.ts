@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { extractQuestionsFromPDF, ExtractedQuestion } from "@/lib/gemini";
+import { extractQuestionsFromPDF, type ExtractedQuestion } from "@/lib/gemini";
 import { isAccreditedTeacher } from "@/lib/session";
 import { uploadFileToFirebase } from "@/lib/firebase";
 import { redirect } from "next/navigation";
@@ -54,13 +54,7 @@ interface SavePaperPayload {
   year: number;
   subjectId: string;
   pdfUrl?: string;
-  questions: Array<{
-    type: string;
-    prompt: string;
-    options: string[] | null;
-    correctAnswer: any;
-    points: number;
-  }>;
+  questions: ExtractedQuestion[];
 }
 
 export async function saveParsedPaper(payload: SavePaperPayload) {

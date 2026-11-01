@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { parseUploadedPDF, saveParsedPaper } from "./actions";
+import type { ExtractedQuestion } from "@/lib/gemini";
 import { FileText, Loader2, Plus, Trash2, CheckCircle } from "lucide-react";
 
 interface Subject {
@@ -25,10 +26,10 @@ interface UploadFormProps {
 }
 
 interface EditableQuestion {
-  type: string;
+  type: ExtractedQuestion["type"];
   prompt: string;
   options: string[] | null;
-  correctAnswer: any;
+  correctAnswer: string | string[] | number;
   points: number;
 }
 
@@ -64,8 +65,8 @@ export default function UploadForm({ levels }: UploadFormProps) {
       const res = await parseUploadedPDF(formData);
       setQuestions(res.questions);
       setPdfUrl(res.pdfUrl);
-    } catch (err: any) {
-      alert(err.message || "Failed to parse PDF questions.");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to parse PDF questions.");
     } finally {
       setLoading(false);
     }
@@ -85,8 +86,8 @@ export default function UploadForm({ levels }: UploadFormProps) {
         pdfUrl,
         questions,
       });
-    } catch (err: any) {
-      alert(err.message || "Failed to save paper.");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to save paper.");
     } finally {
       setSaving(false);
     }
@@ -276,7 +277,7 @@ export default function UploadForm({ levels }: UploadFormProps) {
                       <select
                         value={q.type}
                         onChange={(e) => {
-                          const newType = e.target.value;
+                          const newType = e.target.value as ExtractedQuestion["type"];
                           handleUpdateQuestion(qIdx, {
                             type: newType,
                             options: newType === "MULTIPLE_CHOICE" ? ["Option A", "Option B", "Option C", "Option D"] : null,
