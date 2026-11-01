@@ -69,3 +69,28 @@ Google's official signing instructions: https://developer.android.com/studio/pub
 - Add proper terms, stable support, screenshots, content rating, test credentials for reviewers and an internal-test round before promoting any release.
 
 Do not commit or upload a signing key.
+
+
+## Gradle sync failure: missing instrumentation-hierarchy.bin on XPATT
+If Android Studio reports `Could not deserialize analysis`, `MergeInstrumentationAnalysisTransform` and `NoSuchFileException` under `/Volumes/XPATT/Caches/gradle/caches/8.14.3/transforms`, this points to an incomplete Gradle **transform cache**, not the hosted SchoolQuest URL or the signing configuration.
+
+1. Stop the build and quit Android Studio and any other IDE using this same Gradle cache. Preserve all source code and upload keystores.
+2. In Terminal, run the following exact, deliberately **non-destructive** repair. It renames only the affected generated transforms directory so Gradle can reconstruct it; it does not remove source files, signing credentials, or previously downloaded Gradle wrapper distributions.
+
+```bash
+cd /Volumes/XPATT/APPS/schoolquest-android-preview/android || exit 1
+export GRADLE_USER_HOME=/Volumes/XPATT/Caches/gradle
+./gradlew --stop
+
+broken="$GRADLE_USER_HOME/caches/8.14.3/transforms"
+if [ -d "$broken" ]; then
+  mv "$broken" "${broken}.broken-$(date +%Y%m%d-%H%M%S)"
+fi
+
+./gradlew :app:assembleDebug --no-daemon
+```
+
+3. Reopen the same `schoolquest-android-preview/android` directory in Android Studio, use **File > Sync Project with Gradle Files**, then choose the emulator and press **Run**. To force the hosted URL again, run `npm run android:hosted` from the preview repository root, then check `android/app/src/main/assets/capacitor.config.json`.
+4. If corruption recurs, verify the external XPATT disk remains mounted, has available space and is healthy (Disk Utility > First Aid after backups). Consider moving only Gradle User Home to stable internal storage: configure Android Studio **Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle user home**, or launch the wrapper with an explicit `GRADLE_USER_HOME`. Ensure CLI and Android Studio use the **same** selected cache location. Do not delete the entire external `Caches` tree or your key material.
+
+This local-cache repair must be run on the Mac; GitHub cannot repair on-device cache files.
