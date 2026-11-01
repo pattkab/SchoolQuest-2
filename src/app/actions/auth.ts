@@ -134,9 +134,12 @@ export async function registerTeacherAction(formData: FormData) {
 }
 
 export async function setStudentClassAction(formData: FormData) {
-  const userId = String(formData.get("userId") || "");
+  const { requireUser } = await import("@/lib/session");
+  const user = await requireUser();
+  if (user.role !== "STUDENT") redirect("/dashboard");
   const classGradeId = String(formData.get("classGradeId") || "");
-  if (!userId || !classGradeId) return;
-  await db.user.update({ where: { id: userId }, data: { classGradeId } });
+  const grade = classGradeId ? await db.classGrade.findUnique({ where: { id: classGradeId } }) : null;
+  if (!grade) redirect("/dashboard");
+  await db.user.update({ where: { id: user.id }, data: { classGradeId: grade.id } });
   redirect("/dashboard");
 }

@@ -1,19 +1,22 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/session";
+import { requireUser, homeForRole } from "@/lib/session";
+import { reviewableAnswersWhere } from "@/lib/access";
 import { createClassroomAction } from "@/app/actions/marking";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default async function TeacherDeskPage() {
   const user = await requireUser();
+  if (user.role === "STUDENT" || user.role === "PARENT") redirect(homeForRole(user.role));
   const profile = user.teacherProfile;
   const classes = await db.classGrade.findMany({ where: { isActive: true }, orderBy: { order: "asc" } });
   const rooms = await db.classroom.findMany({
     where: { teacherId: user.id },
     include: { classGrade: true, _count: { select: { enrollments: true } } },
   });
-  const pending = await db.answer.count({ where: { gradingStatus: "PENDING_TEACHER" } });
+  const pending = await db.answer.count({ where: reviewableAnswersWhere(user) });
 
   return (
     <div className="space-y-8">
