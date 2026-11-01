@@ -5,6 +5,7 @@ import { GoogleSignInButton } from "@/components/google-sign-in";
 import { BrandMark } from "@/components/shell";
 import { SiteFooter } from "@/components/site-footer";
 import { SignInForm } from "@/components/sign-in-form";
+import { PublicMobileNav } from "@/components/public-mobile-nav";
 
 export default async function LoginPage({
   searchParams,
@@ -34,7 +35,8 @@ export default async function LoginPage({
   const join = tab === "join";
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="mobile-navigation-page mobile-app-frame min-h-screen flex flex-col">
+    <header className="mobile-app-bar lg:hidden px-5 flex items-center"><BrandMark /></header>
     <div className="flex-1 grid lg:grid-cols-2">
       <div className="hidden lg:flex relative overflow-hidden bg-[var(--ink)] text-white p-12 items-end">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -46,7 +48,6 @@ export default async function LoginPage({
       </div>
 
       <div className="flex flex-col justify-center px-5 py-10 md:px-16">
-        <div className="lg:hidden mb-8"><BrandMark /></div>
         <GoogleSignInButton />
         <div className="flex gap-2 mb-6">
           <Link href="/login" className={`rounded-full px-4 py-2 text-sm font-bold ${!join ? "bg-primary text-white" : "bg-white border"}`}>Sign in</Link>
@@ -68,6 +69,7 @@ export default async function LoginPage({
       </div>
     </div>
     <SiteFooter />
+    <PublicMobileNav />
     </div>
   );
 }

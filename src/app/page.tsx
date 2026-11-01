@@ -2,13 +2,14 @@ import Link from "next/link";
 import { BrandMark } from "@/components/shell";
 import { SiteFooter } from "@/components/site-footer";
 import { PATHWAYS } from "@/lib/pathways";
+import { PublicMobileNav } from "@/components/public-mobile-nav";
 
 const rooms = ["Baby–Top", "P.1–P.3", "P.4–P.6", "P.7"];
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="px-5 md:px-10 py-5 flex items-center justify-between">
+    <div className="mobile-navigation-page mobile-app-frame min-h-screen flex flex-col">
+      <header className="mobile-app-bar lg:sticky lg:top-0 lg:h-auto px-5 md:px-10 py-3 lg:py-5 flex items-center justify-between">
         <BrandMark />
         <div className="flex items-center gap-3">
           <Link href="/login" className="hidden sm:inline text-base font-bold hover:text-primary">Sign in</Link>
@@ -59,6 +60,7 @@ export default function Home() {
         </section>
       </main>
       <SiteFooter />
+      <PublicMobileNav />
     </div>
   );
 }

@@ -108,7 +108,7 @@ export async function DashboardShell({
     return { slug: grade.slug, shortName: grade.shortName, subjects: [...core, ...more] };
   });
   return (
-    <div className="min-h-screen">
+    <div className="mobile-navigation-page min-h-screen">
       <aside className="hidden lg:flex w-[270px] flex-col fixed inset-y-0 left-0 border-r bg-[rgba(255,248,236,0.86)] backdrop-blur-xl p-5">
         <BrandMark />
         <p className="mt-6 text-xs font-bold uppercase tracking-widest text-primary">{pathway.label}</p>
@@ -138,8 +138,8 @@ export async function DashboardShell({
         </div>
       </aside>
 
-      <div className="lg:pl-[270px] min-h-screen flex flex-col">
-        <header className="lg:hidden sticky top-0 z-40 border-b bg-[rgba(247,241,230,0.92)] backdrop-blur-xl px-4 py-3 flex items-center justify-between">
+      <div className="mobile-app-frame lg:pl-[270px] min-h-screen flex flex-col">
+        <header className="mobile-app-bar lg:hidden px-4 py-3 flex items-center justify-between">
           <BrandMark compact />
           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             {pathway.label}
@@ -147,10 +147,8 @@ export async function DashboardShell({
         </header>
         <JumpBar classes={classes} homeSlug={user.classGrade?.slug} />
         <main className="page-rise px-4 py-6 md:px-8 md:py-8 max-w-6xl mx-auto w-full flex-1">{children}</main>
-        <div className="mb-16 lg:mb-0">
-          <SiteFooter />
-        </div>
-        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-[rgba(247,241,230,0.96)] backdrop-blur-xl px-2 py-2 grid grid-cols-4 gap-1">
+        <SiteFooter />
+        <nav aria-label="Main navigation" className="mobile-bottom-nav lg:hidden grid grid-cols-4 gap-1">
           {links.map((item) => (
             <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1 py-2 text-xs font-bold text-foreground/70 active:scale-95">
               <item.icon className="h-5 w-5" />

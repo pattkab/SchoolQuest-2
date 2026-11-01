@@ -27,7 +27,7 @@ export function JumpBar({ classes, homeSlug }: { classes: JumpClass[]; homeSlug?
   if (!learn || !current) return null;
 
   return (
-    <div className="sticky top-14 lg:top-0 z-30 -mx-4 md:-mx-8 px-4 md:px-8 py-2 border-b bg-[rgba(247,241,230,0.94)] backdrop-blur-xl space-y-2">
+    <div className="sticky top-16 lg:top-0 z-30 -mx-4 md:-mx-8 px-4 md:px-8 py-2 border-b bg-[rgba(247,241,230,0.94)] backdrop-blur-xl space-y-2">
       <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
         {classes.map((cls) => {
           const keep = subjectSlug && cls.subjects.some((subject) => subject.slug === subjectSlug)
