@@ -1,3 +1,4 @@
+import { submittedAnswerText } from '@/lib/accessibility-settings';
 import { db } from "@/lib/db";
 import { requireUser, isAccreditedTeacher } from "@/lib/session";
 import { reviewableAnswersWhere } from "@/lib/access";
@@ -44,7 +45,7 @@ export default async function MarkingQueuePage() {
             <p className="text-sm rounded-2xl bg-amber-50 px-3 py-2">Guide: {answer.question.markingGuide}</p>
           )}
           <p className="text-sm rounded-2xl bg-muted px-3 py-2">
-            Answer: {answer.studentAnswer?.startsWith("data:image") ? "drawing on file" : answer.studentAnswer || "blank"}
+            Answer: {answer.studentAnswer?.startsWith("data:image") ? "drawing on file" : submittedAnswerText(answer.question.type, answer.studentAnswer)}
           </p>
           {answer.studentAnswer?.startsWith("data:image") && (
             // eslint-disable-next-line @next/next/no-img-element

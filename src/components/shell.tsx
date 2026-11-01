@@ -32,7 +32,6 @@ export async function DashboardShell({ user, children }: { user: ShellUser; chil
   const classes = grades.map(grade => { const { core, more } = splitSubjects(grade.slug, grade.subjects); return { slug: grade.slug, shortName: grade.shortName, subjects: [...core, ...more] }; });
   const initials = (user.name || 'SQ').split(' ').slice(0, 2).map(part => part[0]).join('');
   return <div className="mobile-navigation-page min-h-screen">
-    <a href="#main-content" className="skip-link">Skip to content</a>
     <aside className="quest-sidebar hidden lg:flex">
       <BrandMark />
       <div className="mt-9 mb-4 flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> {pathway.label} space</div>
@@ -46,7 +45,7 @@ export async function DashboardShell({ user, children }: { user: ShellUser; chil
       <header className="mobile-app-bar lg:hidden px-4 flex items-center justify-between"><BrandMark /><Link href="/dashboard/profile" className="quest-avatar" aria-label="Open your profile">{initials}</Link></header>
       <div className="hidden lg:flex items-center justify-between border-b bg-white/70 px-9 py-4"><span className="text-sm font-semibold text-muted-foreground">Your space to learn, grow, and make a difference.</span><span className="context-chip"><GraduationCap className="h-4 w-4" /> {user.classGrade?.name || pathway.label}</span></div>
       <JumpBar classes={classes} homeSlug={user.classGrade?.slug} />
-      <main id="main-content" className="page-rise px-4 py-6 md:px-8 md:py-8 max-w-6xl mx-auto w-full flex-1">{children}</main>
+      <main id="main-content" tabIndex={-1} className="page-rise px-4 py-6 md:px-8 md:py-8 max-w-6xl mx-auto w-full flex-1">{children}</main>
       <p className="py-5 text-center text-[10px] font-semibold tracking-wide text-muted-foreground">SCHOOLQUEST · MADE FOR YOUR NEXT CHAPTER</p>
       <AppNavigation items={links} />
     </div>

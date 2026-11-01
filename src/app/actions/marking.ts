@@ -7,6 +7,7 @@ import { markAnswer, OPEN_TYPES, type MarkableQuestion } from "@/lib/marking";
 import { canReviewLearner } from "@/lib/access";
 import { isAccreditedTeacher } from "@/lib/session";
 import { revalidatePath } from "next/cache";
+import { isDrawingDescription } from '@/lib/accessibility-settings';
 
 function toMarkable(question: {
   id: string;
@@ -52,6 +53,7 @@ export async function submitExam(payload: { paperId: string; answers: Record<str
 
     const shouldAskAi =
       studentAnswer &&
+      !isDrawingDescription(question.type, studentAnswer) &&
       (OPEN_TYPES.has(question.type) || marked.status === "PENDING") &&
       !question.requiresTeacher &&
       marked.status !== "AUTO" &&

@@ -7,6 +7,8 @@
  * `status: "PENDING"` so the caller can route it to AI grading or a teacher.
  */
 
+import { DRAWING_DESCRIPTION_PREFIX, isDrawingDescription } from './accessibility-settings';
+
 export type GradingStatus = "UNANSWERED" | "AUTO" | "AI" | "PENDING_TEACHER" | "TEACHER_MARKED";
 
 export interface MarkableQuestion {
@@ -78,6 +80,11 @@ export function normalizeText(t: string, caseSensitive = false): string {
 export function markAnswer(q: MarkableQuestion, rawAnswer: string | null | undefined): MarkResult {
   const answer = (rawAnswer ?? "").trim();
   const max = q.points;
+
+  if (isDrawingDescription(q.type, rawAnswer || '')) {
+    if (!(rawAnswer || '').slice(DRAWING_DESCRIPTION_PREFIX.length).trim()) return { status: 'UNANSWERED', isCorrect: false, points: 0, feedback: 'No description given.' };
+    return { status: 'PENDING', isCorrect: null, points: 0, feedback: 'Your text description is awaiting teacher review. It has not been marked as a drawing image.' };
+  }
 
   if (!answer) {
     return { status: "UNANSWERED", isCorrect: false, points: 0, feedback: "No answer given." };

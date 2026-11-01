@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { stopReadAloud } from '@/lib/read-aloud';
 import Link from "next/link";
-import DrawingCanvas from "@/components/DrawingCanvas";
+import { DrawingAnswer } from '@/components/drawing-answer';
+import { ReadAloudButton } from '@/components/accessibility-tools';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,6 +50,7 @@ export default function ExamPlayer({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  useEffect(() => () => stopReadAloud(), [index, result]);
   const question = questions[index];
   const options = useMemo(() => parseOptions(question?.options), [question]);
   const matchPairs = question?.type === "MATCHING" ? parseMatch(question.options, question) : [];
@@ -68,8 +71,8 @@ export default function ExamPlayer({
         <CheckCircle2 className="h-14 w-14 text-primary mx-auto" />
         <h1 className="font-display text-4xl">Paper in.</h1>
         <p className="text-muted-foreground">{paper.title}</p>
-        <p className="font-display text-6xl text-primary">{percent}%</p>
-        <p className="font-bold">{result.score} / {result.maxScore} marks</p>
+        <p className={`font-display text-primary ${result.pendingCount ? 'text-3xl' : 'text-6xl'}`}>{result.pendingCount ? 'Teacher review pending' : `${percent}%`}</p>
+        <p className="font-bold">{result.pendingCount ? 'Provisional: ' : ''}{result.score} / {result.maxScore} marks</p>
         {result.pendingCount > 0 && (
           <p className="rounded-2xl bg-amber-50 text-amber-800 px-4 py-3 text-sm">
             {result.pendingCount} with the teacher.
@@ -96,12 +99,12 @@ export default function ExamPlayer({
         <Link href={paper.backHref} className="text-sm font-bold text-primary">← {paper.className} {paper.subject}</Link>
         <h1 className="font-display text-3xl mt-2">{paper.title}</h1>
         <p className="text-sm text-muted-foreground">{paper.topic || paper.kind.replaceAll("_", " ")} · Question {index + 1} of {questions.length}</p>
-        <div className="h-2 rounded-full bg-muted mt-3">
+        <div role="progressbar" aria-label="Question progress" aria-valuemin={1} aria-valuemax={questions.length} aria-valuenow={index + 1} className="h-2 rounded-full bg-muted mt-3">
           <div className="h-2 rounded-full bg-primary" style={{ width: `${((index + 1) / questions.length) * 100}%` }} />
         </div>
       </div>
 
-      <div className="rounded-[2rem] bg-white border p-5 md:p-7 space-y-5">
+      <div className="rounded-[2rem] bg-white border p-5 md:p-7 space-y-5" data-reading-content>
         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           {questionTypeLabel(question.type)} · {question.points} mark{question.points === 1 ? "" : "s"}
         </p>
@@ -110,7 +113,8 @@ export default function ExamPlayer({
             {question.stimulus}
           </div>
         )}
-        <h2 className="font-display text-2xl leading-snug">{question.prompt}</h2>
+        <h2 id="current-question" tabIndex={-1} className="font-display text-2xl leading-snug">{question.prompt}</h2>
+        <ReadAloudButton label="Listen to this question" />
 
         {question.type === "MULTIPLE_CHOICE" && (
           <div className="grid gap-2">
@@ -119,6 +123,8 @@ export default function ExamPlayer({
               return (
                 <button
                   key={opt}
+                  data-read-label
+                  aria-pressed={selected}
                   onClick={() => setAnswer(opt)}
                   className={`text-left rounded-2xl border-2 px-4 py-3 font-semibold ${selected ? "border-primary bg-primary/8 text-primary" : "border-border bg-white"}`}
                 >
@@ -134,6 +140,8 @@ export default function ExamPlayer({
             {["True", "False"].map((opt) => (
               <button
                 key={opt}
+                data-read-label
+                aria-pressed={answers[question.id] === opt}
                 onClick={() => setAnswer(opt)}
                 className={`rounded-2xl border-2 py-5 font-black text-xl ${answers[question.id] === opt ? "border-primary bg-primary/8 text-primary" : "border-border"}`}
               >
@@ -144,7 +152,7 @@ export default function ExamPlayer({
         )}
 
         {question.type === "DRAWING" && (
-          <DrawingCanvas onChange={setAnswer} defaultValue={answers[question.id]} />
+          <DrawingAnswer key={question.id} onChange={setAnswer} value={answers[question.id] || ''} />
         )}
 
         {question.type === "MATCHING" && (
@@ -169,6 +177,8 @@ export default function ExamPlayer({
 
         {["SHORT_ANSWER", "COMPREHENSION", "LONG_ANSWER"].includes(question.type) && (
           <Textarea
+            aria-label="Your written answer"
+            aria-describedby="current-question"
             value={answers[question.id] || ""}
             onChange={(e) => setAnswer(e.target.value)}
             className="min-h-32 rounded-2xl text-base"
@@ -178,6 +188,8 @@ export default function ExamPlayer({
 
         {["FILL_BLANK", "NUMERIC"].includes(question.type) && (
           <Input
+            aria-label={question.type === 'NUMERIC' ? 'Your numeric answer' : 'Your answer'}
+            aria-describedby="current-question"
             value={answers[question.id] || ""}
             onChange={(e) => setAnswer(e.target.value)}
             className="h-14 rounded-2xl text-lg"
@@ -186,7 +198,7 @@ export default function ExamPlayer({
         )}
 
         <div className="flex justify-between gap-3 pt-2">
-          <Button variant="outline" className="rounded-2xl h-12" disabled={index === 0} onClick={() => setIndex((i) => i - 1)}>
+          <Button variant="outline" className="rounded-2xl h-12" disabled={index === 0} onClick={() => { setIndex((i) => i - 1); requestAnimationFrame(() => document.getElementById('current-question')?.focus()); }}>
             <ArrowLeft className="h-4 w-4" /> Back
           </Button>
           {index === questions.length - 1 ? (
@@ -209,7 +221,7 @@ export default function ExamPlayer({
               {busy ? "Marking…" : "Submit"}
             </Button>
           ) : (
-            <Button className="rounded-2xl h-12" onClick={() => setIndex((i) => i + 1)}>
+            <Button className="rounded-2xl h-12" onClick={() => { setIndex((i) => i + 1); requestAnimationFrame(() => document.getElementById('current-question')?.focus()); }}>
               Next <ArrowRight className="h-4 w-4" />
             </Button>
           )}

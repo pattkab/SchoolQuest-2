@@ -1,3 +1,4 @@
+import { submittedAnswerText } from '@/lib/accessibility-settings';
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -38,7 +39,7 @@ export default async function AttemptPage({ params }: { params: Promise<{ attemp
           </p>
           <p className="font-semibold mt-2">{answer.question.prompt}</p>
           <p className="mt-3 rounded-2xl bg-muted px-3 py-2 text-sm">
-            Your answer: {answer.studentAnswer?.startsWith("data:image") ? "drawing submitted" : answer.studentAnswer || "—"}
+            Your answer: {answer.studentAnswer?.startsWith("data:image") ? "drawing submitted" : submittedAnswerText(answer.question.type, answer.studentAnswer)}
           </p>
           <p className="mt-2 text-sm">
             Marks: {answer.pointsAwarded ?? "pending"} / {answer.question.points}
