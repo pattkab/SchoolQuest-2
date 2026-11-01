@@ -42,7 +42,7 @@ export async function submitExam(payload: SubmitExamPayload) {
   });
 
   let totalScore = 0;
-  const answersToCreate: any[] = [];
+  const answersToCreate: Array<{ questionId: string; studentAnswer: string; isCorrect: boolean; pointsAwarded: number; teacherNote: string }> = [];
 
   for (const question of questions) {
     const studentAns = (answers[question.id] || "").trim();
@@ -51,7 +51,7 @@ export async function submitExam(payload: SubmitExamPayload) {
     let explanation = "";
 
     // Parse the correct answer
-    let parsedCorrectAnswer: any = null;
+    let parsedCorrectAnswer: unknown = null;
     try {
       parsedCorrectAnswer = JSON.parse(question.correctAnswer);
     } catch {
@@ -64,7 +64,7 @@ export async function submitExam(payload: SubmitExamPayload) {
     } else if (question.type === "FILL_BLANK") {
       if (Array.isArray(parsedCorrectAnswer)) {
         isCorrect = parsedCorrectAnswer.some(
-          (ans: string) => ans.trim().toLowerCase() === studentAns.toLowerCase()
+          (ans: unknown) => typeof ans === "string" && ans.trim().toLowerCase() === studentAns.toLowerCase()
         );
       } else {
         isCorrect = String(parsedCorrectAnswer).trim().toLowerCase() === studentAns.toLowerCase();
