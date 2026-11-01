@@ -15,11 +15,11 @@ export function DoCard({
   paperCount: number;
 }) {
   return (
-    <article className="rounded-3xl border bg-white overflow-hidden" style={{ borderTop: `4px solid ${color}` }}>
-      <p className="px-4 py-3 font-display text-xl">{shortSubjectName(name)}</p>
-      <div className="grid grid-cols-2 border-t text-sm font-bold">
-        <Link href={noteHref} className="py-3 text-center hover:bg-muted">Read</Link>
-        <Link href={paperHref} className={`py-3 text-center ${paperCount ? "bg-primary text-white" : "text-muted-foreground"}`}>
+    <article className="lift rounded-3xl border bg-white overflow-hidden" style={{ borderTop: `5px solid ${color}` }}>
+      <p className="px-5 py-4 font-display text-2xl">{shortSubjectName(name)}</p>
+      <div className="grid grid-cols-2 border-t text-base font-bold">
+        <Link href={noteHref} className="py-3.5 text-center hover:bg-muted transition-colors">Read</Link>
+        <Link href={paperHref} className={`py-3.5 text-center transition-colors ${paperCount ? "bg-primary text-white hover:bg-[var(--forest)]" : "text-muted-foreground"}`}>
           {paperCount ? "Practice" : "Soon"}
         </Link>
       </div>

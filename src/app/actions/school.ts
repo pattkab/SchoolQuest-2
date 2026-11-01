@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
+import { schoolById } from "@/lib/ug-schools";
 import { randomCode, schoolFor, todayKey } from "@/lib/school";
 
 function cleanPhone(value: FormDataEntryValue | null) {
@@ -20,6 +21,13 @@ export async function completeProfileAction(formData: FormData) {
   const schoolCode = String(formData.get("schoolCode") || "").trim().toUpperCase();
   const schoolName = String(formData.get("schoolName") || "").trim();
   const district = String(formData.get("district") || "").trim();
+  const emisSchoolId = String(formData.get("emisSchoolId") || "");
+  const listedSchool = emisSchoolId ? schoolById(emisSchoolId) : null;
+  const sex = String(formData.get("sex") || "");
+  const born = String(formData.get("dateOfBirth") || "");
+  const dateOfBirth = born ? new Date(`${born}T00:00:00.000Z`) : null;
+  const guardianName = String(formData.get("guardianName") || "").trim();
+  const guardianPhone = cleanPhone(formData.get("guardianPhone"));
 
   if (!name) redirect("/setup?error=missing");
   if (phone) {
@@ -60,6 +68,10 @@ export async function completeProfileAction(formData: FormData) {
   }
 
   if (role === "STUDENT" && !classGradeId && !user.classGradeId) redirect("/setup?error=class");
+  if (role === "STUDENT" && !user.profileComplete && !listedSchool) redirect("/setup?error=listed");
+  if (role === "STUDENT" && !user.profileComplete && (sex !== "Female" && sex !== "Male" || !dateOfBirth || Number.isNaN(dateOfBirth.getTime()))) {
+    redirect("/setup?error=missing");
+  }
   await db.user.update({
     where: { id: user.id },
     data: {
@@ -67,6 +79,17 @@ export async function completeProfileAction(formData: FormData) {
       phone,
       role: user.profileComplete ? user.role : "STUDENT",
       classGradeId: classGradeId || user.classGradeId,
+      ...(role === "STUDENT" && !user.profileComplete
+        ? {
+            sex,
+            dateOfBirth,
+            guardianName: guardianName || null,
+            guardianPhone: guardianPhone || null,
+            emisSchoolId: listedSchool?.id,
+            school: listedSchool?.name,
+            district: listedSchool?.district,
+          }
+        : {}),
       profileComplete: true,
     },
   });

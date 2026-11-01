@@ -4,6 +4,7 @@ import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { authConfig } from "./auth.config";
 import { db } from "./lib/db";
+import { accountFromFirebaseToken } from "./lib/firebase-account";
 
 const googleReady = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 
@@ -19,8 +20,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         phone: { label: "Phone Number", type: "text" },
         password: { label: "Password", type: "password" },
         intent: { label: "Intent", type: "text" },
+        idToken: { label: "Firebase token", type: "text" },
       },
       async authorize(credentials) {
+        const idToken = String(credentials?.idToken || "");
+        if (idToken) {
+          const account = await accountFromFirebaseToken(idToken);
+          if (!account) return null;
+          const row = await db.user.upsert({
+            where: { email: account.email },
+            update: {},
+            create: {
+              email: account.email,
+              name: account.name,
+              role: "STUDENT",
+              profileComplete: false,
+              trialStartsAt: new Date(),
+              trialEndsAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
+            },
+          });
+          return {
+            id: row.id,
+            name: row.name,
+            phone: row.phone || undefined,
+            role: row.role,
+          };
+        }
+
         const phone = String(credentials?.phone || "").replace(/\s+/g, "");
         const password = String(credentials?.password || "");
         const intent = String(credentials?.intent || "STUDENT");

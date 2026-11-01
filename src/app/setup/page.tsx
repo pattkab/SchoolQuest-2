@@ -9,6 +9,7 @@ const errors: Record<string, string> = {
   missing: "Fill the required fields.",
   phone: "That phone is already used.",
   school: "School code not found.",
+  listed: "Choose a school from the list.",
   class: "Choose a class.",
 };
 
@@ -31,7 +32,7 @@ export default async function SetupPage({
         <BrandMark />
         <h1 className="font-display text-4xl mt-8">{user.profileComplete ? "Profile" : "Set up"}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {user.profileComplete ? "Update your name and phone." : "Student, teacher, or school admin."}
+          {user.profileComplete ? "Update your name and phone." : "Student, teacher, or school manager."}
         </p>
         {error && <p className="mt-4 rounded-2xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">{errors[error] || "Try again."}</p>}
         <div className="mt-6">

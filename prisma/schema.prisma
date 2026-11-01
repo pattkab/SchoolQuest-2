@@ -24,6 +24,11 @@ model User {
   classGrade         ClassGrade? @relation(fields: [classGradeId], references: [id], onDelete: SetNull)
   school             String?
   district           String?
+  emisSchoolId       String?
+  sex                String?
+  dateOfBirth        DateTime?
+  guardianName       String?
+  guardianPhone      String?
   avatarSeed         String?
   studentNumber      String?   @unique
   schoolId           String?

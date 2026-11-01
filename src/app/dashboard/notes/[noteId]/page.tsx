@@ -29,7 +29,7 @@ export default async function NotePage({ params }: { params: Promise<{ noteId: s
         </p>
         <h1 className="font-display text-4xl mt-2">{note.title}</h1>
       </header>
-      <article className="rounded-[1.8rem] bg-white border p-6 md:p-8">
+      <article className="rounded-[1.8rem] bg-white border p-6 md:p-10 shadow-sm">
         <NotesMarkdown content={note.content} />
       </article>
       {quiz && (

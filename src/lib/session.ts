@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { pathwayForRole } from "@/lib/pathways";
 import { redirect } from "next/navigation";
 
 export type AppRole = "STUDENT" | "TEACHER" | "SCHOOL_ADMIN" | "ADMIN" | "SUPER_ADMIN" | "PARENT";
@@ -37,8 +38,7 @@ export function isSchoolAdmin(role?: string | null) {
 }
 
 export function homeForRole(role?: string | null) {
-  if (role === "SCHOOL_ADMIN") return "/dashboard/school";
-  return "/dashboard";
+  return pathwayForRole(role).home;
 }
 
 export function isAccreditedTeacher(user: {

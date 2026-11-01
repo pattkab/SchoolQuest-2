@@ -39,7 +39,7 @@ export function JumpBar({ classes, homeSlug }: { classes: JumpClass[]; homeSlug?
             <Link
               key={cls.slug}
               href={href}
-              className={`rounded-full px-3 py-1.5 text-sm font-bold whitespace-nowrap ${on ? "bg-primary text-white" : "bg-white border"}`}
+              className={`rounded-full px-3.5 py-2 text-base font-bold whitespace-nowrap transition-transform active:scale-95 ${on ? "bg-primary text-white" : "bg-white border hover:-translate-y-0.5"}`}
             >
               {cls.shortName}
             </Link>
@@ -51,8 +51,8 @@ export function JumpBar({ classes, homeSlug }: { classes: JumpClass[]; homeSlug?
           <Link
             key={subject.slug}
             href={`/dashboard/classes/${current.slug}/${subject.slug}`}
-            className={`rounded-full px-3 py-1.5 text-sm font-bold whitespace-nowrap ${
-              subject.slug === subjectSlug ? "bg-[var(--ink)] text-white" : "bg-white border"
+            className={`rounded-full px-3.5 py-2 text-base font-bold whitespace-nowrap transition-transform active:scale-95 ${
+              subject.slug === subjectSlug ? "bg-[var(--ink)] text-white" : "bg-white border hover:-translate-y-0.5"
             }`}
           >
             {shortSubjectName(subject.name)}

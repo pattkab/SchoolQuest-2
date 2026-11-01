@@ -27,7 +27,7 @@ export default async function SchoolHomePage({
     return (
       <div className="space-y-6">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-primary">School</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-primary">School manager</p>
           <h1 className="font-display text-4xl">{school.name}</h1>
           <p className="text-sm text-muted-foreground">Teacher code {school.code}</p>
         </div>

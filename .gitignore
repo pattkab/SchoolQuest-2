@@ -48,3 +48,14 @@ next-env.d.ts
 # SQLite local DB
 *.db
 *.db-journal
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local Netlify folder
+.netlify
+
+# EMIS download progress. The finished register is data/ug-schools.json.
+data/ug-schools.jsonl
+data/emis-fetch-state.json

@@ -8,7 +8,7 @@
 
 # The seeded SQLite file is created during the build. Bundle it with the server.
 [functions]
-  included_files = ["prisma/dev.db"]
+  included_files = ["prisma/dev.db", "data/ug-schools.jsonl", "data/ug-schools.json"]
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

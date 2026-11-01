@@ -18,7 +18,7 @@ export default async function TeacherDeskPage() {
   return (
     <div className="space-y-8">
       <div className="rounded-[2rem] bg-[var(--ink)] text-white p-7">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--gold)]">Teacher desk</p>
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--gold)]">Teacher</p>
         <h1 className="font-display text-4xl mt-2">{profile?.fullName || user.name || "Teacher"}</h1>
         <p className="text-white/75 mt-2">
           {profile ? `${profile.registrationNumber} · ${profile.status}` : "Apply to mark."}

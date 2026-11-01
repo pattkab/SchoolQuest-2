@@ -35,8 +35,8 @@ export default async function LearnHome() {
     <div className="space-y-8">
       <div>
         <p className="text-xs font-bold uppercase tracking-widest text-primary">Learn</p>
-        <h1 className="font-display text-4xl">{user.name?.split(" ")[0] || "Start"}</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="font-display">{user.name?.split(" ")[0] || "Start"}</h1>
+        <p className="text-base text-muted-foreground mt-1">
           {myClass ? myClass.shortName : "Pick your class"}
           {" · "}
           <Link href="/dashboard/curriculum" className="font-bold text-primary">Syllabus</Link>
@@ -60,7 +60,7 @@ export default async function LearnHome() {
       )}
 
       {myClass && (
-        <section className="grid sm:grid-cols-2 gap-3">
+        <section className="stagger grid sm:grid-cols-2 gap-4">
           {core.map((subject) => (
             <DoCard
               key={subject.id}

@@ -20,6 +20,7 @@ export default async function AdminHomePage() {
   return (
     <div className="space-y-8">
       <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-primary">Site administrator</p>
         <h1 className="font-display text-4xl">Admin</h1>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

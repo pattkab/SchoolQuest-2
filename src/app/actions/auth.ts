@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs";
 import { signIn } from "@/auth";
 import { db } from "@/lib/db";
+import { schoolById } from "@/lib/ug-schools";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 
@@ -29,12 +30,19 @@ export async function registerStudentAction(formData: FormData) {
   const password = String(formData.get("password") || "");
   const name = String(formData.get("name") || "").trim();
   const classGradeId = String(formData.get("classGradeId") || "") || null;
-  if (!phone || password.length < 4 || !name) {
-    redirect("/login?error=missing");
+  const sex = String(formData.get("sex") || "");
+  const guardianName = String(formData.get("guardianName") || "").trim();
+  const guardianPhone = cleanPhone(formData.get("guardianPhone"));
+  const born = String(formData.get("dateOfBirth") || "");
+  const dateOfBirth = born ? new Date(`${born}T00:00:00.000Z`) : null;
+  const school = schoolById(String(formData.get("emisSchoolId") || ""));
+  if (!phone || password.length < 4 || !name || !classGradeId || !guardianName || !guardianPhone || (sex !== "Female" && sex !== "Male") || !dateOfBirth || Number.isNaN(dateOfBirth.getTime())) {
+    redirect("/login?tab=join&error=missing");
   }
+  if (!school) redirect("/login?tab=join&error=school");
 
   const existing = await db.user.findUnique({ where: { phone } });
-  if (existing) redirect("/login?error=exists");
+  if (existing) redirect("/login?tab=join&error=exists");
 
   const trialEnds = new Date();
   trialEnds.setDate(trialEnds.getDate() + 14);
@@ -46,6 +54,13 @@ export async function registerStudentAction(formData: FormData) {
       passwordHash: bcrypt.hashSync(password, 10),
       role: "STUDENT",
       classGradeId,
+      sex,
+      dateOfBirth,
+      guardianName,
+      guardianPhone,
+      emisSchoolId: school.id,
+      school: school.name,
+      district: school.district,
       trialStartsAt: new Date(),
       trialEndsAt: trialEnds,
     },
