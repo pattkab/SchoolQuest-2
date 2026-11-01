@@ -1,8 +1,8 @@
 # SchoolQuest: GitHub → Mac mini → Android Studio / Xcode
 
 The working checkout is `/Volumes/XPATT/APPS/schoolquest-github-preview`.
-GitHub repository: https://github.com/pattkab/SchoolQuest . The original
-`/Volumes/XPATT/APPS/schoolquest` folder is preserved; its origin URL now uses the renamed repository.
+GitHub repository: https://github.com/pattkab/SchoolQuest-2 . The original
+`/Volumes/XPATT/APPS/schoolquest` folder is preserved; its origin URL uses the current canonical repository address.
 
 Both native projects are version controlled. Do not regenerate them with `cap add`
 after each update: that would discard future native work. Commit native changes on
@@ -16,8 +16,8 @@ Android Studio with SDK 36 and JDK 21 (`brew install openjdk@21` on this Mac), X
 iOS uses Swift Package Manager; CocoaPods is not required for this project.
 
 ```sh
-git clone https://github.com/pattkab/SchoolQuest.git
-cd SchoolQuest
+git clone https://github.com/pattkab/SchoolQuest-2.git
+cd SchoolQuest-2
 # Until this work is merged into main:
 git switch codex/mobile-workflow
 npm ci --ignore-scripts
