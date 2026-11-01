@@ -25,4 +25,6 @@ Learning-pattern references (inspiration, not copied branding):
 Production build/type checking; targeted ESLint; existing authentication/evidence tests.
 Manual local-demo checks cover learner login, Profile navigation, invalid teacher login retaining the role, teacher dashboard, school dashboard, mobile and desktop layouts. Native previews load the Mac server at localhost:3001 using the separate Capacitor checkout.
 
+Android verification (1 November 2026): `SchoolQuest_API_35` on Android 15, using host graphics on the Apple M4, renders the signed-in learner dashboard and Profile correctly. Scrolling keeps the header and bottom navigation fixed; Profile opens from the bottom tab. SwiftShader software graphics produced duplicated paint tiles on both API 35 and API 37.1; the same dashboard is clean with host graphics and in the compact browser. For this Mac, use the verified API 35 device with `hw.gpu.mode=host` and `hw.keyboard=yes`. This is an emulator configuration workaround, not a physical-device compatibility guarantee.
+
 This change does not deploy the Netlify server or publish native store binaries. Hosted apps receive the design after the web deployment is updated. Google native sign-in and store billing remain separate mobile-release work. Conversion or retention improvements should be measured after release rather than claimed from design alone.
