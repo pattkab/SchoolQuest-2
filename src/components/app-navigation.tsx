@@ -9,7 +9,8 @@ export type NavigationItem = { href: string; label: string; icon: keyof typeof i
 
 export function AppNavigation({ items, desktop = false }: { items: NavigationItem[]; desktop?: boolean }) {
   const pathname = usePathname();
-  const current = items.filter(item => pathname === item.href || (item.href !== '/dashboard' && item.href !== '/' && pathname.startsWith(item.href + '/'))).sort((a, b) => b.href.length - a.href.length)[0]?.href;
+  const routeSection = /^\/dashboard\/(classes|notes|papers|subjects|levels|curriculum)(\/|$)/.test(pathname) ? 'learn' : pathname.startsWith('/dashboard/attempts/') ? 'progress' : null;
+  const current = (routeSection && items.find(item => item.icon === routeSection)?.href) || items.filter(item => pathname === item.href || (item.href !== '/dashboard' && item.href !== '/' && pathname.startsWith(item.href + '/'))).sort((a, b) => b.href.length - a.href.length)[0]?.href;
   return <nav aria-label={desktop ? 'Sidebar navigation' : 'Main navigation'} className={desktop ? 'space-y-1.5' : 'mobile-bottom-nav lg:hidden flex justify-around gap-1'}>
     {items.map(item => {
       const Icon = icons[item.icon];
