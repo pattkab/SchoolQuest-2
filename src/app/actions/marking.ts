@@ -217,9 +217,9 @@ export async function joinClassroomAction(formData: FormData) {
   const room = await db.classroom.findUnique({ where: { code } });
   if (!room) throw new Error("Classroom code not found");
   await db.enrollment.upsert({
-    where: { classroomId_userId: { classroomId: room.id, session.user.id: session.user.id } },
+    where: { classroomId_userId: { classroomId: room.id, userId: session.user.id } },
     update: {},
-    create: { classroomId: room.id, session.user.id: session.user.id },
+    create: { classroomId: room.id, userId: session.user.id },
   });
   revalidatePath("/dashboard");
 }

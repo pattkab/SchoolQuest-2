@@ -50,3 +50,27 @@ No automated test runs or app-store build results are claimed by this commit.
 - This is **not approved or live** until provisioned against SchoolQuest's own Yo account and independently tested with valid Yo sandbox and production documentation.
 - Provider callbacks/IPN certificate verification, full reconciliation/retry operations, operational refund workflow, card support, iOS/Android store billing, and independent security audit remain required for launch.
 - Payment requests receiving transport errors are marked `REVIEW` to avoid double prompting customers; operations must reconcile these with Yo.
+
+## Mobile digital subscription billing — channel policy
+
+SchoolQuest Student Pro is a **digital subscription**, so the native apps need store-compliant billing:
+
+| Distribution | Buy Pro in the app | Verification | Notes |
+|---|---|---|---|
+| Web/PWA | Yo Payments (mobile money; other Yo methods only if contracted) | Server-side Yo status check | Platform-independent login and entitlement |
+| Google Play Android | **Google Play Billing** | Google Play Developer API + Real-time Developer Notifications | Google Pay wallet alone is not a substitute. Approved alternative-billing programmes are jurisdiction-specific. |
+| Apple App Store iOS | **Apple In-App Purchase / StoreKit 2** | App Store Server API + Server Notifications V2 | Apple Pay wallet alone is not a substitute; external purchase entitlements vary by storefront. |
+
+**Implementation contract:** `src/lib/mobile-billing.ts` defines native product identifiers and verification metadata, but no production native purchase SDK, backend store receipt verification, renewal notification ingestion, cancellation/refund reconciliation or native paywall is implemented yet. Never mint Pro from locally received purchase data, unverified signed transactions, or a client-controlled platform flag.
+
+Next native implementation stage:
+1. Register subscription products on App Store Connect and Google Play Console.
+2. Create a proper Android/iOS app client: use native StoreKit 2 / Google Play Billing purchase APIs (or a rigorously audited Capacitor plugin), keeping platform-provided localized prices and terms.
+3. Backend verification: Apple signed transactions plus App Store Server API and Server Notifications V2; Android purchase token validation with Google Play Developer API and Real-time Developer Notifications. Link verified purchases to the SchoolQuest account and reject token replay or cross-account reuse.
+4. Maintain one source-of-truth Pro entitlement with its source/provider, verified expiration, auto-renewal status and revocation/refund records. The current legacy `subscriptionEndsAt` field is insufficient for native subscription lifecycle; extend it safely before go-live.
+5. Never expose Yo checkout for digital subscriptions inside a store-distributed native WebView unless an approved programme/entitlement permits it. In the present remote URL shell, a simple user-agent or `?platform=ios` query is not a secure channel verification solution; disable native paywall sales until a native SDK is integrated and the web shell is segregated.
+6. Existing valid web purchases may be usable across platforms when consistent with each store's multiplatform-services rules, but in-app purchase options must remain available where required.
+7. Apple Pay and Google Pay can be considered separately for eligible physical/off-app goods/services through an approved payment processor; they are not implemented in SchoolQuest subscription checkout.
+8. Test purchases, renewals, grace periods, failed billing, refund/revocation, restored purchases, cross-device sync and store review in sandbox environments before release.
+
+Official policies (recheck before release): https://developer.apple.com/app-store/review/guidelines/ ; https://support.google.com/googleplay/android-developer/answer/9858738 .
