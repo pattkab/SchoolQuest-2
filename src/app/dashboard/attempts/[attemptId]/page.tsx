@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
+import { canReviewLearner } from "@/lib/access";
 import { questionTypeLabel } from "@/lib/marking";
 
 export default async function AttemptPage({ params }: { params: Promise<{ attemptId: string }> }) {
@@ -14,7 +15,8 @@ export default async function AttemptPage({ params }: { params: Promise<{ attemp
       answers: { include: { question: true }, orderBy: { createdAt: "asc" } },
     },
   });
-  if (!attempt || (attempt.userId !== user.id && user.role === "STUDENT")) notFound();
+  if (!attempt) notFound();
+  if (attempt.userId !== user.id && !(await canReviewLearner(user, attempt.userId))) notFound();
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { readDocument, type ExtractedQuestion } from "@/lib/gemini";
 import { loadSource, type SourceKind } from "@/lib/ingest";
@@ -70,7 +71,7 @@ export async function saveBuiltContentAction(payload: {
         sourceUrl: payload.sourceUrl,
         attribution: payload.sourceUrl,
         authorId: user.id,
-        status: "PUBLISHED",
+        status: "NEEDS_REVIEW",
       },
     });
     redirect(`/dashboard/notes/${note.id}`);
@@ -88,7 +89,7 @@ export async function saveBuiltContentAction(payload: {
       sourceUrl: payload.sourceUrl,
       attribution: payload.sourceUrl,
       authorId: user.id,
-      status: "PUBLISHED",
+      status: "NEEDS_REVIEW",
       questions: {
         create: payload.questions.map((question, index) => ({
           type: question.type || "SHORT_ANSWER",
@@ -106,4 +107,15 @@ export async function saveBuiltContentAction(payload: {
     },
   });
   redirect(`/dashboard/papers/${paper.id}`);
+}
+
+export async function approveContentAction(formData: FormData) {
+  await adminUser();
+  const kind = String(formData.get("kind") || "");
+  const id = String(formData.get("id") || "");
+  if (!id) redirect("/dashboard/admin/readiness");
+  if (kind === "note") await db.note.update({ where: { id }, data: { status: "PUBLISHED" } });
+  if (kind === "paper") await db.paper.update({ where: { id }, data: { status: "PUBLISHED" } });
+  revalidatePath("/dashboard/admin/readiness");
+  redirect("/dashboard/admin/readiness");
 }

@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { gradeDrawingAnswer, gradeOpenAnswer } from "@/lib/gemini";
 import { markAnswer, OPEN_TYPES, type MarkableQuestion } from "@/lib/marking";
+import { canReviewLearner } from "@/lib/access";
 import { isAccreditedTeacher } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 
@@ -27,6 +28,9 @@ function toMarkable(question: {
 export async function submitExam(payload: { paperId: string; answers: Record<string, string>; mode?: string }) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Please sign in to submit.");
+
+  const paperRecord = await db.paper.findUnique({ where: { id: payload.paperId }, select: { status: true } });
+  if (!paperRecord || paperRecord.status !== "PUBLISHED") throw new Error("This paper is not published.");
 
   const questions = await db.question.findMany({
     where: { paperId: payload.paperId },
@@ -66,7 +70,7 @@ export async function submitExam(payload: { paperId: string; answers: Record<str
               );
         if (ai.explanation && !ai.explanation.toLowerCase().includes("unable")) {
           points = ai.score;
-          feedback = ai.explanation;
+          feedback = `Provisional. A teacher still needs to confirm this mark. ${ai.explanation}`;
           isCorrect = ai.score >= question.points;
           gradingStatus = "AI";
           marked = { status: "AUTO", isCorrect, points, feedback };
@@ -76,7 +80,7 @@ export async function submitExam(payload: { paperId: string; answers: Record<str
       }
     }
 
-    if (gradingStatus === "PENDING_TEACHER") pendingCount += 1;
+    if (gradingStatus === "PENDING_TEACHER" || gradingStatus === "AI") pendingCount += 1;
     if (gradingStatus === "AUTO" || gradingStatus === "AI") score += points;
 
     results.push({
@@ -144,6 +148,7 @@ export async function markAnswerAsTeacher(formData: FormData) {
     include: { question: true, attempt: true },
   });
   if (!answer) throw new Error("Answer not found");
+  if (!(await canReviewLearner(user, answer.attempt.userId))) throw new Error("This learner is outside your classes.");
 
   const awarded = Math.max(0, Math.min(answer.question.points, pointsAwarded));
   await db.answer.update({
@@ -232,6 +237,8 @@ export async function reviewTeacherAction(formData: FormData) {
 export async function syncLibraryAction(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  const admin = await db.user.findUnique({ where: { id: session.user.id } });
+  if (!admin || (admin.role !== "ADMIN" && admin.role !== "SUPER_ADMIN")) throw new Error("Admin only");
   const { syncFeeds } = await import("@/lib/fresh-teacher");
   const classKey = String(formData.get("classKey") || "") || undefined;
   await syncFeeds({ classKey, triggeredById: session.user.id });

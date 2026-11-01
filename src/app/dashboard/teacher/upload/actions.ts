@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { extractQuestionsFromPDF, ExtractedQuestion } from "@/lib/gemini";
+import { isAccreditedTeacher } from "@/lib/session";
 import { uploadFileToFirebase } from "@/lib/firebase";
 import { redirect } from "next/navigation";
 import { topicIdForTitle } from "@/lib/topics";
@@ -14,10 +15,11 @@ export async function parseUploadedPDF(formData: FormData) {
   }
 
   const user = await db.user.findUnique({
-    where: { id: session.user.id }
+    where: { id: session.user.id },
+    include: { teacherProfile: true },
   });
 
-  if (!user || !["ADMIN", "SUPER_ADMIN", "TEACHER"].includes(user.role)) {
+  if (!user || !isAccreditedTeacher(user)) {
     throw new Error("Access denied: accredited teachers and admins only.");
   }
 
@@ -68,10 +70,11 @@ export async function saveParsedPaper(payload: SavePaperPayload) {
   }
 
   const user = await db.user.findUnique({
-    where: { id: session.user.id }
+    where: { id: session.user.id },
+    include: { teacherProfile: true },
   });
 
-  if (!user || !["ADMIN", "SUPER_ADMIN", "TEACHER"].includes(user.role)) {
+  if (!user || !isAccreditedTeacher(user)) {
     throw new Error("Access denied: accredited teachers and admins only.");
   }
 
@@ -90,7 +93,7 @@ export async function saveParsedPaper(payload: SavePaperPayload) {
       kind: "PAST_PAPER",
       sourceType: "UPLOAD",
       authorId: user.id,
-      status: "PUBLISHED",
+      status: "NEEDS_REVIEW",
     }
   });
 

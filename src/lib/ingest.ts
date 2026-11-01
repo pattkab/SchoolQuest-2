@@ -1,10 +1,11 @@
+import { assertPublicHttpsUrl, assertPublicResolution } from "@/lib/safe-url";
+
 const MAX_BYTES = 15_000_000;
 
 export type SourceKind = "SCAN" | "PDF" | "GITHUB";
 
 export function toRawUrl(input: string) {
-  const url = new URL(input.trim());
-  if (url.protocol !== "https:") throw new Error("Use an https link.");
+  const url = assertPublicHttpsUrl(input);
   if (url.hostname === "github.com") {
     const parts = url.pathname.split("/").filter(Boolean);
     const blob = parts.indexOf("blob");
@@ -30,6 +31,41 @@ function sniffMime(buffer: Buffer, hinted?: string | null) {
   return "application/pdf";
 }
 
+async function fetchPublic(start: string) {
+  let current = start;
+  for (let hop = 0; hop < 3; hop += 1) {
+    const url = assertPublicHttpsUrl(current);
+    await assertPublicResolution(url);
+    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(20_000) });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      if (!location) throw new Error("That link did not open.");
+      current = new URL(location, url).toString();
+      continue;
+    }
+    return response;
+  }
+  throw new Error("That link did not open.");
+}
+
+async function readLimited(response: Response) {
+  const reader = response.body?.getReader();
+  if (!reader) return Buffer.alloc(0);
+  const chunks: Buffer[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_BYTES) {
+      await reader.cancel();
+      throw new Error("File is over 15 MB.");
+    }
+    chunks.push(Buffer.from(value));
+  }
+  return Buffer.concat(chunks);
+}
+
 export async function loadSource(file: File | null, link: string) {
   if (file && file.size > 0) {
     if (file.size > MAX_BYTES) throw new Error("File is over 15 MB.");
@@ -41,10 +77,9 @@ export async function loadSource(file: File | null, link: string) {
   if (!link.trim()) throw new Error("Add a file or a link.");
   const sourceUrl = toRawUrl(link);
   const host = new URL(sourceUrl).hostname;
-  const response = await fetch(sourceUrl, { redirect: "follow" });
+  const response = await fetchPublic(sourceUrl);
   if (!response.ok) throw new Error("That link did not open.");
-  const buffer = Buffer.from(await response.arrayBuffer());
-  if (buffer.length > MAX_BYTES) throw new Error("File is over 15 MB.");
+  const buffer = await readLimited(response);
   const mime = sniffMime(buffer, response.headers.get("content-type"));
   const kind: SourceKind = host.includes("github") ? "GITHUB" : mime.startsWith("image/") || !pdfHasText(buffer) ? "SCAN" : "PDF";
   return { buffer, mime, kind, sourceUrl, label: decodeURIComponent(sourceUrl.split("/").pop() || "paper") };

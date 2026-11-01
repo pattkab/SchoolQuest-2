@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { requireUser } from "@/lib/session";
+import { canViewContent } from "@/lib/access";
 import { NotesMarkdown } from "@/components/markdown";
 
 export default async function NotePage({ params }: { params: Promise<{ noteId: string }> }) {
+  const user = await requireUser();
   const { noteId } = await params;
   const note = await db.note.findUnique({
     where: { id: noteId },
@@ -12,7 +15,7 @@ export default async function NotePage({ params }: { params: Promise<{ noteId: s
       topic: { include: { papers: true } },
     },
   });
-  if (!note) notFound();
+  if (!note || !canViewContent(user, note)) notFound();
   const quiz = note.topic?.papers[0];
 
   return (
