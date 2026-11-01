@@ -59,3 +59,14 @@ __pycache__/
 # EMIS download progress. The finished register is data/ug-schools.json.
 data/ug-schools.jsonl
 data/emis-fetch-state.json
+
+# Mobile local artifacts and signing material
+/preview-artifacts/
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+*.xcarchive
+/android/key.properties
+/ios/App/App.xcodeproj/xcuserdata/
+!.env.mobile.example

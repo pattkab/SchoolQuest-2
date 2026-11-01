@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { extractQuestionsFromPDF, ExtractedQuestion } from "@/lib/gemini";
+import { extractQuestionsFromPDF } from "@/lib/gemini";
 import { isAccreditedTeacher } from "@/lib/session";
 import { uploadFileToFirebase } from "@/lib/firebase";
 import { redirect } from "next/navigation";
@@ -58,7 +58,7 @@ interface SavePaperPayload {
     type: string;
     prompt: string;
     options: string[] | null;
-    correctAnswer: any;
+    correctAnswer: string | string[];
     points: number;
   }>;
 }
