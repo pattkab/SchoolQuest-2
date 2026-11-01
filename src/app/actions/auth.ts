@@ -19,7 +19,9 @@ export async function loginAction(formData: FormData) {
     await signIn("credentials", { phone, password, intent, redirectTo: "/dashboard" });
   } catch (error) {
     if (error instanceof AuthError) {
-      redirect("/login?error=invalid");
+      const pathway = String(formData.get("pathway") || "student");
+      const safePathway = ["student", "teacher", "school", "site"].includes(pathway) ? pathway : "student";
+      redirect(`/login?error=invalid&pathway=${safePathway}`);
     }
     throw error;
   }

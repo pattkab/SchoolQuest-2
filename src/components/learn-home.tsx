@@ -10,7 +10,7 @@ import { CLASS_BANDS, splitSubjects } from "@/lib/taxonomy";
 const subjectPick = {
   orderBy: { order: "asc" as const },
   include: {
-    _count: { select: { notes: true, papers: true } },
+    _count: { select: { notes: { where: { status: "PUBLISHED" } }, papers: { where: { status: "PUBLISHED" } } } },
     notes: { where: { status: "PUBLISHED" }, orderBy: { order: "asc" as const }, take: 1, select: { id: true } },
     papers: { where: { status: "PUBLISHED" }, orderBy: { createdAt: "asc" as const }, take: 1, select: { id: true } },
   },

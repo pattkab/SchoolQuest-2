@@ -1,26 +1,4 @@
-const AFFILIATIONS = [
-  "Ministry of Education (in progress)",
-  "Ministry of Gender, Labour and Social Development (in progress)",
-  "Fresh Teacher GitHub repository (in progress)",
-];
-
+import { GraduationCap } from 'lucide-react';
 export function SiteFooter() {
-  const loop = [...AFFILIATIONS, ...AFFILIATIONS];
-  return (
-    <footer className="mt-8 border-t bg-[rgba(247,241,230,0.92)]">
-      <p className="px-4 pt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
-        GitHub files open on Fresh Teacher’s site. Permission to reuse them is in progress.
-      </p>
-      <div className="overflow-hidden py-3">
-        <div className="marquee-track">
-          {loop.map((item, index) => (
-            <span key={`${item}-${index}`} className="px-8 text-sm font-bold whitespace-nowrap text-foreground/70">
-              {item}
-              <span className="mx-8 text-muted-foreground" aria-hidden>·</span>
-            </span>
-          ))}
-        </div>
-      </div>
-    </footer>
-  );
+  return <footer className="border-t bg-white/70 px-5 py-7"><div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4"><p className="flex items-center gap-2 text-xs font-extrabold tracking-wider"><GraduationCap className="h-5 w-5 text-primary" /> SCHOOLQUEST <span className="font-normal tracking-normal text-muted-foreground">· Learn. Practise. Grow.</span></p><details className="max-w-md text-xs text-muted-foreground"><summary className="cursor-pointer font-semibold">Curriculum & content sources</summary><p className="mt-2 leading-relaxed">Some resources link to Fresh Teacher’s public GitHub repository. Permission to reuse those files is in progress. No institutional endorsement is claimed.</p></details></div></footer>;
 }

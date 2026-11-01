@@ -3,73 +3,40 @@ import { db } from "@/lib/db";
 import { JoinForm } from "@/components/join-form";
 import { GoogleSignInButton } from "@/components/google-sign-in";
 import { BrandMark } from "@/components/shell";
-import { SiteFooter } from "@/components/site-footer";
 import { SignInForm } from "@/components/sign-in-form";
 import { PublicMobileNav } from "@/components/public-mobile-nav";
+import { QuestArt } from "@/components/quest-art";
+import { BookOpen, Sparkles, ArrowLeft, ShieldCheck } from 'lucide-react';
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string; tab?: string; pathway?: string }>;
-}) {
+const errors: Record<string, string> = { exists: 'This phone already has an account. Sign in to continue.', google: 'Google sign-in could not finish. Try your phone and password instead.', school: 'Please choose a school from the suggestions.', missing: 'Please complete all the required fields.' };
+
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; tab?: string; pathway?: string }> }) {
   const { error, tab, pathway } = await searchParams;
-  const classes = await db.classGrade.findMany({
-    where: { isActive: true },
-    orderBy: { order: "asc" },
-    select: { id: true, name: true, shortName: true },
-  });
-  const people = await db.user.findMany({
-    where: { phone: { not: null } },
-    select: { id: true, name: true, phone: true, role: true, classGrade: { select: { shortName: true, order: true } } },
-  });
-  const profiles = people
-    .filter((person): person is typeof person & { phone: string } => Boolean(person.phone))
-    .sort((a, b) => (a.classGrade?.order ?? 99) - (b.classGrade?.order ?? 99) || (a.name || "").localeCompare(b.name || ""))
-    .map((person) => ({
-      id: person.id,
-      name: person.name || person.phone,
-      phone: person.phone,
-      role: person.role,
-      className: person.classGrade?.shortName ?? null,
-    }));
-  const join = tab === "join";
-
-  return (
-    <div className="mobile-navigation-page mobile-app-frame min-h-screen flex flex-col">
-    <header className="mobile-app-bar lg:hidden px-5 flex items-center"><BrandMark /></header>
-    <div className="flex-1 grid lg:grid-cols-2">
-      <div className="hidden lg:flex relative overflow-hidden bg-[var(--ink)] text-white p-12 items-end">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/hero-students.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-35" />
-        <div className="relative z-10 space-y-4 max-w-lg">
-          <BrandMark />
-          <h1 className="font-display text-5xl">Choose a pathway.</h1>
+  const join = tab === 'join';
+  const classes = join ? await db.classGrade.findMany({ where: { isActive: true }, orderBy: { order: 'asc' }, select: { id: true, name: true, shortName: true } }) : [];
+  return <div className="mobile-navigation-page mobile-app-frame auth-page min-h-screen">
+    <header className="mobile-app-bar lg:hidden px-5 flex items-center justify-between"><BrandMark /><Link href="/" className="icon-button" aria-label="Back to home"><ArrowLeft className="h-5 w-5" /></Link></header>
+    <div className="auth-layout">
+      <aside className="auth-story hidden lg:flex">
+        <BrandMark />
+        <div className="relative z-10 my-auto py-10">
+          <span className="eyebrow"><Sparkles className="h-4 w-4" /> MADE FOR CURIOUS MINDS</span>
+          <h1 className="font-display mt-6 text-5xl leading-tight">Small steps.<br /><span className="text-primary">Brilliant futures.</span></h1>
+          <p className="mt-5 max-w-sm text-lg leading-relaxed text-muted-foreground">A welcoming space to learn, practise, and grow. Your next discovery starts here.</p>
+          <QuestArt />
         </div>
-      </div>
-
-      <div className="flex flex-col justify-center px-5 py-10 md:px-16">
-        <GoogleSignInButton />
-        <div className="flex gap-2 mb-6">
-          <Link href="/login" className={`rounded-full px-4 py-2 text-sm font-bold ${!join ? "bg-primary text-white" : "bg-white border"}`}>Sign in</Link>
-          <Link href="/login?tab=join" className={`rounded-full px-4 py-2 text-sm font-bold ${join ? "bg-primary text-white" : "bg-white border"}`}>New learner</Link>
+        <p className="flex items-center gap-2 text-sm font-semibold text-muted-foreground"><BookOpen className="h-4 w-4" /> Rooted in the Ugandan curriculum</p>
+      </aside>
+      <main className="auth-form-panel">
+        <div className="w-full max-w-[440px] mx-auto page-rise">
+          <div className="mb-7"><span className="eyebrow">YOUR NEXT CHAPTER</span><h1 className="font-display mt-2 text-3xl sm:text-4xl">{join ? 'Let curiosity lead.' : 'Welcome back!'} <span className="inline-block wave-hand" aria-hidden="true">{join ? '🌱' : '👋'}</span></h1><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{join ? 'Create your learner account and start your journey.' : 'Big ideas start with one little step. Let’s take yours.'}</p></div>
+          <div className="auth-tabs mb-6"><Link href="/login" aria-current={!join ? 'page' : undefined} className={!join ? 'is-active' : ''}>Sign in</Link><Link href="/login?tab=join" aria-current={join ? 'page' : undefined} className={join ? 'is-active' : ''}>Create account</Link></div>
+          {error && <p role="alert" className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{errors[error] || 'That phone and password did not match. Please try again.'}</p>}
+          {join ? <JoinForm classes={classes} /> : <><SignInForm pathway={pathway} /><div className="auth-divider"><span>or continue with</span></div><GoogleSignInButton /></>}
+          <p className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" /> Your learning. Your own secure space.</p>
         </div>
-
-        {error && (
-          <p className="mb-4 rounded-2xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">
-            {error === "exists" ? "Phone already used. Sign in." : error === "google" ? "Google sign-in did not finish. Try again." : error === "school" ? "Choose a school from the list." : error === "missing" ? "Fill every required field." : "Check phone and PIN."}
-          </p>
-        )}
-
-        {!join ? (
-          <SignInForm profiles={profiles} pathway={pathway} />
-        ) : (
-          <JoinForm classes={classes} />
-        )}
-
-      </div>
+      </main>
     </div>
-    <SiteFooter />
     <PublicMobileNav />
-    </div>
-  );
+  </div>;
 }

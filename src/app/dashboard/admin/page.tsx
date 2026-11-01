@@ -20,12 +20,13 @@ export default async function AdminHomePage() {
     <div className="space-y-8">
       <div>
         <p className="text-xs font-bold uppercase tracking-widest text-primary">Site administrator</p>
-        <h1 className="font-display text-4xl">Admin</h1>
+        <h1 className="font-display mt-2">Your platform, at a glance.</h1>
+        <p className="mt-3 text-sm text-muted-foreground">Support your educators, review content, and keep learning moving.</p>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Tile href="/dashboard/admin/teachers" label="Pending teachers" value={String(pendingTeachers)} note={`${teachers} accredited`} />
         <Tile href="/dashboard/teacher/marking" label="Scripts to mark" value={String(pendingMarks)} note={`${learners} learners`} />
-        <Tile href="/dashboard/admin/engine" label="Engine" value="Read a paper" note="Scan, GitHub link, or PDF" />
+        <Tile href="/dashboard/admin/engine" label="Content studio" value="Add resources" note="Scan, GitHub link, or PDF" />
         <Tile href="/dashboard/admin/library" label="Notes & practice" value={String(notes + quizzes)} note={`${notes} notes · ${quizzes} papers`} />
         <Tile href="/dashboard/admin/readiness" label="Impact and funding" value="Internal" note="Real counts only" />
       </div>
@@ -35,9 +36,9 @@ export default async function AdminHomePage() {
 
 function Tile({ href, label, value, note }: { href: string; label: string; value: string; note: string }) {
   return (
-    <Link href={href} className="rounded-[1.6rem] bg-white border p-5 hover:shadow-lg transition-shadow">
+    <Link href={href} className="quest-panel subject-tile">
       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className="font-display text-4xl mt-2">{value}</p>
+      <p className="font-display text-2xl mt-3">{value}</p>
       <p className="text-sm text-muted-foreground mt-1">{note}</p>
     </Link>
   );

@@ -1,66 +1,23 @@
-import Link from "next/link";
-import { BrandMark } from "@/components/shell";
-import { SiteFooter } from "@/components/site-footer";
-import { PATHWAYS } from "@/lib/pathways";
-import { PublicMobileNav } from "@/components/public-mobile-nav";
+import Link from 'next/link';
+import { BrandMark } from '@/components/shell';
+import { SiteFooter } from '@/components/site-footer';
+import { PublicMobileNav } from '@/components/public-mobile-nav';
+import { QuestArt } from '@/components/quest-art';
+import { ArrowRight, BookOpen, PencilLine, TrendingUp, GraduationCap, Sparkles, Check, Presentation } from 'lucide-react';
 
-const rooms = ["Baby–Top", "P.1–P.3", "P.4–P.6", "P.7"];
-
+const steps = [{ icon: BookOpen, title: 'Aha starts here.', line: 'Understand the topic with clear, curriculum-based notes.', tone: 'mint', number: '01' }, { icon: PencilLine, title: 'Give it a go.', line: 'Build confidence with practice papers for your class.', tone: 'lilac', number: '02' }, { icon: TrendingUp, title: 'See yourself grow.', line: 'Get feedback, track progress, and celebrate every step.', tone: 'peach', number: '03' }];
 export default function Home() {
-  return (
-    <div className="mobile-navigation-page mobile-app-frame min-h-screen flex flex-col">
-      <header className="mobile-app-bar lg:sticky lg:top-0 lg:h-auto px-5 md:px-10 py-3 lg:py-5 flex items-center justify-between">
-        <BrandMark />
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="hidden sm:inline text-base font-bold hover:text-primary">Sign in</Link>
-          <Link href="/login" className="rounded-full bg-primary text-white px-5 py-2.5 text-base font-bold shadow-lg hover:bg-[var(--forest)]">
-            Start
-          </Link>
-        </div>
-      </header>
-
-      <main className="page-rise px-5 md:px-10 pb-10 flex-1">
-        <section className="max-w-6xl mx-auto grid lg:grid-cols-[1.15fr_0.85fr] gap-10 items-center pt-6">
-          <div className="space-y-6">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">School Quest</p>
-            <h1 className="font-display display-hero text-[var(--ink)]">
-              Baby Class to P.7.
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-md">Read. Practice. Get marked.</p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/login" className="rounded-full bg-primary text-white px-7 py-3.5 text-lg font-bold text-center shadow-xl hover:bg-[var(--forest)]">
-                Enter
-              </Link>
-              <Link href="/register/teacher" className="rounded-full bg-white border px-7 py-3.5 text-lg font-bold text-center hover:border-primary">
-                Teach
-              </Link>
-            </div>
-          </div>
-          <div className="relative overflow-hidden rounded-[2.2rem] min-h-[320px] shadow-2xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/hero-students.png" alt="" className="hero-photo absolute inset-0 h-full w-full object-cover" />
-          </div>
-        </section>
-
-        <section className="stagger max-w-6xl mx-auto mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {PATHWAYS.map((pathway) => (
-            <Link key={pathway.id} href={`/login?pathway=${pathway.id}`} className="lift rounded-3xl border p-5">
-              <p className="font-display text-3xl">{pathway.label}</p>
-              <p className="text-base text-muted-foreground mt-2">{pathway.line}</p>
-            </Link>
-          ))}
-        </section>
-
-        <section className="stagger max-w-6xl mx-auto mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {rooms.map((title) => (
-            <Link key={title} href="/login?pathway=student" className="room-card rounded-3xl p-5 border">
-              <p className="font-display text-3xl">{title}</p>
-            </Link>
-          ))}
-        </section>
-      </main>
-      <SiteFooter />
-      <PublicMobileNav />
-    </div>
-  );
+  return <div className="mobile-navigation-page mobile-app-frame min-h-screen flex flex-col">
+    <header className="mobile-app-bar lg:sticky lg:top-0 px-5 md:px-10 flex items-center justify-between lg:py-4"><BrandMark /><div className="flex items-center gap-5"><Link href="/login" className="hidden sm:inline text-sm font-bold">Sign in</Link><Link href="/login?tab=join" className="quest-button quest-button-small">Get started <ArrowRight className="h-4 w-4" /></Link></div></header>
+    <main className="flex-1">
+      <section className="landing-hero page-rise max-w-6xl mx-auto px-5 md:px-10">
+        <div><span className="eyebrow"><span className="h-2 w-2 rounded-full bg-primary" /> BIG DREAMS START WITH LITTLE DISCOVERIES</span><h1 className="font-display display-hero mt-6">A brighter future.<br /><span className="text-primary">One quest at a time.</span></h1><p className="mt-6 max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground">From your first letters to your P.7 exams. Make learning an adventure with notes, practice, and feedback that helps you grow.</p><div className="mt-7 flex flex-wrap gap-3"><Link href="/login?tab=join" className="quest-button">Start my learning journey <ArrowRight className="h-5 w-5" /></Link><Link href="/login" className="quest-button quest-button-secondary">I already have an account</Link></div><div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-muted-foreground"><span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Ugandan curriculum</span><span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Learn at your pace</span><span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Baby Class to P.7</span></div></div>
+        <QuestArt />
+      </section>
+      <section className="max-w-6xl mx-auto px-5 md:px-10 py-8"><div className="text-center"><p className="eyebrow justify-center">LEARNING, WITH A LITTLE MORE WONDER</p><h2 className="font-display text-2xl sm:text-3xl mt-3">Find your spark. Follow your curiosity.</h2></div><div className="stagger grid md:grid-cols-3 gap-4 mt-7">{steps.map(({ icon: Icon, title, line, tone, number }) => <article key={title} className={`quest-panel feature-card tone-${tone}`}><div className="flex items-center justify-between"><span className="feature-icon"><Icon className="h-6 w-6" /></span><span className="font-display text-3xl opacity-20">{number}</span></div><h3 className="font-display text-xl mt-6">{title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{line}</p></article>)}</div></section>
+      <section className="max-w-6xl mx-auto px-5 md:px-10 py-8"><div className="section-heading"><div><p className="eyebrow">A JOURNEY FOR EVERY STAGE</p><h2 className="font-display text-2xl mt-2">Where will you begin?</h2></div><GraduationCap className="h-8 w-8 text-primary" /></div><div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">{[{ label: 'Little explorers', grade: 'Baby · Middle · Top', emoji: '🌱' }, { label: 'Bright beginners', grade: 'Primary 1–3', emoji: '🎨' }, { label: 'Growing minds', grade: 'Primary 4–6', emoji: '🔬' }, { label: 'Future ready', grade: 'Primary 7', emoji: '🚀' }].map((band, index) => <Link key={band.label} href="/login?tab=join" className={`subject-tile subject-tone-${index}`}><span className="text-3xl" aria-hidden="true">{band.emoji}</span><h3 className="font-extrabold text-sm mt-4">{band.label}</h3><p className="mt-1 text-xs text-muted-foreground">{band.grade}</p><ArrowRight className="mt-4 h-4 w-4" /></Link>)}</div></section>
+      <section className="max-w-6xl mx-auto px-5 md:px-10 py-8"><div className="educator-banner"><span className="feature-icon"><Presentation className="h-7 w-7" /></span><div className="flex-1"><p className="eyebrow">FOR THE PEOPLE WHO INSPIRE</p><h2 className="font-display mt-2 text-2xl">Great learning starts with you.</h2><p className="mt-2 text-sm text-muted-foreground">A focused space for teachers to mark work and for schools to support their learners.</p></div><Link href="/login?pathway=teacher" className="quest-button quest-button-secondary">Explore your teaching space <ArrowRight className="h-4 w-4" /></Link></div></section>
+      <section className="max-w-6xl mx-auto px-5 md:px-10 pb-8"><div className="landing-closing"><Sparkles className="mx-auto h-8 w-8 text-primary" /><h2 className="font-display text-2xl sm:text-3xl mt-4">Your next “I did it!” starts here.</h2><p className="mt-3 text-sm text-muted-foreground">Open a new chapter. Discover what you can do.</p><Link href="/login?tab=join" className="quest-button mt-6">Let’s begin <ArrowRight className="h-4 w-4" /></Link></div></section>
+    </main><SiteFooter /><PublicMobileNav />
+  </div>;
 }
