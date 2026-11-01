@@ -1,4 +1,7 @@
-import { notFound } from "next/navigation";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { practiceAccess } from "@/lib/freemium";
 import { db } from "@/lib/db";
 import ExamPlayer from "./ExamPlayer";
 import { shortSubjectName } from "@/lib/taxonomy";
@@ -26,10 +29,21 @@ export default async function PaperPage({ params }: { params: Promise<{ paperId:
       questions: { orderBy: { order: "asc" } },
     },
   });
-  if (!paper) notFound();
+  if (!paper || paper.status !== "PUBLISHED") notFound();
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+  const access = await practiceAccess(session.user.id, paper.subjectId);
+  if (!access.allowed) return (
+    <div className="mx-auto max-w-xl rounded-3xl border bg-white p-8 text-center space-y-4">
+      <h1 className="font-display text-3xl">Free practice completed</h1>
+      <p>You have used your free practice exam in {shortSubjectName(paper.subject.name)}. Unlock more practice exams with SchoolQuest Pro.</p>
+      <Link href="/dashboard/subscribe" className="inline-flex rounded-2xl bg-primary px-6 py-3 font-bold text-white">Go Pro</Link>
+    </div>
+  );
 
   return (
     <ExamPlayer
+      freeAttempt={!access.isPro}
       paper={{
         id: paper.id,
         title: paper.title,

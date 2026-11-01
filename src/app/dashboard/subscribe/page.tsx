@@ -17,16 +17,17 @@ export default async function SubscribePage() {
     redirect("/login");
   }
 
-  const now = new Date();
-  const hasActiveTrial = user.trialEndsAt && user.trialEndsAt > now;
-  const hasActiveSubscription = user.subscriptionEndsAt && user.subscriptionEndsAt > now;
+  const hasActiveSubscription = Boolean(user.subscriptionEndsAt && user.subscriptionEndsAt > new Date());
 
-  // If already active, send back to dashboard
-  if (hasActiveTrial || hasActiveSubscription) {
+  // Free practice is now per subject, not time-limited. Only Pro redirects.
+  if (hasActiveSubscription) {
     redirect("/dashboard");
   }
 
   const userPhone = user.phone || "";
 
-  return <SubscribeClient userPhone={userPhone} />;
+  const checkoutAvailable = Boolean(process.env.YO_API_USERNAME && process.env.YO_API_PASSWORD && (
+    process.env.YO_API_MODE === "sandbox" || (process.env.YO_API_MODE === "production" && process.env.YO_PRODUCTION_ENABLED === "true")
+  ));
+  return <SubscribeClient userPhone={userPhone} checkoutAvailable={checkoutAvailable} />;
 }

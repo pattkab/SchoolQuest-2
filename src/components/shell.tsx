@@ -17,6 +17,7 @@ import {
   UserRound,
   Users,
   Wallet,
+  ShoppingBag,
 } from "lucide-react";
 
 type ShellUser = {
@@ -116,6 +117,7 @@ export async function DashboardShell({
           {links.map((item) => (
             <NavLink key={item.href} href={item.href} icon={item.icon} label={item.label} />
           ))}
+          <NavLink href="/dashboard/store" icon={ShoppingBag} label="Store" />
           <NavLink href="/setup" icon={UserRound} label="Profile" />
         </div>
         <div className="mt-auto rounded-3xl bg-white/80 border p-4 space-y-3">
@@ -146,6 +148,7 @@ export async function DashboardShell({
           </span>
         </header>
         <JumpBar classes={classes} homeSlug={user.classGrade?.slug} />
+        <div className="lg:hidden px-4 pt-3 text-right"><Link href="/dashboard/store" className="text-sm font-bold text-primary inline-flex items-center gap-2"><ShoppingBag className="h-4 w-4"/> SchoolQuest Store</Link></div>
         <main className="page-rise px-4 py-6 md:px-8 md:py-8 max-w-6xl mx-auto w-full flex-1">{children}</main>
         <div className="mb-16 lg:mb-0">
           <SiteFooter />

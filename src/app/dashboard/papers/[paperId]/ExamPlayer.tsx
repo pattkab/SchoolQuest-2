@@ -40,7 +40,9 @@ function parseOptions(raw: string | null) {
 export default function ExamPlayer({
   paper,
   questions,
+  freeAttempt = false,
 }: {
+  freeAttempt?: boolean;
   paper: { id: string; title: string; kind: string; subject: string; className: string; topic: string | null; backHref: string };
   questions: Question[];
 }) {
@@ -79,9 +81,10 @@ export default function ExamPlayer({
           <Link href={`/dashboard/attempts/${result.attemptId}`} className="rounded-2xl bg-primary text-white px-5 py-3 font-bold">
             Results
           </Link>
-          <Button variant="outline" className="rounded-2xl h-12" onClick={() => { setResult(null); setAnswers({}); setIndex(0); }}>
+          {!freeAttempt && <Button variant="outline" className="rounded-2xl h-12" onClick={() => { setResult(null); setAnswers({}); setIndex(0); }}>
             <RefreshCw className="h-4 w-4" /> Try again
-          </Button>
+          </Button>}
+          {freeAttempt && <Link href="/dashboard/subscribe" className="rounded-2xl bg-primary px-5 py-3 font-bold text-white">Go Pro for more practice</Link>}
           <Link href={paper.backHref} className="rounded-2xl border px-5 py-3 font-bold">Subject</Link>
         </div>
       </div>
@@ -96,6 +99,7 @@ export default function ExamPlayer({
         <Link href={paper.backHref} className="text-sm font-bold text-primary">← {paper.className} {paper.subject}</Link>
         <h1 className="font-display text-3xl mt-2">{paper.title}</h1>
         <p className="text-sm text-muted-foreground">{paper.topic || paper.kind.replaceAll("_", " ")} · Question {index + 1} of {questions.length}</p>
+        {freeAttempt && <p className="mt-2 text-sm font-semibold text-primary">Your free practice exam for this subject</p>}
         <div className="h-2 rounded-full bg-muted mt-3">
           <div className="h-2 rounded-full bg-primary" style={{ width: `${((index + 1) / questions.length) * 100}%` }} />
         </div>
