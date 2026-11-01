@@ -28,7 +28,7 @@ interface EditableQuestion {
   type: string;
   prompt: string;
   options: string[] | null;
-  correctAnswer: any;
+  correctAnswer: string | string[] | number;
   points: number;
 }
 
@@ -64,8 +64,8 @@ export default function UploadForm({ levels }: UploadFormProps) {
       const res = await parseUploadedPDF(formData);
       setQuestions(res.questions);
       setPdfUrl(res.pdfUrl);
-    } catch (err: any) {
-      alert(err.message || "Failed to parse PDF questions.");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to parse PDF questions.");
     } finally {
       setLoading(false);
     }
@@ -85,8 +85,8 @@ export default function UploadForm({ levels }: UploadFormProps) {
         pdfUrl,
         questions,
       });
-    } catch (err: any) {
-      alert(err.message || "Failed to save paper.");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to save paper.");
     } finally {
       setSaving(false);
     }
