@@ -14,10 +14,7 @@ export function SchoolField({ defaultLabel = "" }: { defaultLabel?: string }) {
 
   useEffect(() => {
     if (picked && query === picked.name) return;
-    if (query.trim().length < 2) {
-      setHits([]);
-      return;
-    }
+    if (query.trim().length < 2) return;
     const timer = setTimeout(async () => {
       const response = await fetch(`/api/schools?q=${encodeURIComponent(query)}`);
       if (!response.ok) return;
@@ -38,6 +35,7 @@ export function SchoolField({ defaultLabel = "" }: { defaultLabel?: string }) {
         className="h-12 rounded-2xl"
         onChange={(event) => {
           setQuery(event.target.value);
+          if (event.target.value.trim().length < 2) setHits([]);
           setPicked(null);
           setOpen(true);
         }}

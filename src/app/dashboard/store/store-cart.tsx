@@ -56,7 +56,7 @@ export function StoreCart({ products }: { products: Product[] }) {
       <p className="text-sm text-muted-foreground">Your request is not a payment. An authorized seller will confirm the order before collecting money.</p>
       {lines.map(p=><p className="text-sm" key={p.id}>{cart[p.id]} × {p.title} — UGX {(p.priceUgx*cart[p.id]).toLocaleString()}</p>)}
       <p className="font-bold">Items total: UGX {total.toLocaleString()}</p>
-      <label className="block text-sm font-semibold">Adult purchaser's name<input required maxLength={100} className="mt-1 h-12 w-full rounded-xl border px-3" value={name} onChange={e=>setName(e.target.value)}/></label>
+      <label className="block text-sm font-semibold">Adult purchaser&apos;s name<input required maxLength={100} className="mt-1 h-12 w-full rounded-xl border px-3" value={name} onChange={e=>setName(e.target.value)}/></label>
       <label className="block text-sm font-semibold">Contact phone<input required type="tel" maxLength={25} className="mt-1 h-12 w-full rounded-xl border px-3" value={phone} onChange={e=>setPhone(e.target.value)}/></label>
       <label className="block text-sm font-semibold">District and delivery/pickup location<input required maxLength={250} className="mt-1 h-12 w-full rounded-xl border px-3" value={location} onChange={e=>setLocation(e.target.value)}/></label>
       {error && <p role="alert" className="text-red-700 text-sm">{error}</p>}

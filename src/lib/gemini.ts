@@ -16,7 +16,7 @@ export interface ExtractedQuestion {
   type: "MULTIPLE_CHOICE" | "FILL_BLANK" | "MATCHING" | "ORDERING" | "SHORT_ANSWER" | "COMPREHENSION" | "DRAWING";
   prompt: string;
   options: string[] | null;
-  correctAnswer: any;
+  correctAnswer: string | string[];
   points: number;
 }
 
