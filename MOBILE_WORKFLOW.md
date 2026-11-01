@@ -1,8 +1,6 @@
 # SchoolQuest: GitHub → Mac mini → Android Studio / Xcode
 
-The working checkout is `/Volumes/XPATT/APPS/schoolquest-github-preview`.
-GitHub repository: https://github.com/pattkab/SchoolQuest-2 . The original
-`/Volumes/XPATT/APPS/schoolquest` folder is preserved; its origin URL uses the current canonical repository address.
+**For Android Studio Play and signed AAB preparation, follow [ANDROID_STUDIO_PLAYSTORE.md](ANDROID_STUDIO_PLAYSTORE.md).** It includes the safe separate worktree, hosted URL and signing process. The canonical GitHub repository is https://github.com/pattkab/schoolquest. Preserve the active `/Volumes/XPATT/APPS/schoolquest` accessibility checkout. Use `/Volumes/XPATT/APPS/schoolquest-android-preview` for the hosted native preview.
 
 Both native projects are version controlled. Do not regenerate them with `cap add`
 after each update: that would discard future native work. Commit native changes on
@@ -16,8 +14,8 @@ Android Studio with SDK 36 and JDK 21 (`brew install openjdk@21` on this Mac), X
 iOS uses Swift Package Manager; CocoaPods is not required for this project.
 
 ```sh
-git clone https://github.com/pattkab/SchoolQuest-2.git
-cd SchoolQuest-2
+git clone https://github.com/pattkab/schoolquest.git
+cd schoolquest
 # Until this work is merged into main:
 git switch codex/mobile-workflow
 npm ci --ignore-scripts
@@ -38,7 +36,7 @@ branch is merged, use `codex/mobile-workflow`. After merge, switch to `main` and
 track `origin/main`. Changes on other branches do not appear automatically.
 
 ```sh
-cd /Volumes/XPATT/APPS/schoolquest-github-preview
+cd /Volumes/XPATT/APPS/schoolquest-android-preview
 npm run mobile:update
 npm run mobile:setup
 npm run mobile:dev
@@ -61,8 +59,8 @@ so Git pulls alone do not deploy server changes.
 
 ## Run locally
 
-Keep `SCHOOLQUEST_MOBILE_MODE=local` in `.env.mobile.local`.
-Start the Medium_Phone emulator from Android Studio Device Manager, then:
+To opt in to localhost debugging, set `SCHOOLQUEST_MOBILE_MODE=local` in ignored `.env.mobile.local` and start `npm run mobile:dev` in another Terminal.
+Start an emulator from Android Studio Device Manager, then:
 
 ```sh
 ~/Library/Android/sdk/platform-tools/adb reverse tcp:3001 tcp:3001
@@ -77,8 +75,7 @@ A USB Android device can use the same forwarding. For multiple devices, select o
 with `ANDROID_SERIAL`. Re-establish forwarding when the emulator/device restarts.
 
 In Xcode select the App scheme and an iPhone simulator, then Run.
-`npm run ios:run` also offers a simulator selection. Both simulators connect to
-`http://localhost:3001`. Physical iPhones require a reachable HTTPS hosted environment;
+`npm run ios:run` also offers a simulator selection. Both simulators connect to the configured origin (hosted HTTPS by default; localhost only when explicitly selected). Physical iPhones require a reachable HTTPS hosted environment;
 Mac localhost is not the phone's localhost.
 
 Local seeded demo student: phone `0702222222`, PIN `1234`.
@@ -86,14 +83,14 @@ These are local sample records, not your deployed production data.
 
 ## Hosted staging and release preparation
 
-Set your actual deployed SchoolQuest origin in the ignored `.env.mobile.local`:
+Hosted HTTPS is the default. To override the deployed origin, set this in ignored `.env.mobile.local`:
 
 ```env
 SCHOOLQUEST_MOBILE_MODE=hosted
 SCHOOLQUEST_APP_URL=https://schoolquestweb.netlify.app
 ```
 
-Then run `npm run android` or `npm run ios` to test that deployment.
+Run `npm run android:hosted` (or `npm run ios:hosted`) to force hosted mode even if an older ignored `.env.mobile.local` still selects localhost; it syncs native assets and opens the IDE. Android Studio's Run button then loads the hosted site. For details see `ANDROID_STUDIO_PLAYSTORE.md`.
 The URL must be an HTTPS origin, without a subpath, query, or credentials.
 The Next.js backend must be deployed separately with its production database and
 authentication configuration. A static web export cannot replace its server actions.
@@ -135,7 +132,7 @@ Signing, upload, and public release are separate steps; none is automated here.
 
 ## Current product work before store submission
 
-The repository currently supplies a hosted Capacitor shell. Native store purchases,
+The repository currently supplies a hosted Capacitor shell for debugging and initial testing. Capacitor officially describes `server.url` as a live-reload setting **not intended for production**; signing an AAB does not make this production-ready. Native store purchases,
 receipt verification, native sign-in/deep links, offline behavior, icons/screenshots,
 and full device testing still need implementation or review; see
 `MOBILE_AND_FREEMIUM.md`. The web mobile-money flow must not be assumed to satisfy
