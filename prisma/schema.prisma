@@ -46,6 +46,7 @@ model User {
   longestStreak      Int       @default(0)
   lastActiveOn       DateTime?
 
+  freeSubjectClaims  FreeSubjectClaim[]
   attempts           Attempt[]
   teacherProfile     TeacherProfile?
   markedAnswers      Answer[]  @relation("MarkedBy")
@@ -144,6 +145,7 @@ model Subject {
 
   topics     Topic[]
   papers     Paper[]
+  freeSubjectClaims FreeSubjectClaim[]
   notes      Note[]
   resources  ExternalResource[]
   classrooms Classroom[]
@@ -457,4 +459,19 @@ model Feedback {
   questionId String?
   status     String   @default("OPEN") // OPEN | RESOLVED
   createdAt  DateTime @default(now())
+}
+
+// Permanent one-free-completed-practice entitlement per user and subject.
+// Unique index ensures two concurrent submissions cannot both consume the free allowance.
+model FreeSubjectClaim {
+  id        String   @id @default(cuid())
+  userId    String
+  subjectId String
+  attemptId String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, subjectId])
+  @@index([subjectId])
 }

@@ -6,6 +6,7 @@ import { gradeDrawingAnswer, gradeOpenAnswer } from "@/lib/gemini";
 import { markAnswer, OPEN_TYPES, type MarkableQuestion } from "@/lib/marking";
 import { isAccreditedTeacher } from "@/lib/session";
 import { revalidatePath } from "next/cache";
+import { hasProAccess, practiceAccess } from "@/lib/freemium";
 
 function toMarkable(question: {
   id: string;
@@ -28,10 +29,15 @@ export async function submitExam(payload: { paperId: string; answers: Record<str
   const session = await auth();
   if (!session?.user?.id) throw new Error("Please sign in to submit.");
 
+  const paper = await db.paper.findUnique({ where: { id: payload.paperId }, select: { subjectId: true, status: true } });
+  if (!paper || paper.status !== "PUBLISHED") throw new Error("This paper is unavailable.");
+  const access = await practiceAccess(session.user.id, paper.subjectId);
+  if (!access.allowed) throw new Error("Your free practice for this subject is complete. Upgrade to Pro to continue.");
   const questions = await db.question.findMany({
     where: { paperId: payload.paperId },
     orderBy: { order: "asc" },
   });
+  if (!questions.length) throw new Error("This paper has no questions.");
 
   const results = [];
   let score = 0;
@@ -89,31 +95,57 @@ export async function submitExam(payload: { paperId: string; answers: Record<str
     });
   }
 
-  const attempt = await db.attempt.create({
-    data: {
-      userId: session.user.id,
-      paperId: payload.paperId,
-      mode: payload.mode || "PRACTICE",
-      status: pendingCount ? "NEEDS_REVIEW" : "GRADED",
-      score,
-      maxScore,
-      pendingCount,
-      completedAt: new Date(),
-      gradedAt: pendingCount ? null : new Date(),
-      answers: {
-        create: results,
-      },
-    },
-    include: {
-      answers: { include: { question: true } },
-      paper: { include: { subject: { include: { classGrade: true } } } },
-    },
-  });
-
-  await db.user.update({
-    where: { id: session.user.id },
-    data: { xp: { increment: Math.round(score * 4) }, lastActiveOn: new Date() },
-  });
+  // Claim the one-free-per-subject entitlement in the SAME transaction as the
+  // completed attempt. Unique(userId,subjectId) defeats concurrent submissions.
+  // Historical completed attempts count, preventing retroactive free resets.
+  let attempt;
+  try {
+    attempt = await db.$transaction(async (tx) => {
+      const current = await tx.user.findUnique({ where: { id: session.user.id }, select: { subscriptionEndsAt: true } });
+      if (!current) throw new Error("Sign in again.");
+      const pro = hasProAccess(current);
+      if (!pro) {
+        const historic = await tx.attempt.findFirst({
+          where: { userId: session.user.id, paper: { subjectId: paper.subjectId }, completedAt: { not: null } },
+          select: { id: true },
+        });
+        if (historic) throw new Error("Free practice already used in this subject. Upgrade to Pro.");
+        await tx.freeSubjectClaim.create({ data: { userId: session.user.id, subjectId: paper.subjectId } });
+      }
+      const saved = await tx.attempt.create({
+        data: {
+          userId: session.user.id,
+          paperId: payload.paperId,
+          mode: payload.mode || "PRACTICE",
+          status: pendingCount ? "NEEDS_REVIEW" : "GRADED",
+          score,
+          maxScore,
+          pendingCount,
+          completedAt: new Date(),
+          gradedAt: pendingCount ? null : new Date(),
+          answers: { create: results },
+        },
+        include: {
+          answers: { include: { question: true } },
+          paper: { include: { subject: { include: { classGrade: true } } } },
+        },
+      });
+      if (!pro) await tx.freeSubjectClaim.update({
+        where: { userId_subjectId: { userId: session.user.id, subjectId: paper.subjectId } },
+        data: { attemptId: saved.id },
+      });
+      await tx.user.update({
+        where: { id: session.user.id },
+        data: { xp: { increment: Math.round(score * 4) }, lastActiveOn: new Date() },
+      });
+      return saved;
+    });
+  } catch (error) {
+    if (error instanceof Error && /[Uu]nique constraint|P2002/.test(error.message)) {
+      throw new Error("Your free practice for this subject has already been used. Upgrade to Pro.");
+    }
+    throw error;
+  }
 
   return {
     attemptId: attempt.id,
