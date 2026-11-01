@@ -47,6 +47,7 @@ model User {
   lastActiveOn       DateTime?
 
   freeSubjectClaims  FreeSubjectClaim[]
+  subscriptionPayments SubscriptionPayment[]
   attempts           Attempt[]
   teacherProfile     TeacherProfile?
   markedAnswers      Answer[]  @relation("MarkedBy")
@@ -474,4 +475,22 @@ model FreeSubjectClaim {
 
   @@unique([userId, subjectId])
   @@index([subjectId])
+}
+
+// A real provider transaction is required before granting Pro.
+model SubscriptionPayment {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              String   @default("STUDENT_YEARLY")
+  amountUgx         Int
+  customerMsisdn    String
+  externalReference String   @unique
+  providerReference String?  @unique
+  status            String   @default("CREATED") // CREATED | PENDING | SUCCEEDED | FAILED | REVIEW
+  verifiedAt        DateTime?
+  appliedAt         DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  @@index([userId, createdAt])
 }

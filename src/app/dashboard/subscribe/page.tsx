@@ -26,5 +26,8 @@ export default async function SubscribePage() {
 
   const userPhone = user.phone || "";
 
-  return <SubscribeClient userPhone={userPhone} />;
+  const checkoutAvailable = Boolean(process.env.YO_API_USERNAME && process.env.YO_API_PASSWORD && (
+    process.env.YO_API_MODE === "sandbox" || (process.env.YO_API_MODE === "production" && process.env.YO_PRODUCTION_ENABLED === "true")
+  ));
+  return <SubscribeClient userPhone={userPhone} checkoutAvailable={checkoutAvailable} />;
 }

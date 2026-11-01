@@ -41,3 +41,12 @@ Review Capacitor's current server URL, navigation and App Store policies before 
 6. Verify native builds on real Android and iOS hardware only after finalizing the mobile architecture.
 
 No automated test runs or app-store build results are claimed by this commit.
+
+## Yo Payments server-side collection foundation
+
+- Added a real two-step Yo XML API adapter: initiate a mobile-money collection; check transaction status directly from Yo before granting Pro.
+- Explicit opt-in environment: `YO_API_MODE=sandbox|production`, `YO_API_USERNAME`, `YO_API_PASSWORD`, and for production `YO_PRODUCTION_ENABLED=true`.
+- Every initiation and verification is persisted in `SubscriptionPayment`; Pro is activated only after provider status `SUCCEEDED`, reference match, currency and amount match.
+- This is **not approved or live** until provisioned against SchoolQuest's own Yo account and independently tested with valid Yo sandbox and production documentation.
+- Provider callbacks/IPN certificate verification, full reconciliation/retry operations, operational refund workflow, card support, iOS/Android store billing, and independent security audit remain required for launch.
+- Payment requests receiving transport errors are marked `REVIEW` to avoid double prompting customers; operations must reconcile these with Yo.
