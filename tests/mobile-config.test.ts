@@ -7,8 +7,11 @@ import { spawnSync } from 'node:child_process';
 import { hostedUrl, mobileServer } from '../scripts/mobile-config';
 
 test('local simulator configuration is explicit and hosted mode cannot silently fall back', () => {
-  assert.deepEqual(mobileServer({}), { url: 'http://localhost:3001', cleartext: true });
-  assert.throws(() => mobileServer({ SCHOOLQUEST_MOBILE_MODE: 'hosted' }));
+  assert.deepEqual(mobileServer({}), { url: 'https://schoolquestweb.netlify.app', cleartext: false });
+  assert.deepEqual(mobileServer({ SCHOOLQUEST_MOBILE_MODE: 'hosted' }),
+    { url: 'https://schoolquestweb.netlify.app', cleartext: false });
+  assert.deepEqual(mobileServer({ SCHOOLQUEST_MOBILE_MODE: 'local' }),
+    { url: 'http://localhost:3001', cleartext: true });
   assert.throws(() => mobileServer({ SCHOOLQUEST_MOBILE_MODE: 'typo' }));
   assert.deepEqual(mobileServer({ SCHOOLQUEST_MOBILE_MODE: 'hosted', SCHOOLQUEST_APP_URL: 'https://schoolquest.potentiamotus.biz/' }),
     { url: 'https://schoolquest.potentiamotus.biz', cleartext: false });
@@ -32,7 +35,8 @@ test('native build guard rejects unsynced, placeholder, and debug configurations
   };
   try {
     assert.notEqual(guard({}), 0);
-    assert.notEqual(guard({ server: mobileServer({}) }), 0);
+    assert.notEqual(guard({ server: mobileServer({ SCHOOLQUEST_MOBILE_MODE: 'local' }) }), 0);
+    assert.equal(guard({ server: mobileServer({}) }), 0);
     assert.notEqual(guard({ server: { url: 'https://schoolquest.potentiamotus.biz', cleartext: true } }), 0);
     assert.notEqual(guard({ server: { url: 'https://[::ffff:127.0.0.1]', cleartext: false } }), 0);
     assert.equal(guard({ server: { url: 'https://schoolquest.potentiamotus.biz', cleartext: false } }), 0);
