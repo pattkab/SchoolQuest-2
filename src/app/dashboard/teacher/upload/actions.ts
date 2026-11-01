@@ -93,7 +93,7 @@ export async function saveParsedPaper(payload: SavePaperPayload) {
       kind: "PAST_PAPER",
       sourceType: "UPLOAD",
       authorId: user.id,
-      status: "PUBLISHED",
+      status: "NEEDS_REVIEW",
     }
   });
 

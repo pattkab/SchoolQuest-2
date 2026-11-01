@@ -7,8 +7,7 @@ export default async function AdminHomePage() {
   const user = await requireUser();
   if (!isAdmin(user.role)) redirect("/dashboard");
 
-  const [people, learners, teachers, pendingTeachers, notes, quizzes, pendingMarks] = await Promise.all([
-    db.user.count(),
+  const [learners, teachers, pendingTeachers, notes, quizzes, pendingMarks] = await Promise.all([
     db.user.count({ where: { role: "STUDENT" } }),
     db.teacherProfile.count({ where: { status: "ACCREDITED" } }),
     db.teacherProfile.count({ where: { status: "PENDING" } }),
@@ -28,7 +27,7 @@ export default async function AdminHomePage() {
         <Tile href="/dashboard/teacher/marking" label="Scripts to mark" value={String(pendingMarks)} note={`${learners} learners`} />
         <Tile href="/dashboard/admin/engine" label="Engine" value="Read a paper" note="Scan, GitHub link, or PDF" />
         <Tile href="/dashboard/admin/library" label="Notes & practice" value={String(notes + quizzes)} note={`${notes} notes · ${quizzes} papers`} />
-        <Tile href="/dashboard/admin/analytics" label="Users" value={String(people)} note="Weekly and monthly curves" />
+        <Tile href="/dashboard/admin/readiness" label="Impact and funding" value="Internal" note="Real counts only" />
       </div>
     </div>
   );

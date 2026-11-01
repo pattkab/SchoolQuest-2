@@ -29,6 +29,9 @@ export async function submitExam(payload: { paperId: string; answers: Record<str
   const session = await auth();
   if (!session?.user?.id) throw new Error("Please sign in to submit.");
 
+  const paperRecord = await db.paper.findUnique({ where: { id: payload.paperId }, select: { status: true } });
+  if (!paperRecord || paperRecord.status !== "PUBLISHED") throw new Error("This paper is not published.");
+
   const questions = await db.question.findMany({
     where: { paperId: payload.paperId },
     orderBy: { order: "asc" },

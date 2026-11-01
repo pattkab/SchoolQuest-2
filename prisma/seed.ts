@@ -409,6 +409,10 @@ async function main() {
   }
 
   console.log(`Seeded ${levelRows.length} levels, ${classBySlug.size} classes, ${notesCreated} notes, ${quizzesCreated} quizzes, ${questionsCreated} questions.`);
+  await prisma.user.updateMany({
+    where: { phone: { in: ["0700000000", "0701111111", "0702222222", "0703333333", "0704444444", "0705555555"] } },
+    data: { accountKind: "DEMO" },
+  });
   console.log("Demo logins (PIN 1234): admin 0700000000 · teacher 0701111111 · P7 0702222222 · P4 0703333333 · Top 0704444444 · school 0705555555");
 }
 

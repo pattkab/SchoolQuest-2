@@ -45,6 +45,7 @@ model User {
   currentStreak      Int       @default(0)
   longestStreak      Int       @default(0)
   lastActiveOn       DateTime?
+  accountKind        String    @default("REAL") // REAL | DEMO | TEST
 
   attempts           Attempt[]
   teacherProfile     TeacherProfile?
@@ -62,6 +63,7 @@ model User {
   attendanceTaken    AttendanceMark[] @relation("TeacherAttendance")
   messagesSent       SchoolMessage[]  @relation("MessageFrom")
   messagesReceived   SchoolMessage[]  @relation("MessageTo")
+  payments           PaymentTransaction[]
 
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -457,4 +459,19 @@ model Feedback {
   questionId String?
   status     String   @default("OPEN") // OPEN | RESOLVED
   createdAt  DateTime @default(now())
+}
+
+model PaymentTransaction {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planCode       String
+  amount         Int
+  currency       String    @default("UGX")
+  status         String    @default("PENDING") // PENDING | FAILED | VERIFIED | REFUNDED
+  provider       String?
+  providerRef    String?   @unique
+  idempotencyKey String    @unique
+  createdAt      DateTime  @default(now())
+  verifiedAt     DateTime?
 }

@@ -19,6 +19,12 @@ export function reviewableAnswersWhere(viewer: Viewer) {
   };
 }
 
+export function canViewContent(viewer: { id: string; role: string }, item: { status: string; authorId: string | null }) {
+  if (item.status === "PUBLISHED") return true;
+  if (isAdmin(viewer.role)) return true;
+  return Boolean(item.authorId && item.authorId === viewer.id);
+}
+
 export async function canReviewLearner(viewer: Viewer, learnerId: string) {
   if (viewer.id === learnerId || isAdmin(viewer.role)) return true;
   if (viewer.role !== "TEACHER" && viewer.role !== "SCHOOL_ADMIN") return false;

@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { requireUser } from "@/lib/session";
+import { canViewContent } from "@/lib/access";
 import ExamPlayer from "./ExamPlayer";
 import { shortSubjectName } from "@/lib/taxonomy";
 
@@ -17,6 +19,7 @@ function publicMatchOptions(correctAnswer: string, options: string | null) {
 }
 
 export default async function PaperPage({ params }: { params: Promise<{ paperId: string }> }) {
+  const user = await requireUser();
   const { paperId } = await params;
   const paper = await db.paper.findUnique({
     where: { id: paperId },
@@ -26,7 +29,7 @@ export default async function PaperPage({ params }: { params: Promise<{ paperId:
       questions: { orderBy: { order: "asc" } },
     },
   });
-  if (!paper) notFound();
+  if (!paper || !canViewContent(user, paper)) notFound();
 
   return (
     <ExamPlayer
