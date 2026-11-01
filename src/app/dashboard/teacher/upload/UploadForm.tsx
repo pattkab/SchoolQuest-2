@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { parseUploadedPDF, saveParsedPaper } from "./actions";
+import type { ExtractedQuestion } from "@/lib/gemini";
 import { FileText, Loader2, Plus, Trash2, CheckCircle } from "lucide-react";
 
 interface Subject {
@@ -25,7 +26,7 @@ interface UploadFormProps {
 }
 
 interface EditableQuestion {
-  type: string;
+  type: ExtractedQuestion["type"];
   prompt: string;
   options: string[] | null;
   correctAnswer: string | string[] | number;
@@ -276,7 +277,7 @@ export default function UploadForm({ levels }: UploadFormProps) {
                       <select
                         value={q.type}
                         onChange={(e) => {
-                          const newType = e.target.value;
+                          const newType = e.target.value as ExtractedQuestion["type"];
                           handleUpdateQuestion(qIdx, {
                             type: newType,
                             options: newType === "MULTIPLE_CHOICE" ? ["Option A", "Option B", "Option C", "Option D"] : null,
