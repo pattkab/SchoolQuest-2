@@ -68,6 +68,7 @@ model User {
   markOverrides      MarkOverride[] @relation("MarkOverrides")
   digitizationJobs   DigitizationJob[] @relation("DigitizationAuthor")
   digitizationReviews DigitizationJob[] @relation("DigitizationReviewer")
+  mobileSessions     MobileSession[]
 
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -582,6 +583,18 @@ model DigitizationEvent {
   createdAt DateTime        @default(now())
 
   @@index([jobId])
+}
+
+model MobileSession {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model PaymentTransaction {

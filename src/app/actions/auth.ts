@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import { signIn } from "@/auth";
 import { db } from "@/lib/db";
-import { schoolById } from "@/lib/ug-schools";
+import { registerStudentAccount } from "@/lib/student-account";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 
@@ -30,43 +30,18 @@ export async function loginAction(formData: FormData) {
 export async function registerStudentAction(formData: FormData) {
   const phone = cleanPhone(formData.get("phone"));
   const password = String(formData.get("password") || "");
-  const name = String(formData.get("name") || "").trim();
-  const classGradeId = String(formData.get("classGradeId") || "") || null;
-  const sex = String(formData.get("sex") || "");
-  const guardianName = String(formData.get("guardianName") || "").trim();
-  const guardianPhone = cleanPhone(formData.get("guardianPhone"));
-  const born = String(formData.get("dateOfBirth") || "");
-  const dateOfBirth = born ? new Date(`${born}T00:00:00.000Z`) : null;
-  const school = schoolById(String(formData.get("emisSchoolId") || ""));
-  if (!phone || password.length < 4 || !name || !classGradeId || !guardianName || !guardianPhone || (sex !== "Female" && sex !== "Male") || !dateOfBirth || Number.isNaN(dateOfBirth.getTime())) {
-    redirect("/login?tab=join&error=missing");
-  }
-  if (!school) redirect("/login?tab=join&error=school");
-
-  const existing = await db.user.findUnique({ where: { phone } });
-  if (existing) redirect("/login?tab=join&error=exists");
-
-  const trialEnds = new Date();
-  trialEnds.setDate(trialEnds.getDate() + 14);
-
-  await db.user.create({
-    data: {
-      phone,
-      name,
-      passwordHash: bcrypt.hashSync(password, 10),
-      role: "STUDENT",
-      classGradeId,
-      sex,
-      dateOfBirth,
-      guardianName,
-      guardianPhone,
-      emisSchoolId: school.id,
-      school: school.name,
-      district: school.district,
-      trialStartsAt: new Date(),
-      trialEndsAt: trialEnds,
-    },
+  const created = await registerStudentAccount({
+    phone,
+    password,
+    name: String(formData.get("name") || ""),
+    classGradeId: String(formData.get("classGradeId") || ""),
+    sex: String(formData.get("sex") || ""),
+    guardianName: String(formData.get("guardianName") || ""),
+    guardianPhone: cleanPhone(formData.get("guardianPhone")),
+    dateOfBirth: String(formData.get("dateOfBirth") || ""),
+    emisSchoolId: String(formData.get("emisSchoolId") || ""),
   });
+  if ("error" in created) redirect(`/login?tab=join&error=${created.error}`);
 
   await signIn("credentials", { phone, password, intent: "STUDENT", redirectTo: "/dashboard" });
 }
