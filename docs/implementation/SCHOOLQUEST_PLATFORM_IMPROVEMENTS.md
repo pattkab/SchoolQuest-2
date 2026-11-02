@@ -167,3 +167,43 @@ No Play upload keystore was created, so no signed Android App Bundle was built. 
 Not deployed. The live site does not have these mobile routes until a later deploy, and Netlify still has no hosted database URL.
 
 **Next phase:** centralized subscriptions and entitlements.
+
+## Phase 5 — Subscriptions and entitlements
+
+**Status:** The server now decides who can start an exam and when a subscription is active. Yo Payments, Google Play, and Apple were not called, because those accounts are not configured. A phone or a browser cannot turn Premium on by itself.
+
+**What changed**
+
+- Each subject includes one free practice exam. It is used when the exam starts, including if the learner leaves before the end. Opening a list does not use it. Starting the same attempt again does not use a second one.
+- A date stored on the account does not grant access. Access comes from an entitlement row that is still inside its end time and 24-hour grace period, and that has not been revoked.
+- SchoolQuest Premium is UGX 20,000 for 30 days in the plan catalog. The charge uses the stored price, so a changed catalog price changes the charge. Tablets, textbooks, and shirts are separate products and do not open Premium.
+- Mobile-money and store requests stay pending until a signed provider notice or a verified store receipt arrives. A repeated notice does not extend the period twice. A refund removes access. An Apple expiry ends it.
+- The subscription page shows the status, the free-exam rule, the plan price, and recent payments. The phone subscription screen reads the same status.
+
+**Database**
+
+Additive `Plan`, `Entitlement`, `FreeExamGrant`, and `BillingEvent` tables, plus a product kind on payments. Applied locally with `prisma db push`. No production migration and no seed.
+
+**Tests**
+
+`npm test` — 44 passed, 0 failed. The database test uses the free exam, blocks the next paper, resumes the first attempt, ignores an unverified store receipt, accepts one verified Play receipt, ignores a duplicate, blocks access after a refund, rejects a bad payment signature, and keeps a physical product from opening Premium.
+
+The signed-in subscription page showed “UGX 20,000 for 30 days”, the free-exam rule, and the physical products. A later click signed that browser session out. Sign in again to continue in the browser.
+
+**Security**
+
+Webhook checks use a server secret and do not log it. Store routes fail closed without a verifier. Billing secrets are not in the app.
+
+**Limits**
+
+Yo Payments, Google Play, and the App Store sandboxes were not run. Set `YO_WEBHOOK_SECRET` before accepting mobile-money notices, and replace the store verifier when the Play and Apple credentials exist.
+
+**Commit:** `39eb5b99e86257f18f2f8df53fdaf6af2bd0689a` — `feat(billing): centralize payments and subscription entitlements`.
+
+**Push:** `feature/schoolquest-platform-hardening`. Not merged into `main`.
+
+**Deployment**
+
+Not deployed.
+
+**Next phase:** tests, CI, security, and release docs.
