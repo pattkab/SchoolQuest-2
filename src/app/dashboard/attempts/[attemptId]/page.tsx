@@ -29,9 +29,21 @@ export default async function AttemptPage({ params }: { params: Promise<{ attemp
         <h1 className="font-display text-4xl mt-1">{attempt.paper.title}</h1>
         <p className="mt-2 font-bold text-primary text-xl">
           {attempt.score} / {attempt.maxScore}
+          {attempt.maxScore ? ` · ${Math.round((attempt.score / attempt.maxScore) * 100)}%` : ""}
           {attempt.pendingCount ? ` · ${attempt.pendingCount} awaiting teacher` : ""}
         </p>
+        {attempt.finalizedAt && <p className="mt-2 text-sm text-muted-foreground">Submitted {attempt.finalizedAt.toLocaleString("en-UG")}. This result stays fixed unless a teacher reviews it.</p>}
       </header>
+      {attempt.answers.some((answer) => answer.isCorrect === false) && (
+        <section className="rounded-[1.6rem] bg-white border p-5">
+          <h2 className="font-display text-2xl">Revise</h2>
+          <ul className="mt-2 list-disc pl-5 text-sm">
+            {attempt.answers.filter((answer) => answer.isCorrect === false).map((answer) => (
+              <li key={answer.id}>{answer.question.prompt}</li>
+            ))}
+          </ul>
+        </section>
+      )}
       {attempt.answers.map((answer, i) => (
         <article key={answer.id} className="rounded-[1.6rem] bg-white border p-5">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -45,6 +57,7 @@ export default async function AttemptPage({ params }: { params: Promise<{ attemp
             Marks: {answer.pointsAwarded ?? "pending"} / {answer.question.points}
           </p>
           {answer.feedback && <p className="mt-2 text-sm text-muted-foreground">{answer.feedback}</p>}
+          {answer.question.explanation && <p className="mt-2 text-sm">Model answer: {answer.question.explanation}</p>}
         </article>
       ))}
     </div>

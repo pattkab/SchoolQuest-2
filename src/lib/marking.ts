@@ -24,6 +24,8 @@ export interface MarkableQuestion {
   caseSensitive: boolean;
   requiresTeacher: boolean;
   points: number;
+  partialRule?: string | null;
+  unit?: string | null;
 }
 
 export interface MarkResult {
@@ -33,7 +35,7 @@ export interface MarkResult {
   feedback: string;
 }
 
-export const DETERMINISTIC_TYPES = new Set(["MULTIPLE_CHOICE", "FILL_BLANK", "SHORT_ANSWER", "NUMERIC", "TRUE_FALSE", "MATCHING"]);
+export const DETERMINISTIC_TYPES = new Set(["MULTIPLE_CHOICE", "MULTI_SELECT", "FILL_BLANK", "SHORT_ANSWER", "NUMERIC", "CALCULATION", "TRUE_FALSE", "MATCHING", "ORDERING", "DIAGRAM_LABEL"]);
 export const OPEN_TYPES = new Set(["COMPREHENSION", "LONG_ANSWER", "DRAWING"]);
 
 export function parseJson<T = unknown>(raw: string | null | undefined, fallback: T): T {
@@ -103,12 +105,25 @@ export function markAnswer(q: MarkableQuestion, rawAnswer: string | null | undef
       return markNumeric(q, answer, max);
     case "MATCHING":
       return markMatching(q, answer, max);
-    case "FILL_BLANK":
+    case "MULTI_SELECT":
+      return markMultiSelect(q, answer, max);
+    case "FILL_BLANK": {
+      const blanks = parseJson<unknown>(q.correctAnswer, null);
+      if (blanks && typeof blanks === "object" && !Array.isArray(blanks)) return markBlanks(q, answer, max, blanks as Record<string, unknown>);
+      return markText(q, answer, max);
+    }
     case "SHORT_ANSWER":
       return markText(q, answer, max);
     case "COMPREHENSION":
-      // Try exact/accepted match first (fast & free); otherwise AI / teacher.
       return markText(q, answer, max, true);
+    case "ORDERING":
+      return markOrdering(q, answer, max);
+    case "DIAGRAM_LABEL":
+      return markDiagram(q, answer, max);
+    case "CALCULATION":
+      return markCalculation(q, answer, max);
+    case "LONG_ANSWER":
+      return markLongAnswer(q, answer, max);
     default:
       return pending(q);
   }
@@ -293,13 +308,15 @@ export function levenshtein(a: string, b: string): number {
   if (a === b) return 0;
   if (!a.length) return b.length;
   if (!b.length) return a.length;
-  const dp: number[] = Array.from({ length: b.length + 1 }, (_, i) => i);
+  const dp: number[] = Array.from({ length: b.length + 1 }, (_, index) => index);
   for (let i = 1; i <= a.length; i++) {
-    let prev = i;
+    let previous = dp[0];
+    dp[0] = i;
     for (let j = 1; j <= b.length; j++) {
-      const temp = dp[j];
-      dp[j] = a[i - 1] === b[j - 1] ? dp[j - 1] : 1 + Math.min(dp[j], dp[j - 1], prev);
-      prev = temp;
+      const current = dp[j];
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[j] = Math.min(dp[j] + 1, dp[j - 1] + 1, previous + cost);
+      previous = current;
     }
   }
   return dp[b.length];
@@ -340,15 +357,188 @@ export function keywordScore(answer: string, guide: string): { hits: number; tot
   return { hits: found.length, total: keywords.length, found };
 }
 
+function answerList(answer: string): string[] {
+  const parsed = parseJson<unknown>(answer, null);
+  if (Array.isArray(parsed)) return parsed.map(String).map((item) => item.trim()).filter(Boolean);
+  return answer.split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function resolveOption(value: string, options: string[]): string {
+  const letters = "ABCDEFGH";
+  const text = value.trim();
+  if (/^[A-Ha-h]$/.test(text) && options.length) {
+    const idx = letters.indexOf(text.toUpperCase());
+    if (idx >= 0 && idx < options.length) return options[idx];
+  }
+  return options.find((option) => normalizeText(option) === normalizeText(text)) ?? text;
+}
+
+function markMultiSelect(q: MarkableQuestion, answer: string, max: number): MarkResult {
+  const options = parseOptions(q.options);
+  const correctRaw = parseJson<unknown>(q.correctAnswer, []);
+  const correct = (Array.isArray(correctRaw) ? correctRaw : [correctRaw]).map((item) => normalizeText(resolveOption(String(item), options)));
+  if (!correct.length || correct.some((item) => !item)) return pending(q);
+  const given = answerList(answer).map((item) => normalizeText(resolveOption(item, options)));
+  const correctSet = new Set(correct);
+  const hits = given.filter((item) => correctSet.has(item)).length;
+  const extras = given.filter((item) => !correctSet.has(item)).length;
+  const rule = q.partialRule || "all-or-nothing";
+  const exact = hits === correct.length && extras === 0 && given.length === correct.length;
+  if (rule === "all-or-nothing") {
+    return exact ? hit(max, correct.join(", "), q.explanation) : miss(max, correct.join(", "), q.explanation);
+  }
+  const raw = rule === "proportional-penalty" ? hits - extras : hits;
+  const points = Math.max(0, Math.round((raw / correct.length) * max * 10) / 10);
+  return {
+    status: "AUTO",
+    isCorrect: exact,
+    points: Math.min(points, max),
+    feedback: exact ? `Correct! ${q.explanation || ""}`.trim() : `${hits} of ${correct.length} correct options.${q.explanation ? ` ${q.explanation}` : ""}`,
+  };
+}
+
+function markOrdering(q: MarkableQuestion, answer: string, max: number): MarkResult {
+  const expectedRaw = parseJson<unknown>(q.correctAnswer, []);
+  if (!Array.isArray(expectedRaw) || expectedRaw.length === 0) return pending(q);
+  const expected = expectedRaw.map(String);
+  const given = answerList(answer);
+  const hits = expected.filter((item, index) => normalizeText(given[index] || "") === normalizeText(item)).length;
+  const exact = hits === expected.length && given.length === expected.length;
+  if ((q.partialRule || "position") === "all-or-nothing") {
+    return exact ? hit(max, expected.join(" → "), q.explanation) : miss(max, expected.join(" → "), q.explanation);
+  }
+  const points = Math.round((hits / expected.length) * max * 10) / 10;
+  return { status: "AUTO", isCorrect: exact, points, feedback: exact ? "Correct order." : `${hits} of ${expected.length} in the right place.` };
+}
+
+function markBlanks(q: MarkableQuestion, answer: string, max: number, blanks: Record<string, unknown>): MarkResult {
+  const given = parseJson<unknown>(answer, null);
+  const responses = given && typeof given === "object" && !Array.isArray(given) ? given as Record<string, unknown> : {};
+  const ids = Object.keys(blanks);
+  if (!ids.length) return pending(q);
+  let hits = 0;
+  for (const id of ids) {
+    const accepted = Array.isArray(blanks[id]) ? blanks[id].map(String) : [String(blanks[id])];
+    const student = normalizeText(String(responses[id] ?? ""), q.caseSensitive);
+    if (accepted.some((item) => normalizeText(item, q.caseSensitive) === student && student)) hits += 1;
+  }
+  if (Object.values(responses).every((value) => !String(value || "").trim())) {
+    return { status: "UNANSWERED", isCorrect: false, points: 0, feedback: "No answer given." };
+  }
+  const points = Math.round((hits / ids.length) * max * 10) / 10;
+  return { status: "AUTO", isCorrect: hits === ids.length, points, feedback: hits === ids.length ? "Correct!" : `${hits} of ${ids.length} blanks are correct.` };
+}
+
+const UNIT_ALIASES: Record<string, string> = {
+  m: "m", metre: "m", meter: "m", metres: "m", meters: "m",
+  cm: "cm", centimetre: "cm", centimeter: "cm", centimetres: "cm", centimeters: "cm",
+  km: "km", kilometre: "km", kilometer: "km", kilometres: "km",
+  kg: "kg", kilogram: "kg", kilograms: "kg",
+  g: "g", gram: "g", grams: "g",
+  l: "l", litre: "l", liter: "l", litres: "l",
+  "%": "%", percent: "%",
+};
+
+function canonicalUnit(unit: string | null | undefined): string {
+  const key = normalizeText(unit || "").replace(/\.$/, "");
+  return UNIT_ALIASES[key] || key;
+}
+
+function markDiagram(q: MarkableQuestion, answer: string, max: number): MarkResult {
+  const spec = parseJson<{ labels?: { id?: string; x?: number; y?: number; accept?: unknown }[] }>(q.correctAnswer, {});
+  const labels = Array.isArray(spec.labels) ? spec.labels : [];
+  if (!labels.length) return pending(q);
+  const parsed = parseJson<unknown>(answer, null);
+  const byId = new Map<string, { text: string; x?: number; y?: number }>();
+  if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+    const record = parsed as { labels?: unknown } & Record<string, unknown>;
+    if (Array.isArray(record.labels)) {
+      for (const row of record.labels) {
+        if (!row || typeof row !== "object") continue;
+        const label = row as { id?: unknown; text?: unknown; x?: unknown; y?: unknown };
+        if (!label.id) continue;
+        byId.set(String(label.id), { text: String(label.text ?? ""), x: label.x === undefined ? undefined : Number(label.x), y: label.y === undefined ? undefined : Number(label.y) });
+      }
+    }
+    for (const label of labels) {
+      if (!label.id || byId.has(label.id)) continue;
+      const text = record[label.id];
+      if (typeof text === "string") byId.set(label.id, { text });
+    }
+  }
+  const tolerance = q.numericTolerance ?? 0.08;
+  let hits = 0;
+  for (const label of labels) {
+    const given = label.id ? byId.get(label.id) : undefined;
+    const accepted = Array.isArray(label.accept) ? label.accept.map(String) : [];
+    const textOk = Boolean(given && accepted.some((item) => normalizeText(item) === normalizeText(given.text)));
+    const hasCoords = given?.x !== undefined && given?.y !== undefined && label.x !== undefined && label.y !== undefined;
+    const placeOk = !hasCoords || (Math.hypot((given!.x as number) - label.x!, (given!.y as number) - label.y!) <= tolerance && given!.x! >= 0 && given!.x! <= 1 && given!.y! >= 0 && given!.y! <= 1);
+    if (textOk && placeOk) hits += 1;
+  }
+  const points = Math.round((hits / labels.length) * max * 10) / 10;
+  return { status: "AUTO", isCorrect: hits === labels.length, points, feedback: hits === labels.length ? "Labels are correct." : `${hits} of ${labels.length} labels are correct.` };
+}
+
+function markCalculation(q: MarkableQuestion, answer: string, max: number): MarkResult {
+  const raw = parseJson<unknown>(q.correctAnswer, null);
+  const spec = raw && typeof raw === "object" && !Array.isArray(raw) ? raw as { value?: unknown; unit?: unknown; tolerance?: unknown } : { value: raw, unit: q.unit };
+  const correct = typeof spec.value === "number" ? spec.value : extractNumber(String(spec.value ?? ""));
+  if (correct === null) return pending(q);
+  const parsedAnswer = parseJson<unknown>(answer, null);
+  const givenSpec = parsedAnswer && typeof parsedAnswer === "object" && !Array.isArray(parsedAnswer) ? parsedAnswer as { value?: unknown; unit?: unknown } : null;
+  const given = givenSpec ? extractNumber(String(givenSpec.value ?? "")) : extractNumber(answer);
+  if (given === null) return { status: "AUTO", isCorrect: false, points: 0, feedback: "Enter a number." };
+  const tol = typeof spec.tolerance === "number" ? spec.tolerance : q.numericTolerance ?? 0;
+  const valueOk = Math.abs(given - correct) <= tol + 1e-9;
+  const expectedUnit = canonicalUnit(typeof spec.unit === "string" ? spec.unit : q.unit);
+  const givenUnit = canonicalUnit(givenSpec?.unit ? String(givenSpec.unit) : answer.replace(/[0-9.,/\s-]/g, ""));
+  const unitOk = !expectedUnit || givenUnit === expectedUnit;
+  if (valueOk && unitOk) return hit(max, `${formatNumber(correct)}${expectedUnit ? ` ${expectedUnit}` : ""}`, q.explanation);
+  if (valueOk && q.partialRule === "value-half") {
+    const points = Math.round(max * 5) / 10;
+    return { status: "AUTO", isCorrect: false, points, feedback: `The number is right. The unit should be ${expectedUnit}.` };
+  }
+  return miss(max, `${formatNumber(correct)}${expectedUnit ? ` ${expectedUnit}` : ""}`, q.explanation);
+}
+
+function markLongAnswer(q: MarkableQuestion, answer: string, max: number): MarkResult {
+  const rubric = parseJson<{ criteria?: { label?: string; marks?: number; keywords?: unknown }[] }>(q.markingGuide, {});
+  if (!Array.isArray(rubric.criteria) || rubric.criteria.length === 0) return pending(q);
+  const text = normalizeText(answer);
+  const total = rubric.criteria.reduce((sum, criterion) => sum + (Number(criterion.marks) || 0), 0);
+  if (total <= 0) return pending(q);
+  let earned = 0;
+  const hitLabels: string[] = [];
+  for (const criterion of rubric.criteria) {
+    const keywords = Array.isArray(criterion.keywords) ? criterion.keywords.map((keyword) => normalizeText(String(keyword))).filter(Boolean) : [];
+    if (keywords.length && keywords.every((keyword) => text.includes(keyword))) {
+      earned += Number(criterion.marks) || 0;
+      if (criterion.label) hitLabels.push(criterion.label);
+    }
+  }
+  const points = Math.min(max, Math.round((earned / total) * max * 10) / 10);
+  return {
+    status: "AUTO",
+    isCorrect: points >= max,
+    points,
+    feedback: points >= max ? "The written answer covers the marking guide." : `Covered: ${hitLabels.join(", ") || "none yet"}. A teacher can still review this.`,
+  };
+}
+
 /** Human readable label for question types. */
 export function questionTypeLabel(type: string): string {
   switch (type) {
     case "MULTIPLE_CHOICE": return "Multiple choice";
+    case "MULTI_SELECT": return "Choose all that apply";
     case "FILL_BLANK": return "Fill in the blank";
     case "SHORT_ANSWER": return "Short answer";
     case "NUMERIC": return "Work out";
+    case "CALCULATION": return "Calculation";
     case "TRUE_FALSE": return "True or false";
     case "MATCHING": return "Matching";
+    case "ORDERING": return "Put in order";
+    case "DIAGRAM_LABEL": return "Label the diagram";
     case "COMPREHENSION": return "Comprehension";
     case "LONG_ANSWER": return "Written answer";
     case "DRAWING": return "Drawing";

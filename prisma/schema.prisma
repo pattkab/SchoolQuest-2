@@ -4,8 +4,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,6 +30,7 @@ model User {
   guardianName       String?
   guardianPhone      String?
   avatarSeed         String?
+  image              String?
   studentNumber      String?   @unique
   schoolId           String?
   schoolMember       School?   @relation("SchoolMember", fields: [schoolId], references: [id], onDelete: SetNull)
@@ -64,9 +65,14 @@ model User {
   messagesSent       SchoolMessage[]  @relation("MessageFrom")
   messagesReceived   SchoolMessage[]  @relation("MessageTo")
   payments           PaymentTransaction[]
+  markOverrides      MarkOverride[] @relation("MarkOverrides")
 
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+
+  @@index([classGradeId])
+  @@index([schoolId])
+  @@index([role])
 }
 
 model TeacherProfile {
@@ -129,6 +135,9 @@ model ClassGrade {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([levelId])
+  @@index([isActive])
 }
 
 model Subject {
@@ -154,6 +163,7 @@ model Subject {
   updatedAt DateTime @updatedAt
 
   @@unique([slug, classGradeId])
+  @@index([classGradeId])
 }
 
 model Topic {
@@ -174,6 +184,7 @@ model Topic {
   updatedAt DateTime @updatedAt
 
   @@unique([slug, subjectId])
+  @@index([subjectId])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -204,6 +215,8 @@ model Note {
   updatedAt DateTime @updatedAt
 
   @@unique([slug, subjectId])
+  @@index([subjectId, status])
+  @@index([topicId])
 }
 
 model Paper {
@@ -237,6 +250,10 @@ model Paper {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([subjectId, status])
+  @@index([classGradeId])
+  @@index([topicId])
 }
 
 model Question {
@@ -245,7 +262,7 @@ model Question {
   paper            Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
   topicId          String?
   topic            Topic?   @relation(fields: [topicId], references: [id], onDelete: SetNull)
-  type             String   // MULTIPLE_CHOICE | FILL_BLANK | SHORT_ANSWER | NUMERIC | TRUE_FALSE | MATCHING | COMPREHENSION | LONG_ANSWER | DRAWING
+  type             String   // MULTIPLE_CHOICE | MULTI_SELECT | FILL_BLANK | SHORT_ANSWER | NUMERIC | CALCULATION | TRUE_FALSE | MATCHING | ORDERING | DIAGRAM_LABEL | COMPREHENSION | LONG_ANSWER | DRAWING
   displayNumber    String?
   section          String?
   stimulus         String?  // Passage / instruction shared with the question (markdown)
@@ -261,11 +278,19 @@ model Question {
   requiresTeacher  Boolean  @default(false)
   points           Float    @default(1)
   order            Int
+  parentId         String?
+  parent           Question?  @relation("QuestionParts", fields: [parentId], references: [id], onDelete: SetNull)
+  parts            Question[] @relation("QuestionParts")
+  unit             String?
+  partialRule      String?  // all-or-nothing | proportional | proportional-penalty | position | value-half
 
   answers Answer[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([paperId])
+  @@index([topicId])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -285,13 +310,21 @@ model Attempt {
   pendingCount     Int       @default(0)
   timeSpentSeconds Int?
   startedAt        DateTime  @default(now())
+  deadlineAt       DateTime?
   completedAt      DateTime?
+  finalizedAt      DateTime?
   gradedAt         DateTime?
+  markingVersion   Int       @default(1)
 
   answers Answer[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId, completedAt])
+  @@index([userId, status])
+  @@index([userId, paperId, status])
+  @@index([paperId])
 }
 
 model Answer {
@@ -302,6 +335,7 @@ model Answer {
   question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   studentAnswer String?  // Raw text / JSON / data-url for drawings
+  version       Int      @default(1)
   isCorrect     Boolean?
   pointsAwarded Float?
   gradingStatus String   @default("PENDING_TEACHER") // UNANSWERED | AUTO | AI | PENDING_TEACHER | TEACHER_MARKED
@@ -310,11 +344,27 @@ model Answer {
   markedById    String?
   markedBy      User?    @relation("MarkedBy", fields: [markedById], references: [id], onDelete: SetNull)
   markedAt      DateTime?
+  overrides     MarkOverride[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([attemptId, questionId])
+  @@index([gradingStatus])
+}
+
+model MarkOverride {
+  id             String   @id @default(cuid())
+  answerId       String
+  answer         Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  actorId        String
+  actor          User     @relation("MarkOverrides", fields: [actorId], references: [id], onDelete: Cascade)
+  previousPoints Float?
+  points         Float
+  reason         String
+  createdAt      DateTime @default(now())
+
+  @@index([answerId])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -343,6 +393,10 @@ model ExternalResource {
   lastSeenAt     DateTime    @default(now())
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+
+  @@index([status])
+  @@index([classGradeId])
+  @@index([subjectId])
 }
 
 model SyncLog {
@@ -372,6 +426,9 @@ model Classroom {
   enrollments Enrollment[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  @@index([teacherId])
+  @@index([classGradeId])
 }
 
 model Enrollment {
@@ -383,6 +440,7 @@ model Enrollment {
   createdAt   DateTime  @default(now())
 
   @@unique([classroomId, userId])
+  @@index([userId])
 }
 
 model School {
@@ -410,6 +468,9 @@ model FeeCharge {
   label     String
   amount    Int
   createdAt DateTime @default(now())
+
+  @@index([schoolId])
+  @@index([userId])
 }
 
 model FeePayment {
@@ -421,6 +482,9 @@ model FeePayment {
   amount    Int
   note      String?
   createdAt DateTime @default(now())
+
+  @@index([schoolId])
+  @@index([userId])
 }
 
 model AttendanceMark {
@@ -435,6 +499,7 @@ model AttendanceMark {
   createdAt DateTime @default(now())
 
   @@unique([userId, day])
+  @@index([schoolId, day])
 }
 
 model SchoolMessage {
@@ -447,6 +512,10 @@ model SchoolMessage {
   to        User     @relation("MessageTo", fields: [toId], references: [id], onDelete: Cascade)
   body      String
   createdAt DateTime @default(now())
+
+  @@index([schoolId])
+  @@index([toId])
+  @@index([fromId])
 }
 
 model Feedback {
@@ -459,6 +528,9 @@ model Feedback {
   questionId String?
   status     String   @default("OPEN") // OPEN | RESOLVED
   createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
 }
 
 model PaymentTransaction {
@@ -474,4 +546,6 @@ model PaymentTransaction {
   idempotencyKey String    @unique
   createdAt      DateTime  @default(now())
   verifiedAt     DateTime?
+
+  @@index([userId, status])
 }

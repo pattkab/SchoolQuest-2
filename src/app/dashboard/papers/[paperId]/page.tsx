@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/session";
 import { canViewContent } from "@/lib/access";
 import ExamPlayer from "./ExamPlayer";
 import { shortSubjectName } from "@/lib/taxonomy";
+import { publicDiagramTargets } from "@/lib/exam-session";
 
 function publicMatchOptions(correctAnswer: string, options: string | null) {
   try {
@@ -40,6 +41,7 @@ export default async function PaperPage({ params }: { params: Promise<{ paperId:
         subject: shortSubjectName(paper.subject.name),
         className: paper.subject.classGrade.shortName,
         topic: paper.topic?.name || null,
+        durationMinutes: paper.durationMinutes,
         backHref: `/dashboard/classes/${paper.subject.classGrade.slug}/${paper.subject.slug}`,
       }}
       questions={paper.questions.map((q) => ({
@@ -47,7 +49,11 @@ export default async function PaperPage({ params }: { params: Promise<{ paperId:
         type: q.type,
         prompt: q.prompt,
         stimulus: q.stimulus,
+        imageUrl: q.imageUrl,
+        displayNumber: q.displayNumber,
+        unit: q.unit,
         options: q.type === "MATCHING" ? publicMatchOptions(q.correctAnswer, q.options) : q.options,
+        labelTargets: q.type === "DIAGRAM_LABEL" ? publicDiagramTargets(q.correctAnswer) : [],
         points: q.points,
       }))}
     />

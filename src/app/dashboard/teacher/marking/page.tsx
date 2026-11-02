@@ -57,7 +57,7 @@ export default async function MarkingQueuePage() {
               <label className="text-xs font-bold">Marks / {answer.question.points}</label>
               <Input name="pointsAwarded" type="number" step="0.5" min="0" max={answer.question.points} className="rounded-2xl" required />
             </div>
-            <Textarea name="feedback" placeholder="Feedback the learner will see" className="rounded-2xl min-h-16" />
+            <Textarea name="feedback" placeholder="Why this mark" className="rounded-2xl min-h-16" required />
             <Button className="rounded-2xl h-12">Save mark</Button>
           </form>
         </article>

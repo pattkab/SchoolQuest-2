@@ -2,133 +2,50 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { gradeDrawingAnswer, gradeOpenAnswer } from "@/lib/gemini";
-import { markAnswer, OPEN_TYPES, type MarkableQuestion } from "@/lib/marking";
 import { canReviewLearner } from "@/lib/access";
 import { isAccreditedTeacher } from "@/lib/session";
+import { finalizeExam, openExamAttempt, readExamClock, regradeFinalizedAttempt, saveExamAnswers } from "@/lib/exam-attempts";
 import { revalidatePath } from "next/cache";
-import { isDrawingDescription } from '@/lib/accessibility-settings';
 
-function toMarkable(question: {
-  id: string;
-  type: string;
-  prompt: string;
-  options: string | null;
-  correctAnswer: string;
-  acceptedAnswers: string | null;
-  markingGuide: string | null;
-  explanation: string | null;
-  numericTolerance: number | null;
-  caseSensitive: boolean;
-  requiresTeacher: boolean;
-  points: number;
-}): MarkableQuestion {
-  return question;
-}
-
-export async function submitExam(payload: { paperId: string; answers: Record<string, string>; mode?: string }) {
+async function signedIn() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Please sign in to submit.");
+  return session.user.id;
+}
 
-  const paperRecord = await db.paper.findUnique({ where: { id: payload.paperId }, select: { status: true } });
-  if (!paperRecord || paperRecord.status !== "PUBLISHED") throw new Error("This paper is not published.");
+export async function startOrResumeExam(paperId: string) {
+  return openExamAttempt(await signedIn(), paperId);
+}
 
-  const questions = await db.question.findMany({
-    where: { paperId: payload.paperId },
-    orderBy: { order: "asc" },
-  });
+export async function saveExamProgress(payload: { attemptId: string; writes: { questionId: string; value: string; version: number }[] }) {
+  return saveExamAnswers(await signedIn(), payload.attemptId, payload.writes);
+}
 
-  const results = [];
-  let score = 0;
-  let pendingCount = 0;
-  const maxScore = questions.reduce((sum, q) => sum + q.points, 0);
+export async function examClock(attemptId: string) {
+  return readExamClock(await signedIn(), attemptId);
+}
 
-  for (const question of questions) {
-    const studentAnswer = payload.answers[question.id] ?? "";
-    let marked = markAnswer(toMarkable(question), studentAnswer);
-    let gradingStatus = marked.status === "AUTO" ? "AUTO" : marked.status === "UNANSWERED" ? "UNANSWERED" : "PENDING_TEACHER";
-    let feedback = marked.feedback;
-    let points = marked.points;
-    let isCorrect = marked.isCorrect;
+export async function submitExam(payload: { paperId: string; answers: Record<string, string>; versions?: Record<string, number>; attemptId?: string; mode?: string }) {
+  const userId = await signedIn();
+  const paper = await db.paper.findUnique({ where: { id: payload.paperId }, select: { status: true } });
+  if (!paper || paper.status !== "PUBLISHED") throw new Error("This paper is not published.");
+  const attemptId = payload.attemptId || (await openExamAttempt(userId, payload.paperId)).attemptId;
+  const incoming = payload.versions
+    ? Object.fromEntries(Object.entries(payload.answers).map(([questionId, value]) => [questionId, { value, version: payload.versions?.[questionId] ?? 0 }]))
+    : {};
+  const result = await finalizeExam(userId, attemptId, incoming, payload.answers);
+  return { ...result, answers: [] as [] };
+}
 
-    const shouldAskAi =
-      studentAnswer &&
-      !isDrawingDescription(question.type, studentAnswer) &&
-      (OPEN_TYPES.has(question.type) || marked.status === "PENDING") &&
-      !question.requiresTeacher &&
-      marked.status !== "AUTO" &&
-      marked.status !== "UNANSWERED";
-
-    if (shouldAskAi) {
-      try {
-        const ai =
-          question.type === "DRAWING"
-            ? await gradeDrawingAnswer(question.prompt, studentAnswer, question.points)
-            : await gradeOpenAnswer(
-                question.prompt,
-                studentAnswer,
-                question.markingGuide || question.correctAnswer,
-                question.points
-              );
-        if (ai.explanation && !ai.explanation.toLowerCase().includes("unable")) {
-          points = ai.score;
-          feedback = `Provisional. A teacher still needs to confirm this mark. ${ai.explanation}`;
-          isCorrect = ai.score >= question.points;
-          gradingStatus = "AI";
-          marked = { status: "AUTO", isCorrect, points, feedback };
-        }
-      } catch {
-        gradingStatus = "PENDING_TEACHER";
-      }
-    }
-
-    if (gradingStatus === "PENDING_TEACHER" || gradingStatus === "AI") pendingCount += 1;
-    if (gradingStatus === "AUTO" || gradingStatus === "AI") score += points;
-
-    results.push({
-      questionId: question.id,
-      studentAnswer,
-      isCorrect,
-      pointsAwarded: gradingStatus === "PENDING_TEACHER" ? null : points,
-      gradingStatus,
-      feedback,
-    });
-  }
-
-  const attempt = await db.attempt.create({
-    data: {
-      userId: session.user.id,
-      paperId: payload.paperId,
-      mode: payload.mode || "PRACTICE",
-      status: pendingCount ? "NEEDS_REVIEW" : "GRADED",
-      score,
-      maxScore,
-      pendingCount,
-      completedAt: new Date(),
-      gradedAt: pendingCount ? null : new Date(),
-      answers: {
-        create: results,
-      },
-    },
-    include: {
-      answers: { include: { question: true } },
-      paper: { include: { subject: { include: { classGrade: true } } } },
-    },
-  });
-
-  await db.user.update({
-    where: { id: session.user.id },
-    data: { xp: { increment: Math.round(score * 4) }, lastActiveOn: new Date() },
-  });
-
-  return {
-    attemptId: attempt.id,
-    score,
-    maxScore,
-    pendingCount,
-    totalQuestions: questions.length,
-    answers: attempt.answers,
-  };
+export async function regradeAttempt(attemptId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  const user = await db.user.findUnique({ where: { id: session.user.id }, include: { teacherProfile: true } });
+  if (!user || !isAccreditedTeacher(user)) throw new Error("Only an accredited teacher can regrade.");
+  const attempt = await db.attempt.findUnique({ where: { id: attemptId } });
+  if (!attempt || !(await canReviewLearner(user, attempt.userId))) throw new Error("This learner is outside your classes.");
+  await regradeFinalizedAttempt(attemptId);
+  revalidatePath(`/dashboard/attempts/${attemptId}`);
 }
 
 export async function markAnswerAsTeacher(formData: FormData) {
@@ -153,6 +70,10 @@ export async function markAnswerAsTeacher(formData: FormData) {
   if (!(await canReviewLearner(user, answer.attempt.userId))) throw new Error("This learner is outside your classes.");
 
   const awarded = Math.max(0, Math.min(answer.question.points, pointsAwarded));
+  if (!feedback) throw new Error("Write the reason for this mark.");
+  await db.markOverride.create({
+    data: { answerId, actorId: user.id, previousPoints: answer.pointsAwarded, points: awarded, reason: feedback },
+  });
   await db.answer.update({
     where: { id: answerId },
     data: {
@@ -167,7 +88,7 @@ export async function markAnswerAsTeacher(formData: FormData) {
   });
 
   const answers = await db.answer.findMany({ where: { attemptId: answer.attemptId } });
-  const pendingCount = answers.filter((a) => a.gradingStatus === "PENDING_TEACHER").length;
+  const pendingCount = answers.filter((a) => a.gradingStatus === "PENDING_TEACHER" || a.gradingStatus === "AI").length;
   const score = answers.reduce((sum, a) => sum + (a.pointsAwarded || 0), 0);
   await db.attempt.update({
     where: { id: answer.attemptId },
