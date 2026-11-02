@@ -80,3 +80,46 @@ The service worker is registered in production, not while developing. A cold sta
 Not deployed.
 
 **Next phase:** asynchronous exam digitization.
+
+## Phase 3 — Asynchronous exam digitization
+
+**Status:** Completed for the web upload path. The model is not called while the teacher is waiting on the upload.
+
+**What changed**
+
+- Uploading a past paper checks the file, stores it, and queues a job. The page returns the job immediately. Reading starts after that response, or when the teacher chooses “Read this paper”.
+- The same queue is used for an admin practice-question upload. Revision notes are still read in the request, because they are not exam questions.
+- A job can be queued, processing, awaiting review, needing correction, approved, published, rejected, failed, or cancelled.
+- The reader’s questions are a draft. Missing marks, a repeated question, an unsupported answer, or an unconfirmed diagram label blocks approval.
+- Diagram labels are suggestions until a teacher types the accepted label.
+- Approval saves a draft paper. Learners cannot open it. Publishing is a separate step.
+- Uploading the same file again returns the existing job. A queued job can be cancelled. A failed read is tried once more, then it stops.
+- A teacher can queue 20 papers a day, with a 20,000 token allowance. Subquestions keep their parent question.
+
+**Database**
+
+Additive `DigitizationJob` and `DigitizationEvent` tables. Applied locally with `prisma db push`. No production migration and no seed. Uploaded files stay in `data/digitization/`, which is gitignored.
+
+**Tests**
+
+`npm test` — 35 passed, 0 failed. The processing test uses a stand-in reader, so Gemini is not called. It checks that a valid paper is approved as a draft, a missing mark and an unconfirmed diagram cannot be approved, a duplicate file returns the same job, a cancelled job is not read, and a failing reader stops after two attempts. The queue module does not import the Gemini client.
+
+A signed-in learner who opened the queue was returned to the dashboard. The review form was not opened in the browser because that session is a learner account.
+
+**Security**
+
+Learners cannot open the queue. The processor never publishes a paper. A paper stays a draft until an accredited teacher publishes it. The upload action does not call the model.
+
+**Limits**
+
+Revision notes in the admin content tool still call the model during the request. There is no hosted database migration. Flutter, billing, and CI are later phases.
+
+**Commit:** `6f00f0f3f6aa5aae8f58b29f0b4819e514ecec12`
+
+**Push:** `feature/schoolquest-platform-hardening`. Not merged into `main`.
+
+**Deployment**
+
+Not deployed. Netlify still has no hosted database URL.
+
+**Next phase:** Flutter Android and iOS clients.
