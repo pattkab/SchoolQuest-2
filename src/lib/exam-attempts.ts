@@ -203,7 +203,7 @@ async function gradeAnswers(questions: MarkableQuestion[], answers: Record<strin
   let pendingCount = 0;
   for (const question of questions) {
     const studentAnswer = answers[question.id] ?? "";
-    let marked = markAnswer(question, studentAnswer);
+    const marked = markAnswer(question, studentAnswer);
     let gradingStatus = marked.status === "AUTO" ? "AUTO" : marked.status === "UNANSWERED" ? "UNANSWERED" : "PENDING_TEACHER";
     let feedback = marked.feedback;
     let points = marked.points;

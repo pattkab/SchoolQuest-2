@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { stopReadAloud } from "@/lib/read-aloud";
 import Link from "next/link";
 import { DrawingAnswer } from "@/components/drawing-answer";
@@ -39,6 +39,19 @@ function parseOptions(raw: string | null) {
   }
 }
 
+function subscribeDataSaver(onChange: () => void) {
+  window.addEventListener("schoolquest:data-saver", onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener("schoolquest:data-saver", onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function dataSaverEnabled() {
+  return localStorage.getItem("schoolquest.dataSaver") === "1";
+}
+
 function parseRecord(raw: string | null): Record<string, string> | null {
   if (!raw) return null;
   try {
@@ -65,8 +78,7 @@ export default function ExamPlayer({
   const [deadlineAt, setDeadlineAt] = useState<string | null>(null);
   const [saveState, setSaveState] = useState("Starting");
   const [offline, setOffline] = useState(false);
-  const [saver, setSaver] = useState(false);
-  useEffect(() => setSaver(localStorage.getItem("schoolquest.dataSaver") === "1"), []);
+  const saver = useSyncExternalStore(subscribeDataSaver, dataSaverEnabled, () => false);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const answersRef = useRef(answers);
@@ -82,9 +94,11 @@ export default function ExamPlayer({
     setDeadlineAt(deadline);
     setRemaining(endsAt.current == null ? null : Math.max(0, endsAt.current - (Date.now() + skew.current)));
   };
-  answersRef.current = answers;
-  versionsRef.current = versions;
-  attemptRef.current = attemptId;
+  useEffect(() => {
+    answersRef.current = answers;
+    versionsRef.current = versions;
+    attemptRef.current = attemptId;
+  });
 
   useEffect(() => () => stopReadAloud(), [index, result]);
   useEffect(() => {
@@ -290,7 +304,7 @@ export default function ExamPlayer({
           <span className="flex items-center gap-2">
             {offline && <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-bold">Offline</span>}
             {clockLabel && <p className="rounded-full bg-white border px-3 py-1 text-sm font-bold" aria-live="polite">Time left {clockLabel}</p>}
-            <button type="button" className="rounded-full border bg-white px-3 py-1 text-sm font-bold" aria-pressed={saver} onClick={() => { const next = !saver; localStorage.setItem("schoolquest.dataSaver", next ? "1" : "0"); setSaver(next); window.dispatchEvent(new Event("schoolquest:data-saver")); }}>Data saver</button>
+            <button type="button" className="rounded-full border bg-white px-3 py-1 text-sm font-bold" aria-pressed={saver} onClick={() => { const next = !saver; localStorage.setItem("schoolquest.dataSaver", next ? "1" : "0"); window.dispatchEvent(new Event("schoolquest:data-saver")); }}>Data saver</button>
             <button type="button" className="rounded-full border bg-white px-3 py-1 text-sm font-bold" onClick={() => void keepCopy()}>Save offline</button>
           </span>
         </div>

@@ -250,4 +250,4 @@ Not deployed. Production still waits for a hosted `DATABASE_URL` and an explicit
 
 **Remaining**
 
-The first CI run failed because the committed database client still opened a SQLite file. The client now uses `DATABASE_URL`. Yo Payments, Play, and Apple sandboxes are still not configured. Branch protection was left unchanged. The browser session from the subscription check is still signed out.
+The first CI run failed because the committed database client still opened a SQLite file. The client now uses `DATABASE_URL`. The next run failed lint on the exam page; those errors are corrected. Yo Payments, Play, and Apple sandboxes are still not configured. Branch protection was left unchanged. The browser session from the subscription check is still signed out.
