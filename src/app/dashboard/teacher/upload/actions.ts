@@ -1,12 +1,13 @@
 "use server";
 
+import { after } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { extractQuestionsFromPDF, type ExtractedQuestion } from "@/lib/gemini";
+import type { ExtractedQuestion } from "@/lib/gemini";
 import { isAccreditedTeacher } from "@/lib/session";
-import { uploadFileToFirebase } from "@/lib/firebase";
 import { redirect } from "next/navigation";
 import { topicIdForTitle } from "@/lib/topics";
+import { advanceJob, enqueueDigitization } from "@/lib/digitization-jobs";
 
 export async function parseUploadedPDF(formData: FormData) {
   const session = await auth();
@@ -28,25 +29,23 @@ export async function parseUploadedPDF(formData: FormData) {
     throw new Error("No file uploaded");
   }
 
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  // 1. Upload original PDF to Firebase Storage
-  let pdfUrl = "";
-  try {
-    const storagePath = `papers/${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
-    pdfUrl = await uploadFileToFirebase(buffer, storagePath, "application/pdf");
-  } catch (err) {
-    console.warn("Could not upload PDF to Firebase Storage, continuing with local parse...", err);
-  }
-
-  // 2. Perform OCR and extract questions
-  const questions = await extractQuestionsFromPDF(buffer);
-  
-  return {
-    questions,
-    pdfUrl
-  };
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const year = Number(formData.get("year"));
+  const job = await enqueueDigitization({
+    userId: user.id,
+    buffer,
+    fileName: file.name || "paper.pdf",
+    mime: file.type || "application/pdf",
+    subjectId: String(formData.get("subjectId") || "") || null,
+    title: String(formData.get("title") || file.name || "Paper"),
+    year: Number.isFinite(year) && year > 0 ? year : null,
+  });
+  after(() => {
+    void import("@/lib/digitization-ai")
+      .then((mod) => advanceJob(job.id, mod.extractWithGemini))
+      .catch(() => undefined);
+  });
+  return { jobId: job.id };
 }
 
 interface SavePaperPayload {
@@ -87,7 +86,7 @@ export async function saveParsedPaper(payload: SavePaperPayload) {
       kind: "PAST_PAPER",
       sourceType: "UPLOAD",
       authorId: user.id,
-      status: "NEEDS_REVIEW",
+      status: "DRAFT",
     }
   });
 

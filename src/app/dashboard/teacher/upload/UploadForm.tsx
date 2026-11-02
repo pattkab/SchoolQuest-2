@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,7 @@ interface EditableQuestion {
 }
 
 export default function UploadForm({ levels }: UploadFormProps) {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [selectedLevelId, setSelectedLevelId] = useState("");
@@ -60,11 +62,13 @@ export default function UploadForm({ levels }: UploadFormProps) {
 
     const formData = new FormData();
     formData.append("pdf", pdfFile);
+    formData.append("subjectId", selectedSubjectId);
+    formData.append("title", title);
+    formData.append("year", year);
 
     try {
       const res = await parseUploadedPDF(formData);
-      setQuestions(res.questions);
-      setPdfUrl(res.pdfUrl);
+      router.push(`/dashboard/teacher/digitization/${res.jobId}`);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to parse PDF questions.");
     } finally {
@@ -222,10 +226,10 @@ export default function UploadForm({ levels }: UploadFormProps) {
           >
             {loading ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin" /> Analyzing PDF with Gemini OCR...
+                <Loader2 className="h-5 w-5 animate-spin" /> Queuing the paper...
               </>
             ) : (
-              "Extract Questions"
+              "Queue this paper"
             )}
           </Button>
         </CardFooter>

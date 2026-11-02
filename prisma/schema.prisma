@@ -66,6 +66,8 @@ model User {
   messagesReceived   SchoolMessage[]  @relation("MessageTo")
   payments           PaymentTransaction[]
   markOverrides      MarkOverride[] @relation("MarkOverrides")
+  digitizationJobs   DigitizationJob[] @relation("DigitizationAuthor")
+  digitizationReviews DigitizationJob[] @relation("DigitizationReviewer")
 
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -531,6 +533,55 @@ model Feedback {
 
   @@index([userId])
   @@index([status])
+}
+
+model DigitizationJob {
+  id              String   @id @default(cuid())
+  createdById     String
+  createdBy       User     @relation("DigitizationAuthor", fields: [createdById], references: [id], onDelete: Cascade)
+  status          String   @default("QUEUED") // QUEUED | PROCESSING | AWAITING_REVIEW | NEEDS_CORRECTION | APPROVED | PUBLISHED | REJECTED | FAILED | CANCELLED
+  progress        Int      @default(0)
+  stage           String   @default("queued")
+  sourceHash      String
+  sourceKind      String
+  fileName        String
+  mime            String
+  byteSize        Int
+  subjectId       String?
+  title           String?
+  year            Int?
+  attempts        Int      @default(0)
+  maxAttempts     Int      @default(2)
+  model           String   @default("gemini-2.5-flash")
+  tokensUsed      Int      @default(0)
+  errorClass      String?
+  errorMessage    String?
+  confidence      Float?
+  draft           String?
+  paperId         String?
+  reviewerId      String?
+  reviewer        User?    @relation("DigitizationReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  cancelRequested Boolean  @default(false)
+  events          DigitizationEvent[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([createdById, createdAt])
+  @@index([status])
+  @@index([sourceHash])
+}
+
+model DigitizationEvent {
+  id        String          @id @default(cuid())
+  jobId     String
+  job       DigitizationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  stage     String
+  message   String
+  actorId   String?
+  createdAt DateTime        @default(now())
+
+  @@index([jobId])
 }
 
 model PaymentTransaction {
