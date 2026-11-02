@@ -207,3 +207,47 @@ Yo Payments, Google Play, and the App Store sandboxes were not run. Set `YO_WEBH
 Not deployed.
 
 **Next phase:** tests, CI, security, and release docs.
+
+## Phase 6 — Testing, CI, security, and release readiness
+
+**Status:** Completed for the checks this computer and GitHub Actions can run. The live site was not deployed. Branch protection was not changed.
+
+**What changed**
+
+- GitHub Actions installs dependencies, applies the schema to a temporary Postgres database, seeds that database, and runs the test suite, lint, type check, and production build.
+- The same workflow analyzes and tests the Flutter app, then builds a release APK and uploads it as an artifact.
+- Sign-in, registration, and payment notices are rate limited. Operations logs omit examination answers, passwords, tokens, email addresses, and phone numbers.
+- An unsigned Apple notice can no longer revoke or extend access. Yo Payments notices still need the server signature. Invalid payment JSON is rejected.
+- `/api/health` checks Postgres and returns 503 without the connection string when the database is down.
+- `npm run db:seed` refuses to run when the environment is staging, production, or Netlify.
+- Security headers are sent with each response. Strict transport security is included only in a production build.
+- Next.js is 16.4.3, which clears the critical advisory in `next`.
+- The operations guide is `docs/operations/OPERATIONS.md`.
+
+**Database**
+
+No new tables. The CI database is created for the workflow and is not the live database.
+
+**Tests**
+
+`npm test` — 49 passed, 0 failed. That includes the free-exam and payment cases from earlier phases, plus checks that the seed command refuses a hosted environment, a sign-in burst is limited, an unverified store notice is denied, and the operations log drops an examination answer.
+
+`flutter build apk --release` produced `flutter/build/app/outputs/flutter-apk/app-release.apk`. `apksigner` reported the APK is unsigned. It is not a Play upload. No signed Android App Bundle was built.
+
+iOS was not compiled on the Ubuntu workflow. The unsigned iOS build from Phase 4 still stands.
+
+**Security**
+
+Tracked files were scanned for private keys. `.env`, keystores, and `key.properties` stay ignored. `npm audit --audit-level=critical` passed after the Next.js update. High advisories remain in Firebase, Zod, and shadcn because the published fixes are breaking upgrades. They were not forced. A hardcoded cloud project id was removed from the AI client, so marking uses `GOOGLE_CLOUD_PROJECT` or it does not call the model.
+
+**Commit:** `aa9ffb41a77b2c943614b27e55718c7ffb6c0ef4` — `ci: implement comprehensive testing and release automation`.
+
+**Push:** `feature/schoolquest-platform-hardening`. Not merged into `main`.
+
+**Deployment**
+
+Not deployed. Production still waits for a hosted `DATABASE_URL` and an explicit approval. Rollback was not rehearsed on the live site. The seed refusal was tested.
+
+**Remaining**
+
+GitHub Actions must finish green on this commit. Yo Payments, Play, and Apple sandboxes are still not configured. Branch protection was left unchanged. The browser session from the subscription check is still signed out.
