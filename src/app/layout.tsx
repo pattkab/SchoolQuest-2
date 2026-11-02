@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   description: "Read, practice and get marked. Baby Class to P.7.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${plusJakarta.variable} ${display.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col"><SkipToContent /><OfflineShell />{children}<AccessibilityTools /></body>

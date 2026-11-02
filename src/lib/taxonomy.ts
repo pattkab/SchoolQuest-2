@@ -38,6 +38,22 @@ const CORE_BY_BAND: Record<BandId, string[]> = {
   ple: ["mathematics", "english", "science", "social-studies"],
 };
 
+
+export function currentSchoolTerm(date = new Date()) {
+  const month = date.getMonth();
+  if (month < 4) return 1;
+  if (month < 8) return 2;
+  return 3;
+}
+
+export function plainClass(shortName?: string | null) {
+  return (shortName || "Class").replace(/\./g, "");
+}
+
+export function classWithTerm(shortName?: string | null, term = currentSchoolTerm()) {
+  return `${plainClass(shortName)} · Term ${term}`;
+}
+
 export function bandForSlug(slug: string) {
   return CLASS_BANDS.find((band) => (band.slugs as readonly string[]).includes(slug)) ?? null;
 }
