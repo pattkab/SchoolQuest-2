@@ -123,3 +123,47 @@ Revision notes in the admin content tool still call the model during the request
 Not deployed. Netlify still has no hosted database URL.
 
 **Next phase:** Flutter Android and iOS clients.
+
+## Phase 4 — Flutter Android and iOS
+
+**Status:** The Flutter client builds and talks to the existing server. A signed Play bundle and a TestFlight build still need signing credentials that were not created here.
+
+**What changed**
+
+- The existing `android/` project is a Capacitor WebView. It stays uncommitted. The Flutter app is the mobile client and uses the same application id, `com.schoolquest.app`, so it is the same Play listing.
+- Android and iOS open `https://schoolquestweb.netlify.app` unless a development build is given an explicit `API_BASE`. Staging and production reject a local address.
+- Sign-in uses a random token stored only as a hash. The phone keeps the token in secure storage. Logout revokes it. A session lasts 14 days.
+- Home, subjects, notes, exams, results, profile, help, and subscription screens use the server. Marking still happens in the existing exam service. A downloaded paper does not include the marking key.
+- If a save fails, the answer stays on the phone and can be sent again.
+- The subscription screen shows the server’s plan list. A request from the phone cannot start a subscription.
+- Android debug builds run from min SDK 24, with R8 ready for release. Release signing reads `flutter/android/key.properties` when that file is supplied. iOS uses bundle id `com.schoolquest.app` and declares no exempt encryption.
+
+**Database**
+
+Additive `MobileSession` table. Applied locally with `prisma db push`. No production migration and no seed.
+
+**Tests**
+
+`npm test` — 40 passed, 0 failed. That includes session expiry, logout, a paper payload without the marking key, and the production address check.
+
+`flutter analyze` reported no issues. `flutter test` — 6 passed.
+
+`flutter build apk --debug` produced `flutter/build/app/outputs/flutter-apk/app-debug.apk`. The SchoolQuest emulator showed onboarding and the sign-in screen.
+
+`flutter build ios --debug --no-codesign` produced `flutter/build/ios/iphoneos/Runner.app`.
+
+A local registration through the API returned a session, the home screen showed the class and term, and a subscription request from the phone was refused. The temporary account was removed.
+
+**Not produced**
+
+No Play upload keystore was created, so no signed Android App Bundle was built. TestFlight still needs the Apple Developer account and a signing certificate. `flutter_secure_storage` does not yet support Swift Package Manager; CocoaPods was used for this build. Crash reporting was not added, because that needs the existing Firebase config rather than a new project.
+
+**Commit:** `59423284f6374bba375ccf898523edaeea265736`
+
+**Push:** `feature/schoolquest-platform-hardening`. Not merged into `main`.
+
+**Deployment**
+
+Not deployed. The live site does not have these mobile routes until a later deploy, and Netlify still has no hosted database URL.
+
+**Next phase:** centralized subscriptions and entitlements.
