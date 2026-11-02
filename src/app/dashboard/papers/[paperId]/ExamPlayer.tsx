@@ -115,10 +115,10 @@ export default function ExamPlayer({
         setSaveState(session.finalized ? "Submitted" : "Saved");
         hydrated.current = true;
         if (session.result) setResult(session.result);
-      }).catch(async () => {
+      }).catch(async (error) => {
         const pack = await readOfflinePack(paper.id).catch(() => undefined);
         if (cancel || !pack) {
-          if (!cancel) setSaveState("Could not open this paper");
+          if (!cancel) setSaveState(error instanceof Error ? error.message : "Could not open this paper");
           return;
         }
         if (!canOpenOfflinePack(pack.pass, new Date())) {

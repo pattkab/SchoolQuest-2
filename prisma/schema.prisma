@@ -69,6 +69,8 @@ model User {
   digitizationJobs   DigitizationJob[] @relation("DigitizationAuthor")
   digitizationReviews DigitizationJob[] @relation("DigitizationReviewer")
   mobileSessions     MobileSession[]
+  entitlements       Entitlement[]
+  freeExamGrants     FreeExamGrant[]
 
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -597,6 +599,59 @@ model MobileSession {
   @@index([userId])
 }
 
+model Plan {
+  id             String  @id @default(cuid())
+  code           String  @unique
+  name           String
+  kind           String  // DIGITAL | PHYSICAL
+  price          Int
+  currency       String  @default("UGX")
+  periodDays     Int?
+  playProductId  String?
+  appleProductId String?
+  active         Boolean @default(true)
+  grantsAccess   Boolean @default(false)
+
+  @@index([kind, active])
+}
+
+model Entitlement {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planCode    String
+  source      String    // YO | PLAY | APPLE | GRANT | SCHOOL | SCHOLARSHIP
+  providerRef String    @unique
+  startsAt    DateTime
+  endsAt      DateTime
+  revokedAt   DateTime?
+  graceHours  Int       @default(24)
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, endsAt])
+}
+
+model FreeExamGrant {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId String
+  attemptId String   @unique
+  createdAt DateTime @default(now())
+
+  @@unique([userId, subjectId])
+}
+
+model BillingEvent {
+  id          String   @id @default(cuid())
+  source      String
+  providerRef String
+  status      String
+  createdAt   DateTime @default(now())
+
+  @@unique([source, providerRef, status])
+}
+
 model PaymentTransaction {
   id             String    @id @default(cuid())
   userId         String
@@ -607,6 +662,7 @@ model PaymentTransaction {
   status         String    @default("PENDING") // PENDING | FAILED | VERIFIED | REFUNDED
   provider       String?
   providerRef    String?   @unique
+  kind           String    @default("DIGITAL") // DIGITAL | PHYSICAL
   idempotencyKey String    @unique
   createdAt      DateTime  @default(now())
   verifiedAt     DateTime?

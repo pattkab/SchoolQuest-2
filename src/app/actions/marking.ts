@@ -36,6 +36,10 @@ export async function downloadExamPack(paperId: string) {
     include: { subject: { include: { classGrade: true } }, topic: true, questions: { orderBy: { order: "asc" } } },
   });
   if (!user || !paper || !canViewContent(user, paper)) throw new Error("This paper is not available.");
+  const started = await db.attempt.findFirst({ where: { userId, paperId, status: "IN_PROGRESS", finalizedAt: null }, select: { id: true } });
+  const { hasPremium } = await import("@/lib/entitlements");
+  const staff = user.role === "TEACHER" || user.role === "SCHOOL_ADMIN" || user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+  if (!staff && !started && !(await hasPremium(userId))) throw new Error("Start the exam before saving it offline. Opening the list does not use the free exam.");
   const secret = process.env.AUTH_SECRET;
   if (!secret) throw new Error("Offline save is not configured.");
   const version = paper.updatedAt.toISOString();

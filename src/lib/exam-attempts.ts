@@ -12,6 +12,9 @@ import {
   remainingMs,
   type VersionedAnswer,
 } from "@/lib/exam-session";
+import { FREE_EXAM_USED, hasPremium } from "@/lib/entitlements";
+
+const STAFF = new Set(["TEACHER", "SCHOOL_ADMIN", "ADMIN", "SUPER_ADMIN"]);
 
 export type ExamResult = {
   attemptId: string;
@@ -85,9 +88,17 @@ async function ownedAttempt(userId: string, attemptId: string) {
   return attempt;
 }
 
+function accessFailure(error: unknown) {
+  if (error instanceof Error && error.message === FREE_EXAM_USED) return error;
+  if (typeof error === "object" && error && "code" in error && (error as { code?: string }).code === "P2002") return new Error(FREE_EXAM_USED);
+  return null;
+}
+
 export async function openExamAttempt(userId: string, paperId: string): Promise<ExamSession> {
-  const paper = await db.paper.findUnique({ where: { id: paperId }, select: { status: true, durationMinutes: true } });
+  const paper = await db.paper.findUnique({ where: { id: paperId }, select: { status: true, durationMinutes: true, subjectId: true } });
   if (!paper || paper.status !== "PUBLISHED") throw new Error("This paper is not published.");
+  const learner = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
+  const staff = Boolean(learner && STAFF.has(learner.role));
 
   const open = await db.$transaction(async (tx) => {
     const existing = await tx.attempt.findFirst({
@@ -95,8 +106,13 @@ export async function openExamAttempt(userId: string, paperId: string): Promise<
       orderBy: { startedAt: "desc" },
     });
     if (existing) return existing;
+    const premium = staff ? true : await hasPremium(userId, new Date(), tx);
+    if (!premium) {
+      const grant = await tx.freeExamGrant.findUnique({ where: { userId_subjectId: { userId, subjectId: paper.subjectId } } });
+      if (grant) throw new Error(FREE_EXAM_USED);
+    }
     const startedAt = new Date();
-    return tx.attempt.create({
+    const attempt = await tx.attempt.create({
       data: {
         userId,
         paperId,
@@ -106,9 +122,13 @@ export async function openExamAttempt(userId: string, paperId: string): Promise<
         deadlineAt: examDeadline(startedAt, paper.durationMinutes),
       },
     });
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }).catch(async () => {
+    if (!premium) await tx.freeExamGrant.create({ data: { userId, subjectId: paper.subjectId, attemptId: attempt.id } });
+    return attempt;
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }).catch(async (error) => {
+    const denied = accessFailure(error);
+    if (denied) throw denied;
     const existing = await db.attempt.findFirst({ where: { userId, paperId, status: "IN_PROGRESS", finalizedAt: null }, orderBy: { startedAt: "desc" } });
-    if (!existing) throw new Error("The examination could not be started.");
+    if (!existing) throw error instanceof Error ? error : new Error("The examination could not be started.");
     return existing;
   });
 

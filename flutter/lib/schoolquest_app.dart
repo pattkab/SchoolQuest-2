@@ -756,7 +756,7 @@ class _SubscriptionScreenState extends State<_SubscriptionScreen> {
       body: status == null
           ? const Center(child: CircularProgressIndicator(semanticsLabel: "Loading"))
           : ListView(padding: const EdgeInsets.all(20), children: [
-              Text(status["trialActive"] == true ? "Trial is active" : "Trial is not active"),
+              Text(status["policy"] as String? ?? "One free practice exam is included in each subject."),
               Text(status["subscriptionActive"] == true ? "Subscription is active" : "No paid subscription is active"),
               const SizedBox(height: 12),
               Text(status["billing"] as String? ?? ""),

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { classWithTerm } from "@/lib/taxonomy";
-import { SUBSCRIPTION_PLANS } from "@/lib/plans";
+import { learnerBillingSummary } from "@/lib/entitlements";
 import { toPublicQuestion } from "@/lib/public-question";
 import { finalizeExam, openExamAttempt, saveExamAnswers } from "@/lib/exam-attempts";
 import { WHATSAPP_URL, PRODUCTS_URL, COMPANY_LINE } from "@/lib/company";
@@ -102,15 +102,13 @@ export async function mobileSubmit(userId: string, attemptId: string, incoming: 
 }
 
 export async function mobileSubscription(userId: string) {
-  const user = await db.user.findUnique({ where: { id: userId }, select: { trialEndsAt: true, subscriptionEndsAt: true } });
-  if (!user) throw new Error("Account not found.");
-  const now = Date.now();
+  const summary = await learnerBillingSummary(userId);
   return {
-    trialEndsAt: user.trialEndsAt?.toISOString() ?? null,
-    subscriptionEndsAt: user.subscriptionEndsAt?.toISOString() ?? null,
-    trialActive: Boolean(user.trialEndsAt && user.trialEndsAt.getTime() > now),
-    subscriptionActive: Boolean(user.subscriptionEndsAt && user.subscriptionEndsAt.getTime() > now),
-    plans: SUBSCRIPTION_PLANS,
+    ...summary,
+    plans: summary.plans.filter((plan) => plan.kind === "DIGITAL").map((plan) => ({ code: plan.code, name: plan.name, price: plan.price, currency: plan.currency, period: plan.periodDays ? `${plan.periodDays} days` : "once" })),
+    trialActive: false,
+    subscriptionActive: summary.premium,
+    subscriptionEndsAt: summary.endsAt,
     billing: "The phone cannot turn a subscription on. Payment is confirmed on the server.",
   };
 }
