@@ -2,9 +2,12 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { canReviewLearner } from "@/lib/access";
+import { canReviewLearner, canViewContent } from "@/lib/access";
 import { isAccreditedTeacher } from "@/lib/session";
 import { finalizeExam, openExamAttempt, readExamClock, regradeFinalizedAttempt, saveExamAnswers } from "@/lib/exam-attempts";
+import { offlineExpiry, signOfflinePass } from "@/lib/offline-pass";
+import { toPublicQuestion } from "@/lib/public-question";
+import { shortSubjectName } from "@/lib/taxonomy";
 import { revalidatePath } from "next/cache";
 
 async function signedIn() {
@@ -23,6 +26,34 @@ export async function saveExamProgress(payload: { attemptId: string; writes: { q
 
 export async function examClock(attemptId: string) {
   return readExamClock(await signedIn(), attemptId);
+}
+
+export async function downloadExamPack(paperId: string) {
+  const userId = await signedIn();
+  const user = await db.user.findUnique({ where: { id: userId } });
+  const paper = await db.paper.findUnique({
+    where: { id: paperId },
+    include: { subject: { include: { classGrade: true } }, topic: true, questions: { orderBy: { order: "asc" } } },
+  });
+  if (!user || !paper || !canViewContent(user, paper)) throw new Error("This paper is not available.");
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) throw new Error("Offline save is not configured.");
+  const version = paper.updatedAt.toISOString();
+  return {
+    version,
+    pass: signOfflinePass({ userId, paperId, version, expiresAt: offlineExpiry(new Date()).toISOString() }, secret),
+    paper: {
+      id: paper.id,
+      title: paper.title,
+      kind: paper.kind,
+      subject: shortSubjectName(paper.subject.name),
+      className: paper.subject.classGrade.shortName,
+      topic: paper.topic?.name || null,
+      durationMinutes: paper.durationMinutes,
+      backHref: `/dashboard/classes/${paper.subject.classGrade.slug}/${paper.subject.slug}`,
+    },
+    questions: paper.questions.map(toPublicQuestion),
+  };
 }
 
 export async function submitExam(payload: { paperId: string; answers: Record<string, string>; versions?: Record<string, number>; attemptId?: string; mode?: string }) {

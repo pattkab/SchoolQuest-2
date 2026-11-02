@@ -43,4 +43,36 @@ Flutter clients, offline examination packs, the background PDF pipeline, store b
 
 Not deployed. Netlify still has no hosted database URL.
 
-**Next phase:** low-bandwidth loading, an installable app shell, and offline examination recovery.
+## Phase 2 — Low-bandwidth and offline learning
+
+**Status:** Completed for the web app, with the limits below.
+
+**Baseline**
+
+- The class photo was a 2.3 MB PNG.
+- Opening the library for one class could request up to 12 feeds before the learner chose a type or subject.
+- There was no installable manifest, offline page, or saved-paper copy.
+
+**What changed**
+
+- The class photo is a 142 KB JPEG. On an exam, Data saver hides question pictures.
+- The library downloads files only after a type or subject is chosen, and then from at most four feeds.
+- Dashboard routes show a loading line instead of a blank wait.
+- Fewer font weights are requested.
+- The app has a manifest, an offline page, and a service worker. The worker stores only the offline page, the saved-paper page, and the small icon. It does not cache dashboard, login, or API responses.
+- Save offline stores a paper in IndexedDB for 72 hours. The copy has no marking answers. A changed expiry does not pass the server signature check. After expiry the paper does not open, and answers already on the device stay there for upload.
+- While a paper is open, a lost connection keeps the latest answers in the saved copy.
+
+**Tests**
+
+`npm test` — 30 passed, 0 failed. The browser showed the library waiting for a filter, and the offline page with a link to saved papers.
+
+**Limits**
+
+The service worker is registered in production, not while developing. A cold start offline opens the offline page; the saved paper itself opens from the saved-paper page. Flutter, the PDF pipeline, billing, and CI are still later phases.
+
+**Deployment**
+
+Not deployed.
+
+**Next phase:** asynchronous exam digitization.

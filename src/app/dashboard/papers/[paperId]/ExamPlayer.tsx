@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { questionTypeLabel } from "@/lib/marking";
-import { examClock, saveExamProgress, startOrResumeExam, submitExam } from "@/app/actions/marking";
+import { downloadExamPack, examClock, saveExamProgress, startOrResumeExam, submitExam } from "@/app/actions/marking";
+import { canOpenOfflinePack } from "@/lib/offline-pass";
+import { readOfflinePack, saveOfflinePack } from "@/lib/offline-store";
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 
 type LabelTarget = { id: string; x: number; y: number; prompt: string };
@@ -62,6 +64,9 @@ export default function ExamPlayer({
   const [remaining, setRemaining] = useState<number | null>(null);
   const [deadlineAt, setDeadlineAt] = useState<string | null>(null);
   const [saveState, setSaveState] = useState("Starting");
+  const [offline, setOffline] = useState(false);
+  const [saver, setSaver] = useState(false);
+  useEffect(() => setSaver(localStorage.getItem("schoolquest.dataSaver") === "1"), []);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const answersRef = useRef(answers);
@@ -110,8 +115,22 @@ export default function ExamPlayer({
         setSaveState(session.finalized ? "Submitted" : "Saved");
         hydrated.current = true;
         if (session.result) setResult(session.result);
-      }).catch((error: unknown) => {
-        if (!cancel) setSaveState(error instanceof Error ? error.message : "Could not open this paper");
+      }).catch(async () => {
+        const pack = await readOfflinePack(paper.id).catch(() => undefined);
+        if (cancel || !pack) {
+          if (!cancel) setSaveState("Could not open this paper");
+          return;
+        }
+        if (!canOpenOfflinePack(pack.pass, new Date())) {
+          if (!cancel) setSaveState("This saved paper has expired. Connect to refresh it.");
+          return;
+        }
+        if (cancel) return;
+        setAnswers(pack.answers);
+        setVersions(pack.versions);
+        setOffline(true);
+        setSaveState("Saved on this device");
+        hydrated.current = true;
       });
     });
     return () => { cancel = true; };
@@ -133,7 +152,14 @@ export default function ExamPlayer({
           setSaveState(saved.expired ? "Time is up" : "Saved");
           adoptClock(saved.serverNow, saved.deadlineAt);
           if (saved.result) setResult(saved.result);
-        }).catch(() => setSaveState("Saved on this device"));
+        }).catch(() => {
+          setSaveState("Saved on this device");
+          setOffline(true);
+          void readOfflinePack(paper.id).then((pack) => {
+            if (!pack) return;
+            return saveOfflinePack({ ...pack, answers: answersRef.current, versions: versionsRef.current, savedAt: new Date().toISOString() });
+          }).catch(() => undefined);
+        });
       });
     }, 700);
     return () => window.clearTimeout(handle);
@@ -164,6 +190,28 @@ export default function ExamPlayer({
   const question = questions[index];
   const options = useMemo(() => parseOptions(question?.options ?? null), [question]);
   const blanks = useMemo(() => question?.type === "FILL_BLANK" ? parseRecord(question.options) : null, [question]);
+
+  async function keepCopy() {
+    setSaveState("Saving offline");
+    try {
+      const pack = await downloadExamPack(paper.id);
+      const existing = await readOfflinePack(paper.id).catch(() => undefined);
+      await saveOfflinePack({
+        paperId: paper.id,
+        title: paper.title,
+        version: pack.version,
+        savedAt: new Date().toISOString(),
+        pass: pack.pass,
+        paper: pack.paper,
+        questions: pack.questions,
+        answers: { ...(existing?.answers || {}), ...answersRef.current },
+        versions: { ...(existing?.versions || {}), ...versionsRef.current },
+      });
+      setSaveState("Saved on this device");
+    } catch (error) {
+      setSaveState(error instanceof Error ? error.message : "Could not save offline");
+    }
+  }
 
   async function send() {
     if (submitted.current || !attemptRef.current) return;
@@ -239,7 +287,12 @@ export default function ExamPlayer({
       <div>
         <div className="flex items-start justify-between gap-3">
           <Link href={paper.backHref} className="text-sm font-bold text-primary">← {paper.className} {paper.subject}</Link>
-          {clockLabel && <p className="rounded-full bg-white border px-3 py-1 text-sm font-bold" aria-live="polite">Time left {clockLabel}</p>}
+          <span className="flex items-center gap-2">
+            {offline && <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-bold">Offline</span>}
+            {clockLabel && <p className="rounded-full bg-white border px-3 py-1 text-sm font-bold" aria-live="polite">Time left {clockLabel}</p>}
+            <button type="button" className="rounded-full border bg-white px-3 py-1 text-sm font-bold" aria-pressed={saver} onClick={() => { const next = !saver; localStorage.setItem("schoolquest.dataSaver", next ? "1" : "0"); setSaver(next); window.dispatchEvent(new Event("schoolquest:data-saver")); }}>Data saver</button>
+            <button type="button" className="rounded-full border bg-white px-3 py-1 text-sm font-bold" onClick={() => void keepCopy()}>Save offline</button>
+          </span>
         </div>
         <h1 className="font-display text-3xl mt-2">{paper.title}</h1>
         <p className="text-sm text-muted-foreground">{paper.topic || paper.kind.replaceAll("_", " ")} · Question {index + 1} of {questions.length}</p>
@@ -261,7 +314,8 @@ export default function ExamPlayer({
         {question.stimulus && <div className="rounded-2xl bg-amber-50 border border-amber-100 p-4 text-sm leading-relaxed whitespace-pre-wrap">{question.stimulus}</div>}
         <h2 id="current-question" tabIndex={-1} className="font-display text-2xl leading-snug">{question.prompt}</h2>
         <ReadAloudButton label="Listen to this question" />
-        {question.imageUrl && question.type !== "DIAGRAM_LABEL" && <img src={question.imageUrl} alt="" className="max-h-72 rounded-2xl border" />}
+        {question.imageUrl && question.type !== "DIAGRAM_LABEL" && !saver && <img src={question.imageUrl} alt="" className="max-h-72 rounded-2xl border" />}
+        {question.imageUrl && saver && question.type !== "DIAGRAM_LABEL" && <p className="text-sm font-bold">Picture hidden to save data.</p>}
 
         {question.type === "MULTIPLE_CHOICE" && (
           <div className="grid gap-2">

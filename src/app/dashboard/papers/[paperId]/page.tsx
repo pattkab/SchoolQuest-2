@@ -4,20 +4,7 @@ import { requireUser } from "@/lib/session";
 import { canViewContent } from "@/lib/access";
 import ExamPlayer from "./ExamPlayer";
 import { shortSubjectName } from "@/lib/taxonomy";
-import { publicDiagramTargets } from "@/lib/exam-session";
-
-function publicMatchOptions(correctAnswer: string, options: string | null) {
-  try {
-    const pairs = JSON.parse(correctAnswer);
-    if (Array.isArray(pairs) && pairs.length && Array.isArray(pairs[0])) {
-      const rights = Array.from(new Set(pairs.map((p: unknown[]) => String(p[1])))).sort();
-      return JSON.stringify(pairs.map((p: unknown[]) => [String(p[0]), rights]));
-    }
-  } catch {
-    return options;
-  }
-  return options;
-}
+import { toPublicQuestion } from "@/lib/public-question";
 
 export default async function PaperPage({ params }: { params: Promise<{ paperId: string }> }) {
   const user = await requireUser();
@@ -44,18 +31,7 @@ export default async function PaperPage({ params }: { params: Promise<{ paperId:
         durationMinutes: paper.durationMinutes,
         backHref: `/dashboard/classes/${paper.subject.classGrade.slug}/${paper.subject.slug}`,
       }}
-      questions={paper.questions.map((q) => ({
-        id: q.id,
-        type: q.type,
-        prompt: q.prompt,
-        stimulus: q.stimulus,
-        imageUrl: q.imageUrl,
-        displayNumber: q.displayNumber,
-        unit: q.unit,
-        options: q.type === "MATCHING" ? publicMatchOptions(q.correctAnswer, q.options) : q.options,
-        labelTargets: q.type === "DIAGRAM_LABEL" ? publicDiagramTargets(q.correctAnswer) : [],
-        points: q.points,
-      }))}
+      questions={paper.questions.map(toPublicQuestion)}
     />
   );
 }

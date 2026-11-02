@@ -147,7 +147,8 @@ test("a resumed attempt keeps its answer and a second submit does not create ano
     assert.equal(resumed.answers[questionId], "4");
     const stale = await saveExamAnswers(user.id, started.attemptId, [{ questionId, value: "3", version: 0 }]);
     assert.equal(stale.stale[0], questionId);
-    const first = await finalizeExam(user.id, started.attemptId, { [questionId]: { value: "4", version: saved.versions[questionId] } }, {});
+    const versions = saved.versions as Record<string, number>;
+    const first = await finalizeExam(user.id, started.attemptId, { [questionId]: { value: "4", version: versions[questionId] } }, {});
     const second = await finalizeExam(user.id, started.attemptId, { [questionId]: { value: "3", version: 1 } }, { [questionId]: "3" });
     assert.equal(second.attemptId, first.attemptId);
     assert.equal(first.score, 1);
