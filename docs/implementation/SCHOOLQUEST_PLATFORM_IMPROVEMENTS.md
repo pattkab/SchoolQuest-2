@@ -35,6 +35,12 @@ Final marks are calculated on the server. Students can only open and submit thei
 
 Flutter clients, offline examination packs, the background PDF pipeline, store billing, and the GitHub Actions release workflow are later phases. The web app still uses the Capacitor Android wrapper until the Flutter client exists.
 
+**Commit:** `a7b8df65c475b18cf6aeecdce8573e32d7198fc4`
+
+**Push:** `feature/schoolquest-platform-hardening` is on GitHub. It is not merged into `main`.
+
 **Deployment**
 
 Not deployed. Netlify still has no hosted database URL.
+
+**Next phase:** low-bandwidth loading, an installable app shell, and offline examination recovery.
