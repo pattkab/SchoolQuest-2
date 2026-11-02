@@ -71,6 +71,10 @@ Not deployed. Netlify still has no hosted database URL.
 
 The service worker is registered in production, not while developing. A cold start offline opens the offline page; the saved paper itself opens from the saved-paper page. Flutter, the PDF pipeline, billing, and CI are still later phases.
 
+**Commit:** `a9be26ab7f0f0c1a35d70b9108c06a762f766c8a`
+
+**Push:** `feature/schoolquest-platform-hardening`. Not merged into `main`.
+
 **Deployment**
 
 Not deployed.
