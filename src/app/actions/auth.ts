@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { registerStudentAccount } from "@/lib/student-account";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
+import { reportOps } from "@/lib/ops-log";
+import { rateLimit } from "@/lib/rate-limit";
 
 function cleanPhone(value: FormDataEntryValue | null) {
   return String(value || "").replace(/\s+/g, "");
@@ -15,6 +17,12 @@ export async function loginAction(formData: FormData) {
   const phone = cleanPhone(formData.get("phone"));
   const password = String(formData.get("password") || "");
   const intent = String(formData.get("intent") || "STUDENT");
+  if (!rateLimit(`login:${phone}`, 8, 15 * 60_000).ok) {
+    reportOps("auth.login_limited", {});
+    const pathway = String(formData.get("pathway") || "student");
+    const safePathway = ["student", "teacher", "school", "site"].includes(pathway) ? pathway : "student";
+    redirect(`/login?error=invalid&pathway=${safePathway}`);
+  }
   try {
     await signIn("credentials", { phone, password, intent, redirectTo: "/dashboard" });
   } catch (error) {
@@ -30,6 +38,10 @@ export async function loginAction(formData: FormData) {
 export async function registerStudentAction(formData: FormData) {
   const phone = cleanPhone(formData.get("phone"));
   const password = String(formData.get("password") || "");
+  if (!rateLimit(`register:${phone}`, 5, 60 * 60_000).ok) {
+    reportOps("auth.register_limited", {});
+    redirect("/login?tab=join&error=limited");
+  }
   const created = await registerStudentAccount({
     phone,
     password,
@@ -69,6 +81,10 @@ export async function registerTeacherAction(formData: FormData) {
 
   if (!phone || password.length < 4 || !fullName || !registrationNumber || !school || !district || !qualification) {
     redirect("/register/teacher?error=missing");
+  }
+  if (!rateLimit(`register-teacher:${phone}`, 5, 60 * 60_000).ok) {
+    reportOps("auth.register_limited", {});
+    redirect("/register/teacher?error=limited");
   }
 
   const existingPhone = await db.user.findUnique({ where: { phone } });

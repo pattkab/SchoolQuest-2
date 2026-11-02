@@ -46,15 +46,15 @@ export async function buildContentAction(formData: FormData) {
     redirect(`/dashboard/teacher/digitization/${job.id}`);
   }
   const built = await readDocument(source.buffer, source.mime, output);
-  if (output === "practice" && !Array.isArray(built)) throw new Error("No questions were found in that file.");
-  if (output === "notes" && !built?.markdown) throw new Error("No notes were found in that file.");
+  const note = built && !Array.isArray(built) && built.markdown ? built : null;
+  if (!note) throw new Error("No notes were found in that file.");
   return {
     output,
     kind: source.kind as SourceKind,
     sourceUrl: source.sourceUrl,
     label: source.label,
-    questions: output === "practice" ? (built as BuiltQuestion[]) : [],
-    note: output === "notes" ? (built as { title?: string; summary?: string; markdown?: string }) : null,
+    questions: [] as BuiltQuestion[],
+    note,
   };
 }
 

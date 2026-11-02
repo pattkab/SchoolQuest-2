@@ -1,7 +1,11 @@
 import { openMobileSession } from "@/lib/mobile-session";
 import { registerStudentAccount } from "@/lib/student-account";
+import { rateLimit, requestRateKey } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  if (!rateLimit(requestRateKey(request, "register"), 8, 15 * 60_000).ok) {
+    return Response.json({ error: "limited" }, { status: 429 });
+  }
   const body = await request.json().catch(() => null) as Record<string, string> | null;
   if (!body) return Response.json({ error: "missing" }, { status: 400 });
   const created = await registerStudentAccount({

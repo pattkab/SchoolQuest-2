@@ -2,7 +2,7 @@
 
 import { startYoCheckout } from "./actions";
 
-type Plan = { code: string; name: string; price: number; currency: string; periodDays: number | null; kind: string; grantsAccess: boolean };
+type Plan = { code: string; name: string; price: number; currency: string; periodDays: number | null; kind: string; grantsAccess: boolean; active: boolean };
 type Payment = { id: string; planCode: string; amount: number; currency: string; status: string; kind: string };
 type Summary = {
   premium: boolean;

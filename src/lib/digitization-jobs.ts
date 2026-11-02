@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { db } from "@/lib/db";
+import { reportOps } from "@/lib/ops-log";
 import {
   blockingIssues,
   chooseModel,
@@ -103,6 +104,7 @@ export async function advanceJob(jobId: string, extract: Extractor) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Processing failed.";
     const errorClass = /quota|allowance/i.test(message) ? "QUOTA" : /unread|empty|pdf/i.test(message) ? "UNREADABLE" : "PROVIDER";
+    reportOps("digitization.failed", { errorClass });
     const attempts = job.attempts + 1;
     await logEvent(job.id, "failed", message);
     return db.digitizationJob.update({

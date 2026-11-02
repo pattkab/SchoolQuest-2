@@ -1,5 +1,6 @@
 import { mobileSave, mobileSubmit } from "@/lib/mobile-api";
 import { bearerToken, userForMobileToken } from "@/lib/mobile-session";
+import { reportOps } from "@/lib/ops-log";
 
 export async function POST(request: Request, context: { params: Promise<{ attemptId: string }> }) {
   const user = await userForMobileToken(bearerToken(request));
@@ -10,6 +11,7 @@ export async function POST(request: Request, context: { params: Promise<{ attemp
     if (body?.action === "submit") return Response.json(await mobileSubmit(user.id, attemptId, body.answers || {}));
     return Response.json(await mobileSave(user.id, attemptId, Array.isArray(body?.writes) ? body.writes : []));
   } catch (error) {
+    reportOps("exam.save_failed", { action: body?.action === "submit" ? "submit" : "save" });
     return Response.json({ error: error instanceof Error ? error.message : "The examination could not be saved." }, { status: 400 });
   }
 }

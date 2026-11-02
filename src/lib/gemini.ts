@@ -1,13 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
+import { reportOps } from "@/lib/ops-log";
 
-// Initialize Gemini with Vertex AI
 export const getGeminiClient = () => {
   const project = process.env.GOOGLE_CLOUD_PROJECT;
   const location = process.env.GOOGLE_CLOUD_LOCATION === "global" ? "us-central1" : process.env.GOOGLE_CLOUD_LOCATION;
-  
+  if (!project) throw new Error("AI marking is not configured.");
   return new GoogleGenAI({
     vertexai: true,
-    project: project || "project-dfb75504-d961-4f08-8a8",
+    project,
     location: location || "us-central1",
   });
 };
@@ -94,8 +94,8 @@ export async function gradeOpenAnswer(
 
     const cleaned = (response.text || "").replace(/```json/g, "").replace(/```/g, "").trim();
     return JSON.parse(cleaned) as GradingResult;
-  } catch (err) {
-    console.error("Failed to grade open answer with Gemini:", err);
+  } catch {
+    reportOps("marking.ai_failed", { kind: "open" });
     return {
       score: 0,
       explanation: "AI was unable to evaluate this question dynamically. A teacher will review it."
@@ -150,8 +150,8 @@ export async function gradeDrawingAnswer(
 
     const cleaned = (response.text || "").replace(/```json/g, "").replace(/```/g, "").trim();
     return JSON.parse(cleaned) as GradingResult;
-  } catch (err) {
-    console.error("Failed vision grading with Gemini:", err);
+  } catch {
+    reportOps("marking.ai_failed", { kind: "drawing" });
     return {
       score: 0,
       explanation: "Unable to run Vision grading on this drawing. Saved for Teacher review."

@@ -121,7 +121,7 @@ export function blockingIssues(draft: DraftPaper) {
 export function recheckQuestion(draft: DraftPaper, index: number) {
   const question = draft.questions[index];
   if (!question) return draft;
-  const issues = question.issues.filter((issue) => issue === "invalid-type" || issue === "unconfirmed-diagram");
+  const issues: string[] = question.issues.filter((issue) => issue === "invalid-type" || issue === "unconfirmed-diagram");
   if (!question.prompt || question.prompt.length < 8) issues.push("missing-prompt");
   if (question.points === null || question.points <= 0) issues.push("missing-marks");
   const key = question.prompt.toLowerCase();

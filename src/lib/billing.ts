@@ -93,3 +93,8 @@ export function appleNoticeEffect(type: string) {
   if (type === "REFUND" || type === "REVOKE") return "revoke";
   return "ignore";
 }
+
+export function storeNoticeDecision(type: string, verified: boolean) {
+  if (!verified) return "deny" as const;
+  return appleNoticeEffect(type);
+}
