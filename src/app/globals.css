@@ -427,3 +427,73 @@ html[data-a11y-contrast="true"] .learner-discovery { background: #fff; border: 2
 .space-menu .sidebar-link { font-size: .95rem; }
 html[data-a11y-contrast="true"] [data-space] { --space-ink: #111; }
 html[data-a11y-scaled="true"] .space-label { font-size: 1rem; overflow-wrap: anywhere; }
+
+/* The learner space borrows paper, foliage, and ink from the reading illustration. */
+html:not([data-a11y-contrast="true"]) [data-space="student"] {
+  --background: 39 77% 96%;
+  --foreground: 23 36% 17%;
+  --card: 42 100% 98%;
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: 16 65% 34%;
+  --muted: 39 43% 91%;
+  --muted-foreground: 26 25% 34%;
+  --border: 32 36% 75%;
+  --input: 32 35% 57%;
+  --ring: 273 36% 40%;
+  --ink: #39271c;
+  --paper: #fcf2df;
+  --forest: #79331f;
+  --space-ink: #3a604e;
+  --space-wash: #e1efdf;
+  --storybook-cream: #fffaf0;
+  --storybook-gold: #f7dc9c;
+  --storybook-mint: #deedda;
+  --storybook-lilac: #efe1f1;
+  --storybook-peach: #f9e2d2;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+html:not([data-a11y-contrast="true"]) [data-space="student"] :is(.quest-sidebar, .mobile-bottom-nav, .space-menu, .learn-pin) {
+  background-color: var(--storybook-cream);
+  border-color: hsl(var(--border));
+}
+
+html:not([data-a11y-contrast="true"]) [data-space="student"] :is(.quest-panel, .subject-tile, .learn-list a) {
+  background-color: var(--storybook-cream);
+  border-color: hsl(var(--border));
+  color: var(--ink);
+}
+
+html:not([data-a11y-contrast="true"]) [data-space="student"] .learner-quest {
+  background: radial-gradient(ellipse at 88% 15%, #75517b, transparent 55%), #492f55;
+  border: 2px solid #533459;
+}
+
+html:not([data-a11y-contrast="true"]) [data-space="student"] .learner-discovery {
+  background-color: var(--storybook-cream);
+  border-color: hsl(var(--border));
+}
+
+html:not([data-a11y-contrast="true"]) [data-space="student"] .tone-mint { background-color: var(--storybook-mint); }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .tone-lilac { background-color: var(--storybook-lilac); }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .tone-peach { background-color: var(--storybook-peach); }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .subject-tone-0 .subject-icon { background-color: var(--storybook-mint); color: #325641; }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .subject-tone-1 .subject-icon { background-color: var(--storybook-lilac); color: #62406f; }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .subject-tone-2 .subject-icon { background-color: var(--storybook-gold); color: #68451a; }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .subject-tone-3 .subject-icon { background-color: var(--storybook-peach); color: #813f2c; }
+
+html:not([data-a11y-contrast="true"]) [data-space="student"] .profile-banner {
+  background: linear-gradient(120deg, var(--storybook-mint), var(--storybook-lilac));
+}
+
+html:not([data-a11y-contrast="true"]) [data-space="student"] .quest-button:not(.quest-button-secondary, .quest-button-light) {
+  box-shadow: 0 3px 0 #6c2d1c;
+}
+
+html:not([data-a11y-contrast="true"]) [data-space="student"] :is(.quest-button-secondary, .quest-button-light) {
+  background-color: var(--storybook-cream);
+  color: var(--ink);
+}
