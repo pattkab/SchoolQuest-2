@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { QuestDoor } from "@/components/quest-door";
 import { shortSubjectName } from "@/lib/taxonomy";
 
 export type LearnItem = { id: string; title: string; term: number | null; kind: "note" | "paper"; href: string };
@@ -84,11 +84,11 @@ export function LearnPicker({
         </div>
       </div>
       {rows.length ? (
-        <div className="quest-doors">
-          {rows.map((item, index) => <QuestDoor key={item.id} tone={index} href={item.href} label={item.title} />)}
+        <div className="learn-list">
+          {rows.map((item) => <Link key={item.id} href={item.href}>{item.title}</Link>)}
         </div>
       ) : (
-        <p className="rounded-2xl border bg-white px-4 py-6 text-center font-bold">This door is locked. Try another term.</p>
+        <p className="rounded-2xl border bg-white px-4 py-6 text-center font-bold">Nothing for {title} in Term {term} yet. Try another term.</p>
       )}
     </div>
   );
