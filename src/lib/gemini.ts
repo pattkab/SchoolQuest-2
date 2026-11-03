@@ -2,6 +2,8 @@ import { GoogleGenAI } from "@google/genai";
 import { reportOps } from "@/lib/ops-log";
 
 export const getGeminiClient = () => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (apiKey) return new GoogleGenAI({ apiKey });
   const project = process.env.GOOGLE_CLOUD_PROJECT;
   const location = process.env.GOOGLE_CLOUD_LOCATION === "global" ? "us-central1" : process.env.GOOGLE_CLOUD_LOCATION;
   if (!project) throw new Error("AI marking is not configured.");

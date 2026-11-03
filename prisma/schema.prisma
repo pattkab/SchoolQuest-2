@@ -570,6 +570,7 @@ model DigitizationJob {
   reviewer        User?    @relation("DigitizationReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
   reviewedAt      DateTime?
   cancelRequested Boolean  @default(false)
+  importedSource  DigitizationSource?
   events          DigitizationEvent[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -577,6 +578,15 @@ model DigitizationJob {
   @@index([createdById, createdAt])
   @@index([status])
   @@index([sourceHash])
+}
+
+model DigitizationSource {
+  jobId       String          @id
+  job         DigitizationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  gitBlob     String          @unique
+  url         String
+  permission  String?
+  bytes       Bytes
 }
 
 model DigitizationEvent {

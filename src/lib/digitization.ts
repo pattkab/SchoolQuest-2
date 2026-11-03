@@ -26,7 +26,7 @@ export type DraftQuestion = {
   labels: DraftLabel[];
   issues: string[];
 };
-export type DraftPaper = { title: string; year: number | null; questions: DraftQuestion[]; issues: string[]; confidence: number };
+export type DraftPaper = { title: string; year: number | null; durationMinutes?: number | null; questions: DraftQuestion[]; issues: string[]; confidence: number };
 
 export function sourceFingerprint(buffer: Buffer) {
   return createHash("sha256").update(buffer).digest("hex");
@@ -56,7 +56,7 @@ function text(value: unknown) {
 }
 
 export function normalizeDraft(raw: unknown, fallbackTitle: string): DraftPaper {
-  const source = raw && typeof raw === "object" ? raw as { title?: unknown; year?: unknown; questions?: unknown } : {};
+  const source = raw && typeof raw === "object" ? raw as { title?: unknown; year?: unknown; durationMinutes?: unknown; questions?: unknown } : {};
   const rows = Array.isArray(source.questions) ? source.questions : Array.isArray(raw) ? raw : [];
   const seen = new Set<string>();
   const questions: DraftQuestion[] = rows.map((row) => {
@@ -104,6 +104,7 @@ export function normalizeDraft(raw: unknown, fallbackTitle: string): DraftPaper 
   return {
     title: text(source.title) || fallbackTitle,
     year: typeof source.year === "number" ? source.year : null,
+    durationMinutes: typeof source.durationMinutes === "number" && Number.isInteger(source.durationMinutes) && source.durationMinutes > 0 ? source.durationMinutes : null,
     questions,
     issues: questions.length ? [] : ["no-questions"],
     confidence,

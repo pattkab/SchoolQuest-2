@@ -220,7 +220,7 @@ async function gradeAnswers(questions: MarkableQuestion[], answers: Record<strin
         const ai = question.type === "DRAWING"
           ? await gradeDrawingAnswer(question.prompt, studentAnswer, question.points)
           : await gradeOpenAnswer(question.prompt, studentAnswer, question.markingGuide || question.correctAnswer, question.points);
-        if (ai.explanation && !ai.explanation.toLowerCase().includes("unable")) {
+        if (Number.isFinite(ai.score) && typeof ai.explanation === "string" && ai.explanation && !ai.explanation.toLowerCase().includes("unable")) {
           points = Math.max(0, Math.min(question.points, ai.score));
           feedback = `Provisional. A teacher still needs to confirm this mark. ${ai.explanation}`;
           isCorrect = ai.score >= question.points;

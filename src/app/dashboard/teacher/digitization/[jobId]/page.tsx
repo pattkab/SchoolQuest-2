@@ -20,7 +20,7 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
   const user = await requireUser();
   if (!isAccreditedTeacher(user) && !isAdmin(user.role)) redirect("/dashboard");
   const { jobId } = await params;
-  const job = await db.digitizationJob.findUnique({ where: { id: jobId }, include: { events: { orderBy: { createdAt: "asc" } } } });
+  const job = await db.digitizationJob.findUnique({ where: { id: jobId }, include: { importedSource: { select: { url: true, permission: true } }, events: { orderBy: { createdAt: "asc" } } } });
   if (!job || (job.createdById !== user.id && !isAdmin(user.role))) notFound();
   const draft = readDraft(job.draft);
   const blocking = draft ? blockingIssues(draft) : ["no-questions"];
@@ -32,6 +32,10 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
       <div>
         <h1 className="font-display text-3xl">{job.title || job.fileName}</h1>
         <p className="text-muted-foreground mt-1">{job.status.replaceAll("_", " ").toLowerCase()} · {job.stage} · {job.progress}%</p>
+        {job.importedSource ? <div className="mt-2 text-sm">
+          <a className="text-primary underline" href={job.importedSource.url} target="_blank" rel="noreferrer">Open original Fresh Teacher PDF</a>
+          <p>Permission record: {job.importedSource.permission || "Unverified. Publication is locked."}</p>
+        </div> : null}
         {job.errorMessage ? <p className="mt-2 text-sm">{job.errorMessage}</p> : null}
       </div>
 
@@ -53,6 +57,10 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
         </select>
         <label className="text-sm" htmlFor="year">Year</label>
         <input id="year" name="year" defaultValue={job.year || draft?.year || ""} inputMode="numeric" className="h-11 rounded-xl border px-3" />
+        {draft ? <>
+          <label className="text-sm" htmlFor="durationMinutes">Duration in minutes</label>
+          <input id="durationMinutes" name="durationMinutes" type="number" min="1" max="1440" defaultValue={draft.durationMinutes ?? ""} className="h-11 rounded-xl border px-3" />
+        </> : null}
         <button className="h-11 rounded-2xl border px-4">Save details</button>
       </form>
 
@@ -60,6 +68,7 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
         <section key={`${question.number || "q"}-${index}`} className="rounded-2xl border bg-white p-4 space-y-3">
           <p className="text-sm text-muted-foreground">{question.number || index + 1} · {question.type}{question.page ? ` · page ${question.page}` : ""}</p>
           {question.issues.length ? <ul className="text-sm">{question.issues.map((issue) => <li key={issue}>{ISSUE[issue] || issue}</li>)}</ul> : null}
+          {question.imagePage ? <p className="text-sm">Check the illustration on source page {question.imagePage}.</p> : null}
           <form action={correctQuestion} className="grid gap-2">
             <input type="hidden" name="jobId" value={job.id} />
             <input type="hidden" name="index" value={index} />
@@ -73,6 +82,8 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
                 <input id={`answer-${index}`} name="correctAnswer" defaultValue={question.correctAnswer} className="h-11 rounded-xl border px-3" />
               </>
             ) : null}
+            <label className="text-sm" htmlFor={`rubric-${index}`}>Marking guide</label>
+            <textarea id={`rubric-${index}`} name="markingGuide" defaultValue={question.explanation || ""} rows={2} className="rounded-xl border px-3 py-2" />
             <button className="h-11 rounded-2xl border px-4">Save correction</button>
           </form>
           {question.type === "DIAGRAM_LABEL" ? (
@@ -91,7 +102,7 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
         </section>
       ))}
 
-      {draft && job.status !== "PUBLISHED" && job.status !== "REJECTED" ? (
+      {draft && ["AWAITING_REVIEW", "NEEDS_CORRECTION"].includes(job.status) ? (
         <form action={approveDigitization}>
           <input type="hidden" name="jobId" value={job.id} />
           <button className="h-11 rounded-2xl bg-primary px-4 text-white" disabled={blocking.length > 0 || !job.subjectId}>Approve draft</button>
@@ -101,7 +112,7 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
       {job.status === "APPROVED" ? (
         <form action={publishDigitization}>
           <input type="hidden" name="jobId" value={job.id} />
-          <button className="h-11 rounded-2xl bg-primary px-4 text-white">Publish for learners</button>
+          <button className="h-11 rounded-2xl bg-primary px-4 text-white disabled:opacity-50" disabled={Boolean(job.importedSource && !job.importedSource.permission)}>Publish for learners</button>
         </form>
       ) : null}
       {job.status !== "PUBLISHED" && job.status !== "REJECTED" && job.status !== "CANCELLED" ? (

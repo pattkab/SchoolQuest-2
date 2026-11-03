@@ -5,6 +5,7 @@ on:
     branches:
       - feature/schoolquest-platform-hardening
       - main
+      - codex/unified-schoolquest
   pull_request:
 
 jobs:
@@ -41,7 +42,9 @@ jobs:
       - run: npx tsx prisma/seed.ts
       - run: npm test
       - run: npm run lint
+      - run: npx next typegen
       - run: npm run typecheck
+      - run: npm run mobile:test
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=critical
 

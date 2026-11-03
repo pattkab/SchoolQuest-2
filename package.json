@@ -16,7 +16,8 @@
     "android:sync": "cap sync android",
     "android:open": "cap open android",
     "ios:sync": "cap sync ios",
-    "ios:open": "cap open ios"
+    "ios:open": "cap open ios",
+    "mobile:test": "tsx --test tests/mobile-config.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

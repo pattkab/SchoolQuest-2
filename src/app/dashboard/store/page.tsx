@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/session";
-import { listPublishedProducts, ugx } from "@/lib/store";
+import { listPublishedProducts } from "@/lib/store";
 import { StoreCart } from "./store-cart";
 
 export default async function StorePage() {

@@ -27,6 +27,7 @@ export default async function AdminHomePage() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Tile href="/dashboard/admin/teachers" label="Pending teachers" value={String(pendingTeachers)} note={`${teachers} accredited`} />
         <Tile href="/dashboard/teacher/marking" label="Scripts to mark" value={String(pendingMarks)} note={`${learners} learners`} />
+        <Tile href="/dashboard/teacher/digitization" label="Examination Factory" value="Review papers" note="Digitization and publication queue" />
         <Tile href="/dashboard/admin/engine" label="Content studio" value="Add resources" note="Scan, GitHub link, or PDF" />
         <Tile href="/dashboard/admin/library" label="Notes & practice" value={String(notes + quizzes)} note={`${notes} notes · ${quizzes} papers`} />
         <Tile href="/dashboard/admin/store" label="SchoolQuest Store" value="Manage" note="Products and order requests" />

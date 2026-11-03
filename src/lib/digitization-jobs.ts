@@ -28,9 +28,21 @@ async function logEvent(jobId: string, stage: string, message: string, actorId?:
   await db.digitizationEvent.create({ data: { jobId, stage, message, actorId: actorId || null } });
 }
 
-export async function enqueueDigitization(input: { userId: string; buffer: Buffer; fileName: string; mime: string; subjectId?: string | null; title?: string | null; year?: number | null }) {
+export async function enqueueDigitization(input: { userId: string; buffer: Buffer; fileName: string; mime: string; subjectId?: string | null; title?: string | null; year?: number | null; importedSource?: { gitBlob: string; url: string; permission: string | null } }) {
   const invalid = validateUpload(input.buffer, input.mime);
   if (invalid) throw new Error(invalid);
+  if (input.importedSource) {
+    const existing = await db.digitizationSource.findUnique({ where: { gitBlob: input.importedSource.gitBlob }, include: { job: true } });
+    if (existing) {
+      if (input.importedSource.permission && !existing.permission) {
+        await db.digitizationSource.update({
+          where: { jobId: existing.jobId },
+          data: { permission: input.importedSource.permission },
+        });
+      }
+      return existing.job;
+    }
+  }
   const since = new Date();
   since.setHours(0, 0, 0, 0);
   const [today, tokens] = await Promise.all([
@@ -40,7 +52,7 @@ export async function enqueueDigitization(input: { userId: string; buffer: Buffe
   if (today >= DAILY_JOB_CAP) throw new Error("Today's paper processing limit has been reached.");
   if ((tokens._sum.tokensUsed || 0) >= DAILY_TOKEN_CAP) throw new Error("Today's processing allowance has been used.");
   const sourceHash = sourceFingerprint(input.buffer);
-  const existing = await db.digitizationJob.findFirst({
+  const existing = input.importedSource ? null : await db.digitizationJob.findFirst({
     where: { createdById: input.userId, sourceHash, status: { in: ["QUEUED", "PROCESSING", "AWAITING_REVIEW", "NEEDS_CORRECTION", "APPROVED"] } },
   });
   if (existing) return existing;
@@ -58,10 +70,13 @@ export async function enqueueDigitization(input: { userId: string; buffer: Buffe
       year: input.year || null,
       model: chooseModel(kind),
       maxAttempts: MAX_ATTEMPTS,
+      importedSource: input.importedSource ? { create: { ...input.importedSource, bytes: input.buffer } } : undefined,
     },
   });
-  await mkdir(store, { recursive: true });
-  await writeFile(fileFor(job.id), input.buffer);
+  if (!input.importedSource) {
+    await mkdir(store, { recursive: true });
+    await writeFile(fileFor(job.id), input.buffer);
+  }
   await logEvent(job.id, "queued", "Paper is queued. Learners cannot see it yet.", input.userId);
   return job;
 }
@@ -79,7 +94,8 @@ export async function advanceJob(jobId: string, extract: Extractor) {
   });
   if (claimed.count === 0) return db.digitizationJob.findUniqueOrThrow({ where: { id: jobId } });
   try {
-    const buffer = await readFile(fileFor(jobId));
+    const source = await db.digitizationSource.findUnique({ where: { jobId }, select: { bytes: true } });
+    const buffer = source ? Buffer.from(source.bytes) : await readFile(fileFor(jobId));
     if (job.cancelRequested) return db.digitizationJob.update({ where: { id: jobId }, data: { status: "CANCELLED", stage: "cancelled", progress: 100 } });
     await db.digitizationJob.update({ where: { id: jobId }, data: { stage: "extracting", progress: 45 } });
     const extracted = await extract({ buffer, mime: job.mime, kind: job.sourceKind, model: job.model });
@@ -124,51 +140,73 @@ export async function approveJob(jobId: string, actorId: string) {
   const draft = readDraft(job.draft);
   if (!draft || blockingIssues(draft).length || !draft.questions.length) throw new Error("Correct the paper before approval.");
   if (!job.subjectId) throw new Error("Choose a subject before approval.");
-  const paper = await db.paper.create({
-    data: {
-      title: draft.title,
-      year: draft.year,
-      subjectId: job.subjectId,
-      status: "DRAFT",
-      sourceType: "UPLOAD",
-      authorId: actorId,
-      questions: {
-        create: draft.questions.map((question, index) => ({
-          type: question.type,
-          prompt: question.prompt,
-          displayNumber: question.number,
-          options: question.options ? JSON.stringify(question.options) : null,
-          correctAnswer: question.type === "DIAGRAM_LABEL"
-            ? JSON.stringify({ labels: question.labels.map((label) => ({ id: label.id, x: label.x, y: label.y, prompt: label.prompt, accept: [label.accept] })) })
-            : JSON.stringify(question.correctAnswer),
-          explanation: question.explanation,
-          markingGuide: question.explanation,
-          points: question.points || 1,
-          order: index + 1,
-          requiresTeacher: question.type === "LONG_ANSWER" || question.type === "COMPREHENSION" || question.type === "DRAWING",
-        })),
+  const subjectId = job.subjectId;
+  return db.$transaction(async (tx) => {
+    const claimed = await tx.digitizationJob.updateMany({
+      where: { id: jobId, status: "AWAITING_REVIEW", updatedAt: job.updatedAt },
+      data: { status: "APPROVED" },
+    });
+    if (!claimed.count) throw new Error("The review changed. Reload the paper and try again.");
+    const source = await tx.digitizationSource.findUnique({ where: { jobId }, select: { url: true } });
+    const paper = await tx.paper.create({
+      data: {
+        title: draft.title,
+        year: job.year ?? draft.year,
+        durationMinutes: draft.durationMinutes,
+        subjectId,
+        status: "DRAFT",
+        sourceType: source ? "FRESH_TEACHER" : "UPLOAD",
+        sourceUrl: source?.url,
+        attribution: source ? "Fresh Teacher’s Library" : undefined,
+        authorId: actorId,
+        questions: {
+          create: draft.questions.map((question, index) => ({
+            type: question.type,
+            prompt: question.prompt,
+            displayNumber: question.number,
+            options: question.options ? JSON.stringify(question.options) : null,
+            correctAnswer: question.type === "DIAGRAM_LABEL"
+              ? JSON.stringify({ labels: question.labels.map((label) => ({ id: label.id, x: label.x, y: label.y, prompt: label.prompt, accept: [label.accept] })) })
+              : JSON.stringify(question.correctAnswer),
+            explanation: question.explanation,
+            markingGuide: question.explanation,
+            points: question.points || 1,
+            order: index + 1,
+            requiresTeacher: question.type === "DRAWING" || (["LONG_ANSWER", "COMPREHENSION"].includes(question.type) && !question.explanation),
+          })),
+        },
       },
-    },
-  });
-  const created = await db.question.findMany({ where: { paperId: paper.id }, orderBy: { order: "asc" } });
-  for (let index = 0; index < draft.questions.length; index += 1) {
-    const parentNumber = draft.questions[index].parentNumber;
-    if (!parentNumber) continue;
-    const parentIndex = draft.questions.findIndex((question) => question.number === parentNumber);
-    if (parentIndex >= 0 && created[parentIndex] && created[index]) {
-      await db.question.update({ where: { id: created[index].id }, data: { parentId: created[parentIndex].id } });
+    });
+    const created = await tx.question.findMany({ where: { paperId: paper.id }, orderBy: { order: "asc" } });
+    for (let index = 0; index < draft.questions.length; index += 1) {
+      const parentNumber = draft.questions[index].parentNumber;
+      if (!parentNumber) continue;
+      const parentIndex = draft.questions.findIndex((question) => question.number === parentNumber);
+      if (parentIndex >= 0 && created[parentIndex] && created[index]) {
+        await tx.question.update({ where: { id: created[index].id }, data: { parentId: created[parentIndex].id } });
+      }
     }
-  }
-  await logEvent(jobId, "approved", "Approved as a draft. It is not published.", actorId);
-  return db.digitizationJob.update({ where: { id: jobId }, data: { status: "APPROVED", paperId: paper.id, reviewerId: actorId, reviewedAt: new Date() } });
+    await tx.digitizationEvent.create({ data: { jobId, stage: "approved", message: "Approved as a draft.", actorId } });
+    return tx.digitizationJob.update({ where: { id: jobId }, data: { paperId: paper.id, reviewerId: actorId, reviewedAt: new Date() } });
+  });
 }
 
 export async function publishJob(jobId: string, actorId: string) {
-  const job = await db.digitizationJob.findUnique({ where: { id: jobId } });
-  if (!job || job.status !== "APPROVED" || !job.paperId) throw new Error("Approve the paper before publishing it.");
-  await db.paper.update({ where: { id: job.paperId }, data: { status: "PUBLISHED" } });
-  await logEvent(jobId, "published", "Published for learners.", actorId);
-  return db.digitizationJob.update({ where: { id: jobId }, data: { status: "PUBLISHED", reviewerId: actorId, reviewedAt: new Date() } });
+  return db.$transaction(async (tx) => {
+    const job = await tx.digitizationJob.findUnique({
+      where: { id: jobId },
+      include: { importedSource: { select: { permission: true } } },
+    });
+    if (!job || job.status !== "APPROVED" || !job.paperId) throw new Error("Approve the paper before publishing it.");
+    if (job.importedSource && !job.importedSource.permission) throw new Error("Record publication permission for the source PDF first.");
+    const published = await tx.digitizationJob.update({
+      where: { id: jobId, status: "APPROVED" },
+      data: { status: "PUBLISHED", reviewerId: actorId, reviewedAt: new Date() },
+    });
+    await tx.paper.update({ where: { id: job.paperId }, data: { status: "PUBLISHED" } });
+    await tx.digitizationEvent.create({ data: { jobId, stage: "published", message: "Published for learners.", actorId } });
+    return published;
+  });
 }
 
 export async function cancelJob(jobId: string, actorId: string) {

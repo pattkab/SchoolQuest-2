@@ -22,7 +22,7 @@ async function ownedJob(jobId: string, userId: string, role: string) {
 
 function kick(jobId: string) {
   after(() => {
-    void import("@/lib/digitization-ai")
+    return import("@/lib/digitization-ai")
       .then((mod) => advanceJob(jobId, mod.extractWithGemini))
       .catch(() => undefined);
   });
@@ -45,6 +45,7 @@ export async function correctQuestion(formData: FormData) {
   if (!draft || !draft.questions[index]) throw new Error("Nothing to correct yet.");
   const question = draft.questions[index];
   question.prompt = String(formData.get("prompt") || "").trim();
+  question.explanation = String(formData.get("markingGuide") || "").trim() || null;
   const points = Number(formData.get("points"));
   question.points = points > 0 ? points : null;
   if (question.type !== "DIAGRAM_LABEL") question.correctAnswer = String(formData.get("correctAnswer") || "").trim();
@@ -79,7 +80,12 @@ export async function setJobSubject(formData: FormData) {
   const year = Number(formData.get("year"));
   if (!subjectId) throw new Error("Choose a subject.");
   const draft = readDraft((await db.digitizationJob.findUnique({ where: { id: jobId } }))?.draft || null);
-  if (draft && title) draft.title = title;
+  if (draft) {
+    if (title) draft.title = title;
+    const duration = Number(formData.get("durationMinutes"));
+    if (!Number.isSafeInteger(duration) || duration < 0 || duration > 1440) throw new Error("Enter a duration between 1 and 1440 minutes, or leave it blank.");
+    draft.durationMinutes = duration || null;
+  }
   await db.digitizationJob.update({
     where: { id: jobId },
     data: { subjectId, title: title || undefined, year: year || null, draft: draft ? JSON.stringify(draft) : undefined },
