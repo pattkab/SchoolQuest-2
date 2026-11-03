@@ -13,6 +13,8 @@ const eslintConfig = defineConfig([
     ".netlify/**", // generated Netlify build artifacts, not application source
     "build/**",
     "next-env.d.ts",
+    "android/**",
+    "ios/**",
   ]),
 ]);
 

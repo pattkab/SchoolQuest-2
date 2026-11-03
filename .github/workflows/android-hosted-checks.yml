@@ -1,0 +1,29 @@
+name: Android hosted preview checks
+on:
+  pull_request:
+    branches: [codex/mobile-workflow, main]
+  push:
+    branches: [fix/android-hosted-launch-and-aab-20261101]
+permissions:
+  contents: read
+jobs:
+  android-hosted-config:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Test explicit localhost vs default hosted URLs
+        run: npm run mobile:test
+      - name: Sync Capacitor hosted Android assets
+        env:
+          SCHOOLQUEST_MOBILE_MODE: hosted
+          SCHOOLQUEST_APP_URL: https://schoolquestweb.netlify.app
+        run: npx --no-install cap sync android
+      - name: Validate Android Release cannot target localhost
+        run: python3 scripts/check-mobile-release.py android/app/src/main/assets/capacitor.config.json
