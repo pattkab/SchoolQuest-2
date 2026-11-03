@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { registerTeacherAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ClearableInput, PasswordInput } from "@/components/fields";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BrandMark } from "@/components/shell";
@@ -82,7 +82,7 @@ function Field({
   return (
     <div className="space-y-2">
       <Label htmlFor={name}>{label}</Label>
-      <Input id={name} name={name} type={type} placeholder={placeholder} required={required} className="h-11 rounded-2xl" />
+      {type === "password" ? <PasswordInput id={name} name={name} placeholder={placeholder} required={required} autoComplete="new-password" className="h-11 w-full rounded-2xl border px-3" /> : <ClearableInput id={name} name={name} type={type} placeholder={placeholder} required={required} className="h-11 w-full rounded-2xl border px-3" />}
     </div>
   );
 }

@@ -8,29 +8,23 @@ import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { reportOps } from "@/lib/ops-log";
 import { rateLimit } from "@/lib/rate-limit";
+import { canonicalPhone } from "@/lib/phone";
 
 function cleanPhone(value: FormDataEntryValue | null) {
-  return String(value || "").replace(/\s+/g, "");
+  return canonicalPhone(String(value || ""));
 }
 
 export async function loginAction(formData: FormData) {
   const phone = cleanPhone(formData.get("phone"));
   const password = String(formData.get("password") || "");
-  const intent = String(formData.get("intent") || "STUDENT");
   if (!rateLimit(`login:${phone}`, 8, 15 * 60_000).ok) {
     reportOps("auth.login_limited", {});
-    const pathway = String(formData.get("pathway") || "student");
-    const safePathway = ["student", "teacher", "school", "site"].includes(pathway) ? pathway : "student";
-    redirect(`/login?error=invalid&pathway=${safePathway}`);
+    redirect("/login?error=limited");
   }
   try {
-    await signIn("credentials", { phone, password, intent, redirectTo: "/dashboard" });
+    await signIn("credentials", { phone, password, redirectTo: "/dashboard" });
   } catch (error) {
-    if (error instanceof AuthError) {
-      const pathway = String(formData.get("pathway") || "student");
-      const safePathway = ["student", "teacher", "school", "site"].includes(pathway) ? pathway : "student";
-      redirect(`/login?error=invalid&pathway=${safePathway}`);
-    }
+    if (error instanceof AuthError) redirect("/login?error=invalid");
     throw error;
   }
 }

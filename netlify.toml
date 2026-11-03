@@ -1,14 +1,14 @@
 [build]
-  command = "npx prisma generate && npx prisma db push && npx tsx prisma/seed.ts && npx next build"
+  command = "npx prisma generate && npx next build"
 
 [build.environment]
   NODE_VERSION = "22"
   AUTH_TRUST_HOST = "true"
   AUTH_URL = "https://schoolquestweb.netlify.app"
 
-# The seeded SQLite file is created during the build. Bundle it with the server.
+# School search reads the register from disk at runtime.
 [functions]
-  included_files = ["prisma/dev.db", "data/ug-schools.jsonl", "data/ug-schools.json"]
+  included_files = ["data/ug-schools.jsonl", "data/ug-schools.json"]
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

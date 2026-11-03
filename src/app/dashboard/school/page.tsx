@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/session";
 import { balance, schoolFor, ugx } from "@/lib/school";
 import { enrolStudentAction, sendMessageAction } from "@/app/actions/school";
 import { IdCard } from "@/components/id-card";
+import { PasswordInput } from "@/components/fields";
 
 export default async function SchoolHomePage({
   searchParams,
@@ -41,7 +42,7 @@ export default async function SchoolHomePage({
             {classes.map((cls) => <option key={cls.id} value={cls.id}>{cls.shortName}</option>)}
           </select></label>
           <label className="space-y-2 text-xs font-bold">Registration number (optional)<input name="studentNumber" placeholder="School registration number" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
-          <label className="space-y-2 text-xs font-bold">Temporary PIN<input name="pin" type="password" autoComplete="new-password" minLength={4} required placeholder="At least 4 characters" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
+          <label className="space-y-2 text-xs font-bold">Temporary PIN<PasswordInput id="pin" name="pin" autoComplete="new-password" minLength={4} required placeholder="At least 4 characters" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
           <button type="submit" className="quest-button self-end">Enrol learner</button>
         </form>
         <div className="grid sm:grid-cols-2 gap-3">

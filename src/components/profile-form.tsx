@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { completeProfileAction } from "@/app/actions/school";
-import { SchoolField } from "@/components/school-field";
 
 export function ProfileForm({
   locked,
@@ -41,34 +40,6 @@ export function ProfileForm({
               ))}
             </select>
           </label>
-          {!locked && (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block text-sm font-bold">
-                  Sex
-                  <select name="sex" required className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal">
-                    <option value="">Choose</option>
-                    <option value="Female">Female</option>
-                    <option value="Male">Male</option>
-                  </select>
-                </label>
-                <label className="block text-sm font-bold">
-                  Date of birth
-                  <input name="dateOfBirth" type="date" required className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
-                </label>
-              </div>
-              <SchoolField />
-              <p className="text-xs text-muted-foreground">Schools from the Ministry of Education EMIS register.</p>
-              <label className="block text-sm font-bold">
-                Guardian
-                <input name="guardianName" className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
-              </label>
-              <label className="block text-sm font-bold">
-                Guardian phone
-                <input name="guardianPhone" inputMode="tel" className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
-              </label>
-            </>
-          )}
         </>
       )}
       {role === "TEACHER" && !locked && (

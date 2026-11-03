@@ -2,6 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { listLibrary } from "@/lib/fresh-teacher";
+import { QuestDoor } from "@/components/quest-door";
 import { shortSubjectName } from "@/lib/taxonomy";
 
 const kinds = [
@@ -64,15 +65,15 @@ export default async function LibraryPage({
       {[...groups.entries()].map(([label, rows]) => (
         <section key={label}>
           <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{shortSubjectName(label)}</h2>
-          <div className="mt-2 grid gap-2">
-            {rows.map((item) => (
-              <a key={item.pdfUrl} href={item.pdfUrl} target="_blank" rel="noreferrer" className="rounded-2xl border bg-white px-4 py-3 font-bold">{item.title}</a>
+          <div className="quest-doors mt-2">
+            {rows.map((item, index) => (
+              <QuestDoor key={item.pdfUrl} tone={index} href={item.pdfUrl} label={item.title} />
             ))}
           </div>
         </section>
       ))}
-      {!narrowed && <p className="rounded-2xl border bg-white px-4 py-6 text-center font-bold">Choose a type or a subject. Files load after that, to save data.</p>}
-      {narrowed && items.length === 0 && <p className="rounded-2xl border bg-white px-4 py-6 text-center font-bold">Nothing in this shelf yet.</p>}
+      {!narrowed && <p className="rounded-2xl border bg-white px-4 py-6 text-center font-bold">Open a type or a subject. The doors appear after that.</p>}
+      {narrowed && items.length === 0 && <p className="rounded-2xl border bg-white px-4 py-6 text-center font-bold">This door is locked.</p>}
     </div>
   );
 }

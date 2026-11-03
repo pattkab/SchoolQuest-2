@@ -2,7 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { TrendChart } from "@/components/trend-chart";
-import { shortSubjectName } from "@/lib/taxonomy";
+import { classWithTerm, shortSubjectName } from "@/lib/taxonomy";
 
 const PASS = 0.5;
 
@@ -47,7 +47,7 @@ export default async function ProgressPage() {
         <p className="text-xs font-bold uppercase tracking-widest text-primary">Your dashboard</p>
         <h1 className="font-display text-4xl">{user.name || "Learner"}</h1>
         <p className="text-sm text-muted-foreground">
-          {[user.classGrade?.shortName, user.school, user.studentNumber].filter(Boolean).join(" · ") || "Add your class in Profile"}
+          {[user.classGrade ? classWithTerm(user.classGrade.shortName) : null, user.school, user.studentNumber].filter(Boolean).join(" · ") || "Add your class in Profile"}
         </p>
       </div>
 

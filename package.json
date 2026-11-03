@@ -7,19 +7,26 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx --test tests/phase0.test.ts tests/evidence.test.ts tests/accessibility.test.ts tests/exam-engine.test.ts tests/offline.test.ts tests/digitization.test.ts tests/mobile-api.test.ts tests/entitlements.test.ts tests/release-guards.test.ts tests/phone.test.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/phase0.test.ts tests/evidence.test.ts tests/accessibility.test.ts tests/exam-engine.test.ts tests/offline.test.ts tests/digitization.test.ts tests/mobile-api.test.ts tests/entitlements.test.ts tests/release-guards.test.ts",
     "postinstall": "prisma skills sync || exit 0",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts"
+    "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts",
+    "android:sync": "cap sync android",
+    "android:open": "cap open android",
+    "ios:sync": "cap sync ios",
+    "ios:open": "cap open ios"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@capacitor-community/text-to-speech": "8.0.2",
+    "@capacitor/android": "^8.6.0",
     "@capacitor/core": "8.6.0",
+    "@capacitor/ios": "^8.6.0",
     "@google/genai": "^2.22.0",
     "@hookform/resolvers": "^5.9.1",
+    "@netlify/database": "^2.0.1",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -42,6 +49,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
     "@prisma/client": "^5.22.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",

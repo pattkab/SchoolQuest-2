@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { GoogleAuthProvider, getAuth, getRedirectResult, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { completeGoogleSignIn } from "@/app/actions/google";
 import app from "@/lib/firebase";
@@ -43,7 +44,13 @@ export function GoogleSignInButton() {
           setFailed(false);
           const auth = getAuth(app);
           const provider = new GoogleAuthProvider();
+          provider.addScope("profile");
+          provider.setCustomParameters({ prompt: "select_account" });
           try {
+            if (Capacitor.isNativePlatform()) {
+              await signInWithRedirect(auth, provider);
+              return;
+            }
             const result = await signInWithPopup(auth, provider);
             const idToken = await result.user.getIdToken();
             await completeGoogleSignIn(idToken);
@@ -61,6 +68,10 @@ export function GoogleSignInButton() {
                 return;
               }
             }
+            if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+              setPending(false);
+              return;
+            }
             setFailed(true);
             setPending(false);
           }
@@ -71,7 +82,7 @@ export function GoogleSignInButton() {
       </button>
       {failed && (
         <p className="mt-3 rounded-2xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">
-          Google sign-in did not finish. Try again.
+          Google could not open this account. Use your phone and PIN, or try Google again.
         </p>
       )}
     </div>

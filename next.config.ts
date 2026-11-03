@@ -11,6 +11,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // The Android emulator reaches this computer as 10.0.2.2.
+  allowedDevOrigins: ["10.0.2.2"],
   serverExternalPackages: ["@prisma/client", "prisma"],
   experimental: {
     serverActions: {

@@ -68,10 +68,6 @@ export async function completeProfileAction(formData: FormData) {
   }
 
   if (role === "STUDENT" && !classGradeId && !user.classGradeId) redirect("/setup?error=class");
-  if (role === "STUDENT" && !user.profileComplete && !listedSchool) redirect("/setup?error=listed");
-  if (role === "STUDENT" && !user.profileComplete && (sex !== "Female" && sex !== "Male" || !dateOfBirth || Number.isNaN(dateOfBirth.getTime()))) {
-    redirect("/setup?error=missing");
-  }
   await db.user.update({
     where: { id: user.id },
     data: {

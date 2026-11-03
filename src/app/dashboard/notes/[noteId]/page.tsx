@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { canViewContent } from "@/lib/access";
 import { NotesMarkdown } from "@/components/markdown";
+import { NoteSurface } from "@/components/note-surface";
 import { ReadAloudButton } from '@/components/accessibility-tools';
 
 export default async function NotePage({ params }: { params: Promise<{ noteId: string }> }) {
@@ -19,8 +20,10 @@ export default async function NotePage({ params }: { params: Promise<{ noteId: s
   if (!note || !canViewContent(user, note)) notFound();
   const quiz = note.topic?.papers[0];
 
+  const canEdit = user.role === "TEACHER" || user.role === "ADMIN" || user.role === "SUPER_ADMIN";
   return (
-    <div className="max-w-3xl mx-auto space-y-6" data-reading-content>
+    <NoteSurface canEdit={canEdit} returnTo={`/dashboard/notes/${note.id}`}>
+    <div className="max-w-3xl mx-auto space-y-4" data-reading-content>
       <Link
         href={`/dashboard/classes/${note.subject.classGrade.slug}/${note.subject.slug}`}
         className="text-sm font-bold text-primary"
@@ -43,5 +46,6 @@ export default async function NotePage({ params }: { params: Promise<{ noteId: s
         </Link>
       )}
     </div>
+    </NoteSurface>
   );
 }
