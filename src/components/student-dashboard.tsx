@@ -1,5 +1,7 @@
 import { GettingStarted } from "@/components/getting-started";
 import Link from 'next/link';
+import Image from 'next/image';
+import { LearnerExtras } from "@/components/learner-extras";
 import { db } from '@/lib/db';
 import { requireUser } from '@/lib/session';
 import { classWithTerm, shortSubjectName } from '@/lib/taxonomy';
@@ -28,17 +30,29 @@ export default async function StudentDashboard() {
         <h2 id="learner-quest-title" className="font-display text-3xl">{continuing ? "Ready to keep going?" : "What shall we explore today?"}</h2>
         <p className="mt-2">Read something new, practise a topic, or see how far you’ve come.</p>
         <Link href={nextHref} className="quest-button quest-button-light mt-4">{continuing ? "Continue your practice" : "Start learning"}<ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
+        <nav aria-label="Explore more activities" className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
+          <a href="#educational-videos" className="inline-flex min-h-11 items-center font-bold underline underline-offset-4">Watch videos</a>
+          <a href="#edutainment" className="inline-flex min-h-11 items-center font-bold underline underline-offset-4">Learn through play</a>
+        </nav>
       </div>
       <KitoMascot />
     </section>
-    <section className="learner-activities" aria-label="Choose your next activity">
-      {[
-        { title: "Read notes", detail: "Learn something new", href: "/dashboard/learn?mode=notes", icon: BookOpen, tone: "mint" },
-        { title: quiz ? "Play a quiz" : "Practise a topic", detail: quiz ? "Try a quick challenge" : "Find practice for your class", href: quiz ? `/dashboard/papers/${quiz.id}` : "/dashboard/learn?mode=paper", icon: Sparkles, tone: "lilac" },
-        { title: "My progress", detail: "See what you’ve done", href: "/dashboard/progress", icon: Trophy, tone: "peach" },
-      ].map(({ title, detail, href, icon: Icon, tone }) => <Link key={title} href={href} className={`learner-activity tone-${tone}`}>
-        <Icon aria-hidden="true" className="h-6 w-6" /><strong>{title}</strong><span>{detail}</span>
-      </Link>)}
+    <section className="learner-discovery" aria-labelledby="learner-discovery-title">
+      <Image src="/illustrations/quest-read-together.webp" width={768} height={512} alt="" unoptimized
+        className="learner-discovery-image" />
+      <div className="learner-discovery-content">
+        <h2 id="learner-discovery-title" className="font-display text-2xl">Pick your next adventure</h2>
+        <p className="mb-4 mt-1 text-sm text-muted-foreground">What would you like to do today?</p>
+        <div className="learner-activities">
+          {[
+            { title: "Read notes", detail: "Learn something new", href: "/dashboard/learn?mode=notes", icon: BookOpen, tone: "mint" },
+            { title: quiz ? "Play a quiz" : "Practise a topic", detail: quiz ? "Try a quick challenge" : "Find practice for your class", href: quiz ? `/dashboard/papers/${quiz.id}` : "/dashboard/learn?mode=paper", icon: Sparkles, tone: "lilac" },
+            { title: "My progress", detail: "See what you’ve done", href: "/dashboard/progress", icon: Trophy, tone: "peach" },
+          ].map(({ title, detail, href, icon: Icon, tone }) => <Link key={title} href={href} className={`learner-activity tone-${tone}`}>
+            <Icon aria-hidden="true" className="h-6 w-6" /><strong>{title}</strong><span>{detail}</span>
+          </Link>)}
+        </div>
+      </div>
     </section>
     {user.role === "STUDENT" && !completed && !continuing && <GettingStarted title="Your first steps as a learner" steps={[
       { title: "Explore your class", detail: "Find notes and activities for the class you’re in.", href: "/dashboard/learn" },
@@ -53,6 +67,7 @@ export default async function StudentDashboard() {
       {subjects.length ? <div className="stagger grid grid-cols-2 lg:grid-cols-3 gap-3 mt-4">{subjects.slice(0, 6).map((subject, index) => { const Icon = subjectIcons[index % subjectIcons.length]; return <Link key={subject.id} href={`/dashboard/learn?class=${user.classGrade?.slug}&subject=${subject.slug}&mode=notes`} className={`subject-tile subject-tone-${index % 4}`}><span className="subject-icon"><Icon className="h-6 w-6" /></span><h3 className="mt-4 text-sm sm:text-base font-extrabold">{shortSubjectName(subject.name)}</h3><p className="mt-1 text-xs text-muted-foreground">{subject._count.notes} notes · {subject._count.papers} practice papers</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold">Explore <ArrowRight className="h-3.5 w-3.5" /></span></Link>; })}</div> : <div className="quest-panel mt-4 text-center"><BookOpen className="mx-auto h-8 w-8 text-primary" /><h3 className="font-display mt-3 text-xl">Choose your class</h3><Link href="/setup" className="quest-button mt-4">Choose your class <ArrowRight className="h-4 w-4" /></Link></div>}
     </section>
     {libraryClass && <section className="space-y-2"><h2 className="font-display text-xl">Library</h2><div className="flex gap-2 overflow-x-auto no-scrollbar">{libraryKinds.map(([kind, label]) => <Link key={kind} href={`/dashboard/library?class=${libraryClass}&kind=${kind}`} className="rounded-full border bg-white px-3.5 py-2 text-sm font-bold whitespace-nowrap">{label}</Link>)}</div></section>}
+    <LearnerExtras quizId={quiz?.id} />
     {recent.length > 0 && <section className="quest-panel"><h2 className="font-display text-lg">Recent papers</h2><div className="mt-2 divide-y">{recent.map(attempt => <Link key={attempt.id} href={`/dashboard/attempts/${attempt.id}`} className="flex items-center gap-3 py-3"><span className="min-w-0 flex-1 truncate text-sm font-bold">{attempt.paper.title}</span><ChevronRight className="h-4 w-4" /></Link>)}</div></section>}
   </div>;
 }

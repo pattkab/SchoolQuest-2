@@ -382,3 +382,19 @@ html[data-a11y-calm="true"] .learner-activity { translate: none; }
 @keyframes kito-twinkle { from { transform: scale(.86) rotate(-8deg); } to { transform: scale(1.12) rotate(8deg); } }
 
 .quiz-celebration { animation: kito-arrive .35s ease-out both; }
+
+.learner-discovery {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #c9bca4;
+  border-radius: 1.75rem;
+  background: #fffaf1;
+}
+.learner-discovery-image { display: block; width: 100%; height: auto; }
+.learner-discovery-content { min-width: 0; padding: clamp(1rem, 3vw, 1.5rem); }
+@media (min-width: 48rem) {
+  .learner-discovery { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: center; }
+}
+html[data-a11y-scaled="true"] .learner-discovery { grid-template-columns: 1fr; }
+html[data-a11y-contrast="true"] .learner-discovery { background: #fff; border: 2px solid #222; }
