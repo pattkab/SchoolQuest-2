@@ -34,9 +34,8 @@ export default async function TeacherRegisterPage({
         <form action={registerTeacherAction} className="mt-8 grid md:grid-cols-2 gap-5 bg-white border rounded-[2rem] p-6 md:p-8">
           <Field label="Full name" name="fullName" placeholder="Nakato Grace" value={user?.name ?? undefined} />
           <Field label="Teacher registration number" name="registrationNumber" placeholder="UTS/2018/44821" />
-          {!user && <Field label="Phone number" name="phone" type="tel" placeholder="07..." />}
+          {!user && <Field label="Sign-in phone number" name="phone" type="tel" placeholder="07..." />}
           {!user && <Field label="Email (optional)" name="email" type="email" required={false} />}
-          <Field label="National ID" name="nationalId" placeholder="CM..." required={false} />
           <Field label="School" name="school" placeholder="St. Mary's Namagunga" />
           <Field label="District" name="district" placeholder="Mukono" />
           <div className="space-y-2">

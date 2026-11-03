@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { BrandMark } from "@/components/shell";
@@ -32,13 +33,18 @@ export default async function SetupPage({
   }) : [];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div data-space={pathway.id} className="min-h-screen flex flex-col">
       <main className="flex-1 px-5 py-8 max-w-md mx-auto w-full">
-        <BrandMark />
-        <p className="eyebrow mt-8">{pathway.label} space</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link href={editing ? "/dashboard/profile" : "/"} className="space-back">
+            <ChevronLeft aria-hidden="true" className="h-5 w-5" /> {editing ? "Back to profile" : "Back to home"}
+          </Link>
+          <BrandMark href="/" />
+        </div>
+        <p className="space-label mt-8">{pathway.label} space</p>
         <h1 className="font-display text-4xl mt-2">{chooseClass ? "Choose your class" : needsSchool ? "Set up your school" : editing ? "Edit your profile" : "Finish setting up your profile"}</h1>
         <p className="text-sm text-muted-foreground mt-2">
-          {chooseClass ? "We’ll show you notes and practice for your class. You can change it from your profile later." : needsSchool ? "Add your school name and district to create a workspace for enrolment, attendance, and fees." : editing ? "Update your contact details." : "Confirm your details to open your dashboard."}
+          {chooseClass ? "We’ll show you notes and practice for your class. You can change it from your profile later." : needsSchool ? "Add your school name and district to create a workspace for enrolment, attendance, and fees." : editing ? "Update your profile details." : "Confirm your details to open your dashboard."}
         </p>
         {error && <p role="alert" className="mt-4 rounded-2xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">{errors[error] || "Try again."}</p>}
         <div className="mt-6">
@@ -51,13 +57,12 @@ export default async function SetupPage({
               phone: user.phone || "",
               role: user.role,
               classGradeId: user.classGradeId || "",
+              school: user.school || "",
+              district: user.district || "",
             }}
             classes={classes}
           />
         </div>
-        {editing && (
-          <Link href="/dashboard/profile" className="inline-block mt-4 text-sm font-bold text-primary">Back to my profile</Link>
-        )}
       </main>
       <SiteFooter />
     </div>

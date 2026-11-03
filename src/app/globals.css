@@ -398,3 +398,32 @@ html[data-a11y-calm="true"] .learner-activity { translate: none; }
 }
 html[data-a11y-scaled="true"] .learner-discovery { grid-template-columns: 1fr; }
 html[data-a11y-contrast="true"] .learner-discovery { background: #fff; border: 2px solid #222; }
+
+[data-space="student"] { --space-ink: #135d48; --space-wash: #e6f5ed; }
+[data-space="teacher"] { --space-ink: #214d85; --space-wash: #e8f1ff; }
+[data-space="school"] { --space-ink: #793c12; --space-wash: #fff1dc; }
+[data-space="site"] { --space-ink: #593388; --space-wash: #f2eaff; }
+.space-label { color: var(--space-ink); font-size: clamp(1rem, 2.5vw, 1.2rem); font-weight: 800; line-height: 1.25; }
+.space-mobile-bar, .space-desktop-bar { background: var(--space-wash); }
+.space-back { display: inline-flex; min-height: 44px; align-items: center; gap: .25rem; color: var(--space-ink); font-weight: 750; }
+[data-space] :is(.sidebar-link.is-active, .bottom-nav-link.is-active) { background: var(--space-wash); color: var(--space-ink); }
+[data-space] .bottom-nav-link.is-active svg { color: inherit; }
+.space-menu {
+  position: fixed;
+  inset: 0 auto 0 0;
+  margin: 0;
+  height: 100%;
+  max-height: 100%;
+  width: min(22rem, 90vw);
+  max-width: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem 1rem;
+  background: white;
+  color: hsl(var(--foreground));
+  border-right: 1px solid hsl(var(--border));
+}
+.space-menu::backdrop { background: #17213480; }
+.space-menu .sidebar-link { font-size: .95rem; }
+html[data-a11y-contrast="true"] [data-space] { --space-ink: #111; }
+html[data-a11y-scaled="true"] .space-label { font-size: 1rem; overflow-wrap: anywhere; }

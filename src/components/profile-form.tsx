@@ -13,16 +13,16 @@ export function ProfileForm({
   editing: boolean;
   needsSchool: boolean;
   needsSchoolCode: boolean;
-  defaults: { name: string; phone: string; role: string; classGradeId: string };
+  defaults: { name: string; phone: string; role: string; classGradeId: string; school: string; district: string };
   classes: { id: string; shortName: string }[];
 }) {
 
   return (
     <form action={completeProfileAction} className="space-y-4">
-      <label className="block text-sm font-bold">
-        Name
+      {(editing || !defaults.name.trim()) && <label className="block text-sm font-bold">
+        Your name
         <input name="name" required defaultValue={defaults.name} className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
-      </label>
+      </label>}
       {defaults.role === "STUDENT" && (
         <>
           <label className="block text-sm font-bold">
@@ -46,18 +46,18 @@ export function ProfileForm({
         <>
           <label className="block text-sm font-bold">
             School name
-            <input name="schoolName" required className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
+            <input name="schoolName" defaultValue={defaults.school} required className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
           </label>
           <label className="block text-sm font-bold">
             District
-            <input name="district" className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
+            <input name="district" defaultValue={defaults.district} className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
           </label>
         </>
       )}
-      <label className="block text-sm font-bold">
-        Phone (optional)
+      {editing && defaults.phone && <label className="block text-sm font-bold">
+        Sign-in phone number
         <input type="tel" autoComplete="tel" name="phone" defaultValue={defaults.phone} placeholder="07..." className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
-      </label>
+      </label>}
       <SaveProfile editing={editing} />
     </form>
   );

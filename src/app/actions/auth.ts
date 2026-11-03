@@ -96,7 +96,6 @@ export async function registerTeacherAction(formData: FormData) {
     .map((s) => s.trim())
     .filter(Boolean);
   const bio = String(formData.get("bio") || "").trim();
-  const nationalId = String(formData.get("nationalId") || "").trim();
   const email = String(formData.get("email") || "").trim() || null;
 
   if ((!current && (!phone || password.length < 4)) || !fullName || !registrationNumber || !school || !district || !qualification) {
@@ -113,7 +112,7 @@ export async function registerTeacherAction(formData: FormData) {
   if (existingReg) redirect("/register/teacher?error=reg");
 
   const profile = {
-    fullName, registrationNumber, nationalId: nationalId || null, school, district, qualification,
+    fullName, registrationNumber, school, district, qualification,
     yearsExperience: Number.isFinite(yearsExperience) ? yearsExperience : 0,
     subjects: JSON.stringify(subjects), classes: JSON.stringify(classes), bio: bio || null, status: "PENDING",
   };

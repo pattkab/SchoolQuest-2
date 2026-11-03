@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { homeForRole, requireUser } from "@/lib/session";
-import { schoolById } from "@/lib/ug-schools";
+import { canonicalPhone, phoneKeys } from "@/lib/phone";
 import { randomCode, schoolFor, todayKey } from "@/lib/school";
 
 function cleanPhone(value: FormDataEntryValue | null) {
@@ -14,28 +14,27 @@ function cleanPhone(value: FormDataEntryValue | null) {
 
 export async function completeProfileAction(formData: FormData) {
   const user = await requireUser();
-  const name = String(formData.get("name") || "").trim();
-  const phone = cleanPhone(formData.get("phone")) || null;
   const role = user.role;
-  const classGradeId = String(formData.get("classGradeId") || "") || null;
-  const schoolCode = String(formData.get("schoolCode") || "").trim().toUpperCase();
-  const schoolName = String(formData.get("schoolName") || "").trim();
-  const district = String(formData.get("district") || "").trim();
-  const emisSchoolId = String(formData.get("emisSchoolId") || "");
-  const listedSchool = emisSchoolId ? schoolById(emisSchoolId) : null;
-  const sex = String(formData.get("sex") || "");
-  const born = String(formData.get("dateOfBirth") || "");
-  const dateOfBirth = born ? new Date(`${born}T00:00:00.000Z`) : null;
-  const guardianName = String(formData.get("guardianName") || "").trim();
-  const guardianPhone = cleanPhone(formData.get("guardianPhone"));
+  const editing = user.profileComplete
+    && (role !== "STUDENT" || Boolean(user.classGradeId))
+    && (role !== "SCHOOL_ADMIN" || Boolean(user.ownedSchool));
+  const name = editing || !user.name?.trim()
+    ? String(formData.get("name") || "").trim()
+    : user.name;
+  const phone = editing && user.phone
+    ? canonicalPhone(String(formData.get("phone") || "")) || user.phone
+    : user.phone;
+  const classGradeId = String(formData.get("classGradeId") || "") || user.classGradeId;
 
   if (!name) redirect("/setup?error=missing");
-  if (phone) {
-    const taken = await db.user.findUnique({ where: { phone } });
-    if (taken && taken.id !== user.id) redirect("/setup?error=phone");
+  if (phone && phone !== user.phone) {
+    const taken = await db.user.findFirst({ where: { id: { not: user.id }, phone: { in: phoneKeys(phone) } } });
+    if (taken) redirect("/setup?error=phone");
   }
 
   if (role === "SCHOOL_ADMIN" && !user.ownedSchool) {
+    const schoolName = String(formData.get("schoolName") || "").trim();
+    const district = String(formData.get("district") || "").trim();
     if (!schoolName) redirect("/setup?error=missing");
     await db.$transaction(async (tx) => {
       const school = await tx.school.create({
@@ -50,6 +49,7 @@ export async function completeProfileAction(formData: FormData) {
   }
 
   if (!user.profileComplete && role === "TEACHER") {
+    const schoolCode = user.schoolId ? "" : String(formData.get("schoolCode") || "").trim().toUpperCase();
     const school = schoolCode ? await db.school.findUnique({ where: { code: schoolCode } }) : null;
     if (schoolCode && !school) redirect("/setup?error=school");
     await db.user.update({
@@ -65,32 +65,22 @@ export async function completeProfileAction(formData: FormData) {
     redirect("/dashboard/teacher");
   }
 
-  if (role === "STUDENT") {
-    const gradeId = classGradeId || user.classGradeId;
-    if (!gradeId || !await db.classGrade.findFirst({ where: { id: gradeId, isActive: true }, select: { id: true } })) {
-      redirect("/setup?error=class");
-    }
-  }
+  if (role === "STUDENT" && (!classGradeId || !await db.classGrade.findFirst({
+    where: { id: classGradeId, isActive: true },
+    select: { id: true },
+  }))) redirect("/setup?error=class");
+
   await db.user.update({
     where: { id: user.id },
     data: {
       name,
       phone,
-      ...(role === "STUDENT" ? { classGradeId: classGradeId || user.classGradeId } : {}),
-      ...(role === "STUDENT" && !user.profileComplete
-        ? {
-            sex,
-            dateOfBirth,
-            guardianName: guardianName || null,
-            guardianPhone: guardianPhone || null,
-            emisSchoolId: listedSchool?.id,
-            school: listedSchool?.name,
-            district: listedSchool?.district,
-          }
-        : {}),
+      ...(role === "STUDENT" ? { classGradeId } : {}),
       profileComplete: true,
     },
   });
+  revalidatePath("/dashboard", "layout");
+  if (editing) redirect("/dashboard/profile");
   redirect(homeForRole(user.role));
 }
 

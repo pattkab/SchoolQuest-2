@@ -27,7 +27,7 @@ export default async function SchoolRegistration({ searchParams }: { searchParam
           { label: "Your full name", name: "name", autoComplete: "name" },
           { label: "School name", name: "schoolName", autoComplete: "organization" },
           { label: "District", name: "district", autoComplete: "address-level2" },
-          { label: "Your phone number", name: "phone", autoComplete: "tel" },
+          { label: "Sign-in phone number", name: "phone", autoComplete: "tel" },
         ].map((field) => <label key={field.name} className="block text-sm font-bold">
           {field.label}
           <input name={field.name} autoComplete={field.autoComplete} type={field.name === "phone" ? "tel" : "text"} required className="mt-1 block h-12 w-full rounded-2xl border px-3 font-normal" />
