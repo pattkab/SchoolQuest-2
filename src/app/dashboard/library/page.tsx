@@ -1,75 +1,78 @@
-import { db } from "@/lib/db";
-import { FRESH_TEACHER_FEEDS, listLibrary } from "@/lib/fresh-teacher";
-import { CLASS_BANDS } from "@/lib/taxonomy";
 import Link from "next/link";
+import { db } from "@/lib/db";
+import { requireUser } from "@/lib/session";
+import { listLibrary } from "@/lib/fresh-teacher";
+import { shortSubjectName } from "@/lib/taxonomy";
+
+const kinds = [
+  ["LESSON_NOTES", "Lesson notes"],
+  ["PAST_PAPER", "Past papers"],
+  ["SCHEME_OF_WORK", "Schemes"],
+  ["HOLIDAY_PACKAGE", "Holiday"],
+] as const;
 
 export default async function LibraryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ class?: string; kind?: string }>;
+  searchParams: Promise<{ class?: string; kind?: string; subject?: string }>;
 }) {
-  const { class: classKey, kind } = await searchParams;
+  const { class: classKey, kind, subject } = await searchParams;
+  const user = await requireUser();
   const classes = await db.classGrade.findMany({
-    where: { isActive: true, freshTeacherKey: { not: null } },
+    where: { isActive: true, freshTeacherKey: { not: null }, level: { slug: { in: ["pre-primary", "primary"] } } },
     orderBy: { order: "asc" },
+    include: { subjects: { orderBy: { order: "asc" }, select: { name: true, freshTeacherKey: true } } },
   });
-  const items = await listLibrary({
-    classKey: classKey || classes.find((c) => c.slug === "p7")?.freshTeacherKey || undefined,
+  const selected = classes.find((cls) => cls.freshTeacherKey === classKey) || classes.find((cls) => cls.id === user.classGradeId) || classes.find((cls) => cls.slug === "p7") || classes[0];
+  const subjects = (selected?.subjects || [])
+    .map((item) => ({ name: item.name, key: item.freshTeacherKey?.split(",")[0] || "" }))
+    .filter((item) => item.key);
+  const narrowed = Boolean(kind || subject);
+  const items = narrowed && selected ? await listLibrary({
+    classKey: selected.freshTeacherKey || undefined,
     kind: kind || undefined,
-    limit: 36,
-  }).catch(() => []);
-
-  const kinds = Array.from(new Set(FRESH_TEACHER_FEEDS.map((f) => f.kind)));
+    subjectKeys: subject ? [subject] : undefined,
+    limit: 18,
+  }).catch(() => []) : [];
+  const groups = new Map<string, typeof items>();
+  for (const item of items) {
+    const label = subjects.find((entry) => entry.key.toLowerCase() === item.subjectKey.toLowerCase())?.name || item.subjectKey;
+    groups.set(label, [...(groups.get(label) || []), item]);
+  }
+  const classQuery = selected?.freshTeacherKey || "";
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-display text-4xl">Library</h1>
-
-      <div className="space-y-3">
-        {CLASS_BANDS.map((band) => {
-          const bandClasses = classes.filter((cls) => (band.slugs as readonly string[]).includes(cls.slug));
-          if (!bandClasses.length) return null;
-          return (
-            <div key={band.id}>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{band.label}</p>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                {bandClasses.map((cls) => (
-                  <Link
-                    key={cls.id}
-                    href={`/dashboard/library?class=${cls.freshTeacherKey}${kind ? `&kind=${kind}` : ""}`}
-                    className={`rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap ${classKey === cls.freshTeacherKey || (!classKey && cls.slug === "p7") ? "bg-primary text-white" : "bg-white border"}`}
-                  >
-                    {cls.shortName}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          );
-        })}
+    <div className="space-y-4">
+      <h1 className="font-display">Library</h1>
+      <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        {classes.map((cls) => (
+          <Link key={cls.id} href={`/dashboard/library?class=${cls.freshTeacherKey}${kind ? `&kind=${kind}` : ""}`} className={`rounded-full px-3.5 py-2 text-sm font-bold whitespace-nowrap ${cls.id === selected?.id ? "bg-primary text-white" : "border bg-white"}`}>{cls.shortName}</Link>
+        ))}
       </div>
       <div className="flex gap-2 overflow-x-auto no-scrollbar">
-        <Link href={`/dashboard/library${classKey ? `?class=${classKey}` : ""}`} className={`rounded-full px-3 py-1.5 text-xs font-bold ${!kind ? "bg-[var(--ink)] text-white" : "bg-white border"}`}>All</Link>
-        {kinds.map((k) => (
-          <Link key={k} href={`/dashboard/library?class=${classKey || "PrimarySeven"}&kind=${k}`} className={`rounded-full px-3 py-1.5 text-xs font-bold ${kind === k ? "bg-[var(--ink)] text-white" : "bg-white border"}`}>
-            {k.replaceAll("_", " ")}
-          </Link>
+        <Link href={`/dashboard/library?class=${classQuery}${subject ? `&subject=${subject}` : ""}`} className={`rounded-full px-3.5 py-2 text-sm font-bold whitespace-nowrap ${!kind ? "bg-[var(--ink)] text-white" : "border bg-white"}`}>All types</Link>
+        {kinds.map(([value, label]) => (
+          <Link key={value} href={`/dashboard/library?class=${classQuery}&kind=${value}${subject ? `&subject=${subject}` : ""}`} className={`rounded-full px-3.5 py-2 text-sm font-bold whitespace-nowrap ${kind === value ? "bg-[var(--ink)] text-white" : "border bg-white"}`}>{label}</Link>
         ))}
       </div>
-
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {items.map((item) => (
-          <a key={item.pdfUrl} href={item.pdfUrl} target="_blank" rel="noreferrer" className="rounded-[1.5rem] bg-white border p-4 hover:shadow-lg transition-shadow">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{item.kind.replaceAll("_", " ")} · {item.subjectKey}</p>
-            <p className="font-bold mt-2">{item.title}</p>
-            {item.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
-          </a>
+      <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        <Link href={`/dashboard/library?class=${classQuery}${kind ? `&kind=${kind}` : ""}`} className={`rounded-full px-3.5 py-2 text-sm font-bold whitespace-nowrap ${!subject ? "bg-primary text-white" : "border bg-white"}`}>All subjects</Link>
+        {subjects.map((item) => (
+          <Link key={item.key} href={`/dashboard/library?class=${classQuery}&subject=${item.key}${kind ? `&kind=${kind}` : ""}`} className={`rounded-full px-3.5 py-2 text-sm font-bold whitespace-nowrap ${subject === item.key ? "bg-primary text-white" : "border bg-white"}`}>{shortSubjectName(item.name)}</Link>
         ))}
-        {items.length === 0 && (
-          <p className="col-span-full rounded-[1.5rem] border bg-white p-8 text-muted-foreground">
-            No files for this filter.
-          </p>
-        )}
       </div>
+      {[...groups.entries()].map(([label, rows]) => (
+        <section key={label}>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{shortSubjectName(label)}</h2>
+          <div className="mt-2 grid gap-2">
+            {rows.map((item) => (
+              <a key={item.pdfUrl} href={item.pdfUrl} target="_blank" rel="noreferrer" className="rounded-2xl border bg-white px-4 py-3 font-bold">{item.title}</a>
+            ))}
+          </div>
+        </section>
+      ))}
+      {!narrowed && <p className="rounded-2xl border bg-white px-4 py-6 text-center font-bold">Choose a type or a subject. Files load after that, to save data.</p>}
+      {narrowed && items.length === 0 && <p className="rounded-2xl border bg-white px-4 py-6 text-center font-bold">Nothing in this shelf yet.</p>}
     </div>
   );
 }

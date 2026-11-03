@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - feature/schoolquest-platform-hardening
+      - main
+      - codex/unified-schoolquest
+  pull_request:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: schoolquest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/schoolquest
+      AUTH_SECRET: ci-only-secret
+      AUTH_TRUST_HOST: "true"
+      SCHOOLQUEST_ENV: development
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma db push
+      - run: npx tsx prisma/seed.ts
+      - run: npm test
+      - run: npm run lint
+      - run: npx next typegen
+      - run: npm run typecheck
+      - run: npm run mobile:test
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=critical
+
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.4"
+          cache: true
+      - working-directory: flutter
+        run: flutter pub get
+      - working-directory: flutter
+        run: flutter analyze
+      - working-directory: flutter
+        run: flutter test
+      - working-directory: flutter
+        run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: schoolquest-android-release-apk
+          path: flutter/build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error

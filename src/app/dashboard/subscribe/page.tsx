@@ -1,32 +1,13 @@
 import { auth } from "@/auth";
-import { db } from "@/lib/db";
+import { learnerBillingSummary } from "@/lib/entitlements";
 import { redirect } from "next/navigation";
+import { yoMode } from "@/lib/yo-payments";
 import SubscribeClient from "./SubscribeClient";
 
-export default async function SubscribePage() {
+export default async function SubscribePage({ searchParams }: { searchParams: Promise<{ pending?: string }> }) {
   const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
-
-  const user = await db.user.findUnique({
-    where: { id: session.user.id }
-  });
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const now = new Date();
-  const hasActiveTrial = user.trialEndsAt && user.trialEndsAt > now;
-  const hasActiveSubscription = user.subscriptionEndsAt && user.subscriptionEndsAt > now;
-
-  // If already active, send back to dashboard
-  if (hasActiveTrial || hasActiveSubscription) {
-    redirect("/dashboard");
-  }
-
-  const userPhone = user.phone || "";
-
-  return <SubscribeClient userPhone={userPhone} />;
+  if (!session?.user?.id) redirect("/login");
+  const summary = await learnerBillingSummary(session.user.id);
+  const { pending } = await searchParams;
+  return <SubscribeClient summary={summary} pending={pending || ""} available={Boolean(yoMode())} />;
 }

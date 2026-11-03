@@ -1,5 +1,6 @@
 import feeds from "@/content/fresh-teacher-feeds.json";
 import { db } from "@/lib/db";
+import { shouldFetchLibrary } from "@/lib/library-query";
 
 export const FRESH_TEACHER_ORIGIN = "https://fresh-teacher.github.io";
 export const FRESH_TEACHER_HOME = "https://fresh-teacher.github.io/";
@@ -75,7 +76,9 @@ export async function listLibrary(options: {
   subjectKeys?: string[];
   kind?: string;
   limit?: number;
+  feedCap?: number;
 }) {
+  if (!shouldFetchLibrary(options)) return [];
   const selected = FRESH_TEACHER_FEEDS.filter((f) => {
     if (options.classKey && f.classKey !== options.classKey) return false;
     if (options.kind && f.kind !== options.kind) return false;
@@ -84,7 +87,7 @@ export async function listLibrary(options: {
       if (!keys.includes(f.subjectKey.toLowerCase()) && f.subjectKey !== "All") return false;
     }
     return true;
-  }).slice(0, 12);
+  }).slice(0, options.feedCap ?? 4);
 
   const settled = await Promise.allSettled(
     selected.map(async (def) => {
@@ -120,7 +123,7 @@ export async function listLibrary(options: {
   );
 
   const items = settled.flatMap((result) => (result.status === "fulfilled" ? result.value : []));
-  return items.slice(0, options.limit ?? 48);
+  return items.slice(0, options.limit ?? 18);
 }
 
 export async function syncFeeds(options?: { classKey?: string; triggeredById?: string }) {

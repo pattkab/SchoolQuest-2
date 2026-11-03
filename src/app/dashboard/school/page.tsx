@@ -1,3 +1,4 @@
+import { GettingStarted } from "@/components/getting-started";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -5,6 +6,7 @@ import { requireUser } from "@/lib/session";
 import { balance, schoolFor, ugx } from "@/lib/school";
 import { enrolStudentAction, sendMessageAction } from "@/app/actions/school";
 import { IdCard } from "@/components/id-card";
+import { PasswordInput } from "@/components/fields";
 
 export default async function SchoolHomePage({
   searchParams,
@@ -27,12 +29,17 @@ export default async function SchoolHomePage({
     return (
       <div className="space-y-6">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-primary">School manager</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-primary">School administrator</p>
           <h1 className="font-display text-4xl">{school.name}</h1>
           <p className="text-sm text-muted-foreground">School code {school.code} · Your school community, connected.</p>
         </div>
+        <GettingStarted title="Get your school ready" steps={[
+          { title: "Share your school code", detail: `Give ${school.code} to teachers so they can join your school from Attendance.` },
+          { title: "Enrol a learner", detail: "Add their class and give them their temporary PIN privately.", href: "#enrol-learner" },
+          { title: "Check attendance", detail: "Review who has been marked present today.", href: "/dashboard/school/attendance" },
+        ]} />
         <section className="grid sm:grid-cols-3 gap-3"><Link href="/dashboard/school" className="metric-card tone-mint"><strong>{students.length}</strong><span>Enrolled learners</span></Link><Link href="/dashboard/school/fees" className="quest-panel font-bold text-sm">💳 Fees & payments<span className="block mt-2 text-xs font-normal text-muted-foreground">View school fee records →</span></Link><Link href="/dashboard/school/attendance" className="quest-panel font-bold text-sm">📋 Attendance<span className="block mt-2 text-xs font-normal text-muted-foreground">Keep track of each school day →</span></Link></section>
-        <h2 className="font-display text-xl">Welcome a new learner</h2>
+        <h2 id="enrol-learner" className="font-display text-xl">Welcome a new learner</h2>
         {error && <p className="rounded-2xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">Check the form and try again.</p>}
         <form action={enrolStudentAction} className="rounded-3xl border bg-white p-4 grid sm:grid-cols-2 gap-3">
           <label className="space-y-2 text-xs font-bold">Learner’s name<input name="name" autoComplete="off" required placeholder="Full name" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
@@ -41,7 +48,7 @@ export default async function SchoolHomePage({
             {classes.map((cls) => <option key={cls.id} value={cls.id}>{cls.shortName}</option>)}
           </select></label>
           <label className="space-y-2 text-xs font-bold">Registration number (optional)<input name="studentNumber" placeholder="School registration number" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
-          <label className="space-y-2 text-xs font-bold">Temporary PIN<input name="pin" type="password" autoComplete="new-password" minLength={4} required placeholder="At least 4 characters" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
+          <label className="space-y-2 text-xs font-bold">Temporary PIN<PasswordInput id="pin" name="pin" autoComplete="new-password" minLength={4} required placeholder="At least 4 characters" className="block w-full h-12 rounded-2xl border px-3 font-normal" /></label>
           <button type="submit" className="quest-button self-end">Enrol learner</button>
         </form>
         <div className="grid sm:grid-cols-2 gap-3">
@@ -86,7 +93,7 @@ export default async function SchoolHomePage({
         <h1 className="font-display text-4xl">{school.name}</h1>
       </div>
       <IdCard
-        name={user.name || "Student"}
+        name={user.name || "Learner"}
         studentNumber={user.studentNumber}
         school={school.name}
         className={user.classGrade?.shortName || ""}

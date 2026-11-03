@@ -80,7 +80,7 @@ export function QrScan() {
           event.currentTarget.reset();
         }}
       >
-        <input name="code" placeholder="Student ID" className="h-12 flex-1 rounded-2xl border px-3" />
+        <input name="code" aria-label="Learner ID" placeholder="Learner ID" className="h-12 flex-1 rounded-2xl border px-3" />
         <button type="submit" className="h-12 rounded-2xl border px-4 font-bold">Mark</button>
       </form>
       {message && <p className="font-bold">{message}</p>}

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { parseUploadedPDF, saveParsedPaper } from "./actions";
+import type { ExtractedQuestion } from "@/lib/gemini";
 import { FileText, Loader2, Plus, Trash2, CheckCircle } from "lucide-react";
 
 interface Subject {
@@ -25,14 +27,15 @@ interface UploadFormProps {
 }
 
 interface EditableQuestion {
-  type: string;
+  type: ExtractedQuestion["type"];
   prompt: string;
   options: string[] | null;
-  correctAnswer: any;
+  correctAnswer: string | string[] | number;
   points: number;
 }
 
 export default function UploadForm({ levels }: UploadFormProps) {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [selectedLevelId, setSelectedLevelId] = useState("");
@@ -59,13 +62,15 @@ export default function UploadForm({ levels }: UploadFormProps) {
 
     const formData = new FormData();
     formData.append("pdf", pdfFile);
+    formData.append("subjectId", selectedSubjectId);
+    formData.append("title", title);
+    formData.append("year", year);
 
     try {
       const res = await parseUploadedPDF(formData);
-      setQuestions(res.questions);
-      setPdfUrl(res.pdfUrl);
-    } catch (err: any) {
-      alert(err.message || "Failed to parse PDF questions.");
+      router.push(`/dashboard/teacher/digitization/${res.jobId}`);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to parse PDF questions.");
     } finally {
       setLoading(false);
     }
@@ -85,8 +90,8 @@ export default function UploadForm({ levels }: UploadFormProps) {
         pdfUrl,
         questions,
       });
-    } catch (err: any) {
-      alert(err.message || "Failed to save paper.");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to save paper.");
     } finally {
       setSaving(false);
     }
@@ -221,10 +226,10 @@ export default function UploadForm({ levels }: UploadFormProps) {
           >
             {loading ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin" /> Analyzing PDF with Gemini OCR...
+                <Loader2 className="h-5 w-5 animate-spin" /> Queuing the paper...
               </>
             ) : (
-              "Extract Questions"
+              "Queue this paper"
             )}
           </Button>
         </CardFooter>
@@ -276,7 +281,7 @@ export default function UploadForm({ levels }: UploadFormProps) {
                       <select
                         value={q.type}
                         onChange={(e) => {
-                          const newType = e.target.value;
+                          const newType = e.target.value as ExtractedQuestion["type"];
                           handleUpdateQuestion(qIdx, {
                             type: newType,
                             options: newType === "MULTIPLE_CHOICE" ? ["Option A", "Option B", "Option C", "Option D"] : null,

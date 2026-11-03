@@ -38,6 +38,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# signing keys
+*.jks
+*.keystore
+key.properties
+
 # vercel
 .vercel
 
@@ -56,6 +61,21 @@ __pycache__/
 # Local Netlify folder
 .netlify
 
+# Native shells. Signing files, SDK paths, and build output stay on this machine.
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+**/*.xcuserstate
+**/xcuserdata/
+
 # EMIS download progress. The finished register is data/ug-schools.json.
 data/ug-schools.jsonl
 data/emis-fetch-state.json
+data/digitization/
+data/fresh-teacher/library/
+data/fresh-teacher/learning/

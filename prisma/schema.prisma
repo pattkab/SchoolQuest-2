@@ -4,8 +4,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,6 +30,7 @@ model User {
   guardianName       String?
   guardianPhone      String?
   avatarSeed         String?
+  image              String?
   studentNumber      String?   @unique
   schoolId           String?
   schoolMember       School?   @relation("SchoolMember", fields: [schoolId], references: [id], onDelete: SetNull)
@@ -47,6 +48,9 @@ model User {
   lastActiveOn       DateTime?
   accountKind        String    @default("REAL") // REAL | DEMO | TEST
 
+  freeSubjectClaims  FreeSubjectClaim[]
+  subscriptionPayments SubscriptionPayment[]
+  storeOrders        StoreOrder[]
   attempts           Attempt[]
   teacherProfile     TeacherProfile?
   markedAnswers      Answer[]  @relation("MarkedBy")
@@ -64,9 +68,19 @@ model User {
   messagesSent       SchoolMessage[]  @relation("MessageFrom")
   messagesReceived   SchoolMessage[]  @relation("MessageTo")
   payments           PaymentTransaction[]
+  markOverrides      MarkOverride[] @relation("MarkOverrides")
+  digitizationJobs   DigitizationJob[] @relation("DigitizationAuthor")
+  digitizationReviews DigitizationJob[] @relation("DigitizationReviewer")
+  mobileSessions     MobileSession[]
+  entitlements       Entitlement[]
+  freeExamGrants     FreeExamGrant[]
 
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+
+  @@index([classGradeId])
+  @@index([schoolId])
+  @@index([role])
 }
 
 model TeacherProfile {
@@ -129,6 +143,9 @@ model ClassGrade {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([levelId])
+  @@index([isActive])
 }
 
 model Subject {
@@ -146,6 +163,7 @@ model Subject {
 
   topics     Topic[]
   papers     Paper[]
+  freeSubjectClaims FreeSubjectClaim[]
   notes      Note[]
   resources  ExternalResource[]
   classrooms Classroom[]
@@ -154,6 +172,7 @@ model Subject {
   updatedAt DateTime @updatedAt
 
   @@unique([slug, classGradeId])
+  @@index([classGradeId])
 }
 
 model Topic {
@@ -174,6 +193,7 @@ model Topic {
   updatedAt DateTime @updatedAt
 
   @@unique([slug, subjectId])
+  @@index([subjectId])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -204,6 +224,8 @@ model Note {
   updatedAt DateTime @updatedAt
 
   @@unique([slug, subjectId])
+  @@index([subjectId, status])
+  @@index([topicId])
 }
 
 model Paper {
@@ -237,6 +259,10 @@ model Paper {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([subjectId, status])
+  @@index([classGradeId])
+  @@index([topicId])
 }
 
 model Question {
@@ -245,7 +271,7 @@ model Question {
   paper            Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
   topicId          String?
   topic            Topic?   @relation(fields: [topicId], references: [id], onDelete: SetNull)
-  type             String   // MULTIPLE_CHOICE | FILL_BLANK | SHORT_ANSWER | NUMERIC | TRUE_FALSE | MATCHING | COMPREHENSION | LONG_ANSWER | DRAWING
+  type             String   // MULTIPLE_CHOICE | MULTI_SELECT | FILL_BLANK | SHORT_ANSWER | NUMERIC | CALCULATION | TRUE_FALSE | MATCHING | ORDERING | DIAGRAM_LABEL | COMPREHENSION | LONG_ANSWER | DRAWING
   displayNumber    String?
   section          String?
   stimulus         String?  // Passage / instruction shared with the question (markdown)
@@ -261,11 +287,19 @@ model Question {
   requiresTeacher  Boolean  @default(false)
   points           Float    @default(1)
   order            Int
+  parentId         String?
+  parent           Question?  @relation("QuestionParts", fields: [parentId], references: [id], onDelete: SetNull)
+  parts            Question[] @relation("QuestionParts")
+  unit             String?
+  partialRule      String?  // all-or-nothing | proportional | proportional-penalty | position | value-half
 
   answers Answer[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([paperId])
+  @@index([topicId])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -285,13 +319,36 @@ model Attempt {
   pendingCount     Int       @default(0)
   timeSpentSeconds Int?
   startedAt        DateTime  @default(now())
+  deadlineAt       DateTime?
+  pausedAt         DateTime?
+  timerRemainingMs Int?
+  durationMs       Int?
   completedAt      DateTime?
+  finalizedAt      DateTime?
   gradedAt         DateTime?
+  markingVersion   Int       @default(1)
 
   answers Answer[]
+  logs    AttemptLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId, completedAt])
+  @@index([userId, status])
+  @@index([userId, paperId, status])
+  @@index([paperId])
+}
+
+model AttemptLog {
+  id        String   @id @default(cuid())
+  attemptId String
+  attempt   Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  kind      String
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([attemptId, createdAt])
 }
 
 model Answer {
@@ -302,6 +359,7 @@ model Answer {
   question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   studentAnswer String?  // Raw text / JSON / data-url for drawings
+  version       Int      @default(1)
   isCorrect     Boolean?
   pointsAwarded Float?
   gradingStatus String   @default("PENDING_TEACHER") // UNANSWERED | AUTO | AI | PENDING_TEACHER | TEACHER_MARKED
@@ -310,11 +368,27 @@ model Answer {
   markedById    String?
   markedBy      User?    @relation("MarkedBy", fields: [markedById], references: [id], onDelete: SetNull)
   markedAt      DateTime?
+  overrides     MarkOverride[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([attemptId, questionId])
+  @@index([gradingStatus])
+}
+
+model MarkOverride {
+  id             String   @id @default(cuid())
+  answerId       String
+  answer         Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  actorId        String
+  actor          User     @relation("MarkOverrides", fields: [actorId], references: [id], onDelete: Cascade)
+  previousPoints Float?
+  points         Float
+  reason         String
+  createdAt      DateTime @default(now())
+
+  @@index([answerId])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -343,6 +417,10 @@ model ExternalResource {
   lastSeenAt     DateTime    @default(now())
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+
+  @@index([status])
+  @@index([classGradeId])
+  @@index([subjectId])
 }
 
 model SyncLog {
@@ -372,6 +450,9 @@ model Classroom {
   enrollments Enrollment[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  @@index([teacherId])
+  @@index([classGradeId])
 }
 
 model Enrollment {
@@ -383,6 +464,7 @@ model Enrollment {
   createdAt   DateTime  @default(now())
 
   @@unique([classroomId, userId])
+  @@index([userId])
 }
 
 model School {
@@ -410,6 +492,9 @@ model FeeCharge {
   label     String
   amount    Int
   createdAt DateTime @default(now())
+
+  @@index([schoolId])
+  @@index([userId])
 }
 
 model FeePayment {
@@ -421,6 +506,9 @@ model FeePayment {
   amount    Int
   note      String?
   createdAt DateTime @default(now())
+
+  @@index([schoolId])
+  @@index([userId])
 }
 
 model AttendanceMark {
@@ -435,6 +523,7 @@ model AttendanceMark {
   createdAt DateTime @default(now())
 
   @@unique([userId, day])
+  @@index([schoolId, day])
 }
 
 model SchoolMessage {
@@ -447,6 +536,10 @@ model SchoolMessage {
   to        User     @relation("MessageTo", fields: [toId], references: [id], onDelete: Cascade)
   body      String
   createdAt DateTime @default(now())
+
+  @@index([schoolId])
+  @@index([toId])
+  @@index([fromId])
 }
 
 model Feedback {
@@ -459,6 +552,236 @@ model Feedback {
   questionId String?
   status     String   @default("OPEN") // OPEN | RESOLVED
   createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+model DigitizationJob {
+  id              String   @id @default(cuid())
+  createdById     String
+  createdBy       User     @relation("DigitizationAuthor", fields: [createdById], references: [id], onDelete: Cascade)
+  status          String   @default("QUEUED") // QUEUED | PROCESSING | AWAITING_REVIEW | NEEDS_CORRECTION | APPROVED | PUBLISHED | REJECTED | FAILED | CANCELLED
+  progress        Int      @default(0)
+  stage           String   @default("queued")
+  sourceHash      String
+  sourceKind      String
+  fileName        String
+  mime            String
+  byteSize        Int
+  subjectId       String?
+  title           String?
+  year            Int?
+  attempts        Int      @default(0)
+  maxAttempts     Int      @default(2)
+  model           String   @default("gemini-2.5-flash")
+  tokensUsed      Int      @default(0)
+  errorClass      String?
+  errorMessage    String?
+  confidence      Float?
+  draft           String?
+  paperId         String?
+  reviewerId      String?
+  reviewer        User?    @relation("DigitizationReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  cancelRequested Boolean  @default(false)
+  importedSource  DigitizationSource?
+  events          DigitizationEvent[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([createdById, createdAt])
+  @@index([status])
+  @@index([sourceHash])
+}
+
+model DigitizationSource {
+  jobId       String          @id
+  job         DigitizationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  gitBlob     String          @unique
+  url         String
+  permission  String?
+  bytes       Bytes
+}
+
+model DigitizationEvent {
+  id        String          @id @default(cuid())
+  jobId     String
+  job       DigitizationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  stage     String
+  message   String
+  actorId   String?
+  createdAt DateTime        @default(now())
+
+  @@index([jobId])
+}
+
+model MobileSession {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Plan {
+  id             String  @id @default(cuid())
+  code           String  @unique
+  name           String
+  kind           String  // DIGITAL | PHYSICAL
+  price          Int
+  currency       String  @default("UGX")
+  periodDays     Int?
+  playProductId  String?
+  appleProductId String?
+  active         Boolean @default(true)
+  grantsAccess   Boolean @default(false)
+
+  @@index([kind, active])
+}
+
+model Entitlement {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planCode    String
+  source      String    // YO | PLAY | APPLE | GRANT | SCHOOL | SCHOLARSHIP
+  providerRef String    @unique
+  startsAt    DateTime
+  endsAt      DateTime
+  revokedAt   DateTime?
+  graceHours  Int       @default(24)
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, endsAt])
+}
+
+model FreeExamGrant {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId String
+  attemptId String   @unique
+  createdAt DateTime @default(now())
+
+  @@unique([userId, subjectId])
+}
+
+model BillingEvent {
+  id          String   @id @default(cuid())
+  source      String
+  providerRef String
+  status      String
+  createdAt   DateTime @default(now())
+
+  @@unique([source, providerRef, status])
+}
+
+// Permanent one-free-completed-practice entitlement per user and subject.
+// Unique index ensures two concurrent submissions cannot both consume the free allowance.
+model FreeSubjectClaim {
+  id        String   @id @default(cuid())
+  userId    String
+  subjectId String
+  attemptId String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, subjectId])
+  @@index([subjectId])
+}
+
+// A real provider transaction is required before granting Pro.
+model SubscriptionPayment {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              String   @default("STUDENT_YEARLY")
+  amountUgx         Int
+  customerMsisdn    String
+  externalReference String   @unique
+  providerReference String?  @unique
+  status            String   @default("CREATED") // CREATED | PENDING | SUCCEEDED | FAILED | REVIEW
+  verifiedAt        DateTime?
+  appliedAt         DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  @@index([userId, createdAt])
+}
+
+// SchoolQuest physical goods catalogue. No digital textbooks may be offered here
+// without separate licensing and app-store payment policy review.
+model StoreProduct {
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  title             String
+  description       String?
+  category          String   // TABLET | TSHIRT | TEXTBOOK
+  priceUgx          Int
+  stockQuantity     Int      @default(0)
+  imageUrl          String?
+  audience          String?
+  publisher         String?
+  isbn              String?
+  rightsConfirmed   Boolean  @default(false)
+  isPhysical        Boolean  @default(true)
+  bundleMonth       Boolean  @default(false)
+  status            String   @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  orderLines        StoreOrderLine[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status, category])
+}
+
+model StoreOrder {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  customerName      String
+  contactPhone      String
+  deliveryLocation  String
+  totalUgx          Int
+  status            String   @default("REQUESTED") // REQUESTED | CONFIRMED | PAID | FULFILLED | CANCELLED
+  paymentReference  String?
+  paymentVerifiedAt DateTime?
+  verifiedByUserId  String?
+  fulfilledAt       DateTime?
+  lines             StoreOrderLine[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model StoreOrderLine {
+  id              String @id @default(cuid())
+  orderId         String
+  order           StoreOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  productId       String
+  product         StoreProduct @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity        Int
+  unitPriceUgx    Int
+  bundleMonth     Boolean @default(false)
+  @@index([productId])
+}
+
+// Single non-recurring, 30-day trial linked to one physically fulfilled tablet.
+// Not an automatically recurring paid subscription. Subject to store policy review.
+model StoreBundleGrant {
+  id           String   @id @default(cuid())
+  orderId      String   @unique
+  userId       String
+  grantedAt    DateTime @default(now())
+  expiresAt    DateTime
+  notes        String?
+  @@index([userId, expiresAt])
 }
 
 model PaymentTransaction {
@@ -471,7 +794,10 @@ model PaymentTransaction {
   status         String    @default("PENDING") // PENDING | FAILED | VERIFIED | REFUNDED
   provider       String?
   providerRef    String?   @unique
+  kind           String    @default("DIGITAL") // DIGITAL | PHYSICAL
   idempotencyKey String    @unique
   createdAt      DateTime  @default(now())
   verifiedAt     DateTime?
+
+  @@index([userId, status])
 }

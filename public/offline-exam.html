@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Saved papers</title>
+    <style>
+      body { margin: 0; background: #f8fafb; color: #1b2940; font-family: "Plus Jakarta Sans", sans-serif; }
+      main { max-width: 40rem; margin: 0 auto; padding: 1rem 1rem 3rem; }
+      button, input, textarea { font: inherit; }
+      .choice, .save { min-height: 48px; }
+      .choice { display: block; width: 100%; text-align: left; margin: .4rem 0; padding: .8rem 1rem; border: 2px solid #d5e2dc; border-radius: 1rem; background: #fff; }
+      .choice[aria-pressed="true"] { border-color: #0c6b56; color: #0c6b56; }
+      a { color: #0c6b56; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="/dashboard">Back to School Quest</a></p>
+      <h1>Saved papers</h1>
+      <p id="status" role="status"></p>
+      <div id="list"></div>
+      <form id="paper" hidden></form>
+    </main>
+    <script>
+      const status = document.getElementById("status");
+      const list = document.getElementById("list");
+      const form = document.getElementById("paper");
+      function openDb() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open("schoolquest-offline", 1);
+          request.onupgradeneeded = () => request.result.createObjectStore("packs");
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+      async function packs() {
+        const db = await openDb();
+        const rows = await new Promise((resolve, reject) => {
+          const request = db.transaction("packs").objectStore("packs").getAll();
+          request.onsuccess = () => resolve(request.result || []);
+          request.onerror = () => reject(request.error);
+        });
+        db.close();
+        return rows;
+      }
+      async function writePack(pack) {
+        const db = await openDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction("packs", "readwrite");
+          tx.objectStore("packs").put(pack, pack.paperId);
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error);
+        });
+        db.close();
+      }
+      function expired(pack) { return new Date(pack.pass.expiresAt).getTime() <= Date.now(); }
+      async function show(pack) {
+        list.hidden = true;
+        form.hidden = false;
+        form.innerHTML = "";
+        const title = document.createElement("h2");
+        title.textContent = pack.title;
+        form.append(title);
+        if (expired(pack)) {
+          status.textContent = "This saved paper has expired. Connect to School Quest to refresh it. Your answers are still on this device.";
+          return;
+        }
+        status.textContent = "Offline. Answers stay on this device until you reconnect.";
+        for (const question of pack.questions) {
+          const block = document.createElement("fieldset");
+          const legend = document.createElement("legend");
+          legend.textContent = question.prompt;
+          block.append(legend);
+          const options = Array.isArray(safeJson(question.options)) ? safeJson(question.options) : [];
+          if (question.type === "MULTIPLE_CHOICE" || question.type === "TRUE_FALSE") {
+            const choices = question.type === "TRUE_FALSE" ? ["True", "False"] : options;
+            for (const choice of choices) {
+              const button = document.createElement("button");
+              button.type = "button";
+              button.className = "choice";
+              button.textContent = choice;
+              button.setAttribute("aria-pressed", String(pack.answers[question.id] === choice));
+              button.onclick = () => { pack.answers[question.id] = choice; writePack(pack); show(pack); };
+              block.append(button);
+            }
+          } else {
+            const input = document.createElement(question.type === "LONG_ANSWER" ? "textarea" : "input");
+            input.className = "choice";
+            input.value = pack.answers[question.id] || "";
+            input.setAttribute("aria-label", question.prompt);
+            input.oninput = () => { pack.answers[question.id] = input.value; writePack(pack); };
+            block.append(input);
+          }
+          form.append(block);
+        }
+      }
+      function safeJson(value) { try { return JSON.parse(value || "null"); } catch { return null; } }
+      packs().then((rows) => {
+        if (!rows.length) { status.textContent = "No paper has been saved on this device yet."; return; }
+        status.textContent = rows.length + " saved.";
+        for (const pack of rows) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "choice";
+          button.textContent = pack.title + (expired(pack) ? " (expired)" : "");
+          button.onclick = () => show(pack);
+          list.append(button);
+        }
+      }).catch(() => { status.textContent = "Saved papers could not be opened."; });
+    </script>
+  </body>
+</html>

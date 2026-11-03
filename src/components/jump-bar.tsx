@@ -17,12 +17,7 @@ export function JumpBar({ classes, homeSlug }: { classes: JumpClass[]; homeSlug?
   const classSlug = known || homeSlug || classes[0]?.slug;
   const current = classes.find((cls) => cls.slug === classSlug) || classes[0];
   const subjectSlug = known ? match?.[2] : undefined;
-  const learn =
-    path.startsWith("/dashboard/learn") ||
-    path.startsWith("/dashboard/classes") ||
-    path.startsWith("/dashboard/notes") ||
-    path.startsWith("/dashboard/papers") ||
-    path.startsWith("/dashboard/library");
+  const learn = path.startsWith("/dashboard/classes");
   if (!learn || !current) return null;
 
   return (

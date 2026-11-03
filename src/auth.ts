@@ -3,8 +3,9 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { authConfig } from "./auth.config";
 import { db } from "./lib/db";
-import { accountFromFirebaseToken } from "./lib/firebase-account";
+import { accountFromFirebaseToken, googlePhoto } from "./lib/firebase-account";
 import { passwordMatches } from "./lib/password";
+import { phoneKeys } from "./lib/phone";
 
 const googleReady = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 
@@ -29,12 +30,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (!account) return null;
           const row = await db.user.upsert({
             where: { email: account.email },
-            update: {},
+            update: { name: account.name, profileComplete: true, ...(account.image ? { image: account.image } : {}) },
             create: {
               email: account.email,
               name: account.name,
+              image: account.image,
               role: "STUDENT",
-              profileComplete: false,
+              profileComplete: true,
               trialStartsAt: new Date(),
               trialEndsAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
             },
@@ -47,20 +49,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           };
         }
 
-        const phone = String(credentials?.phone || "").replace(/\s+/g, "");
+        const phone = String(credentials?.phone || "");
         const password = String(credentials?.password || "");
-        const intent = String(credentials?.intent || "STUDENT");
-        if (!phone || !password) return null;
+        const keys = phoneKeys(phone);
+        if (!keys.length || !password) return null;
 
-        const user = await db.user.findUnique({
-          where: { phone },
+        const user = await db.user.findFirst({
+          where: { phone: { in: keys } },
           include: { teacherProfile: true },
         });
 
         if (!user || !passwordMatches(user.passwordHash, password)) return null;
-
-        if (intent === "TEACHER" && user.role === "STUDENT") return null;
-        if (intent === "ADMIN" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") return null;
 
         return {
           id: user.id,
@@ -78,14 +77,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const email = profile?.email;
       if (!email) return false;
       const name = profile.name || "Learner";
+      const image = googlePhoto(profile.picture);
       await db.user.upsert({
         where: { email },
-        update: { name },
+        update: { name, profileComplete: true, ...(image ? { image } : {}) },
         create: {
           email,
           name,
+          image,
           role: "STUDENT",
-          profileComplete: false,
+          profileComplete: true,
           trialStartsAt: new Date(),
           trialEndsAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
         },

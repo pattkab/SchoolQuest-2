@@ -4,8 +4,8 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/session";
-import { schoolById } from "@/lib/ug-schools";
+import { homeForRole, requireUser } from "@/lib/session";
+import { canonicalPhone, phoneKeys } from "@/lib/phone";
 import { randomCode, schoolFor, todayKey } from "@/lib/school";
 
 function cleanPhone(value: FormDataEntryValue | null) {
@@ -14,86 +14,78 @@ function cleanPhone(value: FormDataEntryValue | null) {
 
 export async function completeProfileAction(formData: FormData) {
   const user = await requireUser();
-  const name = String(formData.get("name") || "").trim();
-  const phone = cleanPhone(formData.get("phone")) || null;
-  const role = user.profileComplete ? user.role : String(formData.get("role") || "STUDENT");
-  const classGradeId = String(formData.get("classGradeId") || "") || null;
-  const schoolCode = String(formData.get("schoolCode") || "").trim().toUpperCase();
-  const schoolName = String(formData.get("schoolName") || "").trim();
-  const district = String(formData.get("district") || "").trim();
-  const emisSchoolId = String(formData.get("emisSchoolId") || "");
-  const listedSchool = emisSchoolId ? schoolById(emisSchoolId) : null;
-  const sex = String(formData.get("sex") || "");
-  const born = String(formData.get("dateOfBirth") || "");
-  const dateOfBirth = born ? new Date(`${born}T00:00:00.000Z`) : null;
-  const guardianName = String(formData.get("guardianName") || "").trim();
-  const guardianPhone = cleanPhone(formData.get("guardianPhone"));
+  const fromWizard = formData.get("from") === "start";
+  const setupError = (error: string) => redirect(`/setup?error=${error}${fromWizard ? "&from=start" : ""}`);
+  const nextStep = "/start?step=destination";
+  const role = user.role;
+  const editing = user.profileComplete
+    && (role !== "STUDENT" || Boolean(user.classGradeId))
+    && (role !== "SCHOOL_ADMIN" || Boolean(user.ownedSchool));
+  const name = editing || !user.name?.trim()
+    ? String(formData.get("name") || "").trim()
+    : user.name;
+  const phone = editing && user.phone
+    ? canonicalPhone(String(formData.get("phone") || "")) || user.phone
+    : user.phone;
+  const classGradeId = String(formData.get("classGradeId") || "") || user.classGradeId;
 
-  if (!name) redirect("/setup?error=missing");
-  if (phone) {
-    const taken = await db.user.findUnique({ where: { phone } });
-    if (taken && taken.id !== user.id) redirect("/setup?error=phone");
+  if (!name) setupError("missing");
+  if (phone && phone !== user.phone) {
+    const taken = await db.user.findFirst({ where: { id: { not: user.id }, phone: { in: phoneKeys(phone) } } });
+    if (taken) setupError("phone");
   }
 
-  if (!user.profileComplete && role === "SCHOOL_ADMIN") {
-    if (!schoolName) redirect("/setup?error=missing");
-    const code = randomCode("SQ-", 4);
-    await db.user.update({
-      where: { id: user.id },
-      data: { name, phone, role: "SCHOOL_ADMIN", district: district || null, school: schoolName, profileComplete: true },
+  if (role === "SCHOOL_ADMIN" && !user.ownedSchool) {
+    const schoolName = String(formData.get("schoolName") || "").trim();
+    const district = String(formData.get("district") || "").trim();
+    if (!schoolName) setupError("missing");
+    await db.$transaction(async (tx) => {
+      const school = await tx.school.create({
+        data: { name: schoolName, code: randomCode("SQ-", 8), district: district || null, ownerId: user.id },
+      });
+      await tx.user.update({
+        where: { id: user.id },
+        data: { name, phone, district: district || null, school: schoolName, schoolId: school.id, profileComplete: true },
+      });
     });
-    const school = await db.school.create({
-      data: { name: schoolName, code, district: district || null, ownerId: user.id },
-    });
-    await db.user.update({ where: { id: user.id }, data: { schoolId: school.id } });
-    redirect("/dashboard/school");
+    redirect(fromWizard ? nextStep : "/dashboard/school");
   }
 
   if (!user.profileComplete && role === "TEACHER") {
+    const schoolCode = user.schoolId ? "" : String(formData.get("schoolCode") || "").trim().toUpperCase();
     const school = schoolCode ? await db.school.findUnique({ where: { code: schoolCode } }) : null;
-    if (schoolCode && !school) redirect("/setup?error=school");
+    if (schoolCode && !school) setupError("school");
     await db.user.update({
       where: { id: user.id },
       data: {
         name,
         phone,
         role: "TEACHER",
-        schoolId: school?.id || null,
-        school: school?.name || null,
-        district: school?.district || null,
+        ...(school ? { schoolId: school.id, school: school.name, district: school.district } : {}),
         profileComplete: true,
       },
     });
-    redirect("/dashboard");
+    redirect(fromWizard ? nextStep : "/dashboard/teacher");
   }
 
-  if (role === "STUDENT" && !classGradeId && !user.classGradeId) redirect("/setup?error=class");
-  if (role === "STUDENT" && !user.profileComplete && !listedSchool) redirect("/setup?error=listed");
-  if (role === "STUDENT" && !user.profileComplete && (sex !== "Female" && sex !== "Male" || !dateOfBirth || Number.isNaN(dateOfBirth.getTime()))) {
-    redirect("/setup?error=missing");
-  }
+  if (role === "STUDENT" && (!classGradeId || !await db.classGrade.findFirst({
+    where: { id: classGradeId, isActive: true },
+    select: { id: true },
+  }))) setupError("class");
+
   await db.user.update({
     where: { id: user.id },
     data: {
       name,
       phone,
-      role: user.profileComplete ? user.role : "STUDENT",
-      classGradeId: classGradeId || user.classGradeId,
-      ...(role === "STUDENT" && !user.profileComplete
-        ? {
-            sex,
-            dateOfBirth,
-            guardianName: guardianName || null,
-            guardianPhone: guardianPhone || null,
-            emisSchoolId: listedSchool?.id,
-            school: listedSchool?.name,
-            district: listedSchool?.district,
-          }
-        : {}),
+      ...(role === "STUDENT" ? { classGradeId } : {}),
       profileComplete: true,
     },
   });
-  redirect(user.role === "SCHOOL_ADMIN" ? "/dashboard/school" : "/dashboard");
+  revalidatePath("/dashboard", "layout");
+  if (fromWizard) redirect(nextStep);
+  if (editing) redirect("/dashboard/profile");
+  redirect(homeForRole(user.role));
 }
 
 export async function joinSchoolAction(formData: FormData) {
@@ -189,7 +181,7 @@ export async function markAttendanceAction(code: string) {
   }
   const studentNumber = code.trim().toUpperCase();
   const student = await db.user.findUnique({ where: { studentNumber } });
-  if (!student || student.schoolId !== school.id) return { ok: false, message: "No student with that ID." };
+  if (!student || student.schoolId !== school.id) return { ok: false, message: "No learner with that ID." };
   const day = todayKey();
   await db.attendanceMark.upsert({
     where: { userId_day: { userId: student.id, day } },
@@ -197,7 +189,7 @@ export async function markAttendanceAction(code: string) {
     create: { schoolId: school.id, userId: student.id, teacherId: teacher.id, day },
   });
   revalidatePath("/dashboard/school/attendance");
-  return { ok: true, message: `${student.name || "Student"} · present` };
+  return { ok: true, message: `${student.name || "Learner"} · present` };
 }
 
 export async function sendMessageAction(formData: FormData) {

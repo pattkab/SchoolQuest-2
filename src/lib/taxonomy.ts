@@ -1,42 +1,49 @@
 export const CLASS_BANDS = [
   {
-    id: "early-years",
-    label: "Early years",
+    id: "pre-primary",
+    label: "Pre-primary",
     short: "Baby–Top",
     slugs: ["baby", "middle", "top"],
-    blurb: "Play, songs, counting and first letters.",
+    blurb: "NCDC early childhood learning areas.",
   },
   {
     id: "lower-primary",
     label: "Lower primary",
     short: "P.1–P.3",
     slugs: ["p1", "p2", "p3"],
-    blurb: "Thematic literacy, numeracy and life skills.",
+    blurb: "Thematic curriculum.",
   },
   {
     id: "upper-primary",
     label: "Upper primary",
-    short: "P.4–P.6",
-    slugs: ["p4", "p5", "p6"],
-    blurb: "Subjects taught in English.",
-  },
-  {
-    id: "ple",
-    label: "PLE year",
-    short: "P.7",
-    slugs: ["p7"],
-    blurb: "Revision, mocks and teacher marking.",
+    short: "P.4–P.7",
+    slugs: ["p4", "p5", "p6", "p7"],
+    blurb: "Subjects through PLE.",
   },
 ] as const;
 
 export type BandId = (typeof CLASS_BANDS)[number]["id"];
 
 const CORE_BY_BAND: Record<BandId, string[]> = {
-  "early-years": ["language-development", "mathematical-concepts", "reading", "writing", "health-habits"],
+  "pre-primary": ["language-development", "mathematical-concepts", "reading", "writing", "health-habits"],
   "lower-primary": ["literacy-1", "literacy-2", "english", "mathematics"],
   "upper-primary": ["mathematics", "english", "science", "social-studies"],
-  ple: ["mathematics", "english", "science", "social-studies"],
 };
+
+export function currentSchoolTerm(date = new Date()) {
+  const month = date.getMonth();
+  if (month < 4) return 1;
+  if (month < 8) return 2;
+  return 3;
+}
+
+export function plainClass(shortName?: string | null) {
+  return (shortName || "Class").replace(/\./g, "");
+}
+
+export function classWithTerm(shortName?: string | null, term = currentSchoolTerm()) {
+  return `${plainClass(shortName)} · Term ${term}`;
+}
 
 export function bandForSlug(slug: string) {
   return CLASS_BANDS.find((band) => (band.slugs as readonly string[]).includes(slug)) ?? null;

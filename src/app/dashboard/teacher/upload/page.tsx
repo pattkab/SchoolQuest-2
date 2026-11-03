@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser, isAccreditedTeacher } from "@/lib/session";
 import { redirect } from "next/navigation";
@@ -36,8 +37,9 @@ export default async function TeacherUploadPage() {
       <div>
         <h1 className="font-display text-4xl">Upload a paper</h1>
         <p className="text-muted-foreground mt-2">
-          Drop a scanned past paper. Gemini reads it, then you approve the questions before learners see them.
+          The paper is queued and read after this page responds. Learners cannot see it until you approve it and publish it.
         </p>
+        <Link href="/dashboard/teacher/digitization" className="text-sm text-primary">Papers being read</Link>
       </div>
       <UploadForm levels={adapted} />
     </div>

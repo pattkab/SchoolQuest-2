@@ -30,6 +30,7 @@ export function EngineForm({ subjects }: { subjects: { id: string; name: string 
       setMarkdown(result.note?.markdown || "");
       setSummary(result.note?.summary || "");
     } catch (err) {
+      if (typeof err === "object" && err && "digest" in err && String((err as { digest?: string }).digest).startsWith("NEXT_REDIRECT")) throw err;
       setError(err instanceof Error ? err.message : "Could not read that file.");
     } finally {
       setBusy(null);

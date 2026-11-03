@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
@@ -7,6 +8,7 @@ import { readDocument, type ExtractedQuestion } from "@/lib/gemini";
 import { loadSource, type SourceKind } from "@/lib/ingest";
 import { requireUser, isAdmin } from "@/lib/session";
 import { topicIdForTitle } from "@/lib/topics";
+import { advanceJob, enqueueDigitization } from "@/lib/digitization-jobs";
 
 export type BuiltQuestion = ExtractedQuestion & { explanation?: string };
 
@@ -22,21 +24,37 @@ function slugify(value: string) {
 }
 
 export async function buildContentAction(formData: FormData) {
-  await adminUser();
+  const user = await adminUser();
   const output = String(formData.get("output") || "practice") === "notes" ? "notes" : "practice";
   const file = formData.get("file");
   const link = String(formData.get("link") || "");
   const source = await loadSource(file instanceof File ? file : null, link);
+  if (output === "practice") {
+    const job = await enqueueDigitization({
+      userId: user.id,
+      buffer: source.buffer,
+      fileName: source.label || "paper.pdf",
+      mime: source.mime,
+      subjectId: String(formData.get("subjectId") || "") || null,
+      title: String(formData.get("title") || source.label || "Paper"),
+    });
+    after(() => {
+      void import("@/lib/digitization-ai")
+        .then((mod) => advanceJob(job.id, mod.extractWithGemini))
+        .catch(() => undefined);
+    });
+    redirect(`/dashboard/teacher/digitization/${job.id}`);
+  }
   const built = await readDocument(source.buffer, source.mime, output);
-  if (output === "practice" && !Array.isArray(built)) throw new Error("No questions were found in that file.");
-  if (output === "notes" && !built?.markdown) throw new Error("No notes were found in that file.");
+  const note = built && !Array.isArray(built) && built.markdown ? built : null;
+  if (!note) throw new Error("No notes were found in that file.");
   return {
     output,
     kind: source.kind as SourceKind,
     sourceUrl: source.sourceUrl,
     label: source.label,
-    questions: output === "practice" ? (built as BuiltQuestion[]) : [],
-    note: output === "notes" ? (built as { title?: string; summary?: string; markdown?: string }) : null,
+    questions: [] as BuiltQuestion[],
+    note,
   };
 }
 
@@ -89,7 +107,7 @@ export async function saveBuiltContentAction(payload: {
       sourceUrl: payload.sourceUrl,
       attribution: payload.sourceUrl,
       authorId: user.id,
-      status: "NEEDS_REVIEW",
+      status: "DRAFT",
       questions: {
         create: payload.questions.map((question, index) => ({
           type: question.type || "SHORT_ANSWER",
@@ -115,7 +133,11 @@ export async function approveContentAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) redirect("/dashboard/admin/readiness");
   if (kind === "note") await db.note.update({ where: { id }, data: { status: "PUBLISHED" } });
-  if (kind === "paper") await db.paper.update({ where: { id }, data: { status: "PUBLISHED" } });
+  if (kind === "paper") {
+    const job = await db.digitizationJob.findFirst({ where: { paperId: id }, select: { id: true } });
+    if (job) redirect(`/dashboard/teacher/digitization/${job.id}`);
+    await db.paper.update({ where: { id }, data: { status: "PUBLISHED" } });
+  }
   revalidatePath("/dashboard/admin/readiness");
   redirect("/dashboard/admin/readiness");
 }

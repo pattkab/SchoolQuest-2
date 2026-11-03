@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { CLASSES, LEVELS, slugify } from "../src/content/curriculum";
 import { SEED_CONTENT } from "../src/content/seed";
+import { seedBlockedReason } from "../src/lib/release-guard";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,8 @@ function encodeAnswer(value: unknown) {
 }
 
 async function main() {
+  const blocked = seedBlockedReason();
+  if (blocked) throw new Error(blocked);
   const pin = bcrypt.hashSync("1234", 10);
 
   const levelRows = [];

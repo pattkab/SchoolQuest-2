@@ -1,4 +1,4 @@
-export type TopicLink = { id: string; title: string };
+export type TopicLink = { id: string; title: string; kind?: string };
 
 export type LinkedTopic = {
   id: string;
@@ -63,4 +63,14 @@ export const PRIMARY_SUBJECTS = [
   { slug: "creative-arts-and-pe", label: "Arts & PE" },
 ] as const;
 
+export const PREPRIMARY_SUBJECTS = [
+  { slug: "language-development", label: "Language" },
+  { slug: "mathematical-concepts", label: "Maths" },
+  { slug: "reading", label: "Reading" },
+  { slug: "writing", label: "Writing" },
+  { slug: "health-habits", label: "Health" },
+  { slug: "social-development", label: "Social" },
+] as const;
+
+export const PREPRIMARY_CLASS_SLUGS = ["baby", "middle", "top"] as const;
 export const PRIMARY_CLASS_SLUGS = ["p1", "p2", "p3", "p4", "p5", "p6", "p7"] as const;

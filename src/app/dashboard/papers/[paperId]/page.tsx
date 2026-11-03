@@ -3,20 +3,10 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { canViewContent } from "@/lib/access";
 import ExamPlayer from "./ExamPlayer";
+import QuizGame from "./QuizGame";
 import { shortSubjectName } from "@/lib/taxonomy";
-
-function publicMatchOptions(correctAnswer: string, options: string | null) {
-  try {
-    const pairs = JSON.parse(correctAnswer);
-    if (Array.isArray(pairs) && pairs.length && Array.isArray(pairs[0])) {
-      const rights = Array.from(new Set(pairs.map((p: unknown[]) => String(p[1])))).sort();
-      return JSON.stringify(pairs.map((p: unknown[]) => [String(p[0]), rights]));
-    }
-  } catch {
-    return options;
-  }
-  return options;
-}
+import { toPublicQuestion } from "@/lib/public-question";
+import { quizQuestions } from "@/lib/quiz-game";
 
 export default async function PaperPage({ params }: { params: Promise<{ paperId: string }> }) {
   const user = await requireUser();
@@ -30,6 +20,21 @@ export default async function PaperPage({ params }: { params: Promise<{ paperId:
     },
   });
   if (!paper || !canViewContent(user, paper)) notFound();
+  const publicQuestions = paper.questions.map(toPublicQuestion);
+  if (paper.kind === "TOPIC_QUIZ") {
+    return (
+      <QuizGame
+        paper={{
+          id: paper.id,
+          title: paper.title,
+          subject: shortSubjectName(paper.subject.name),
+          className: paper.subject.classGrade.shortName,
+          backHref: `/dashboard/classes/${paper.subject.classGrade.slug}/${paper.subject.slug}`,
+        }}
+        questions={quizQuestions(publicQuestions)}
+      />
+    );
+  }
 
   return (
     <ExamPlayer
@@ -40,16 +45,10 @@ export default async function PaperPage({ params }: { params: Promise<{ paperId:
         subject: shortSubjectName(paper.subject.name),
         className: paper.subject.classGrade.shortName,
         topic: paper.topic?.name || null,
+        durationMinutes: paper.durationMinutes,
         backHref: `/dashboard/classes/${paper.subject.classGrade.slug}/${paper.subject.slug}`,
       }}
-      questions={paper.questions.map((q) => ({
-        id: q.id,
-        type: q.type,
-        prompt: q.prompt,
-        stimulus: q.stimulus,
-        options: q.type === "MATCHING" ? publicMatchOptions(q.correctAnswer, q.options) : q.options,
-        points: q.points,
-      }))}
+      questions={publicQuestions}
     />
   );
 }

@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { canViewContent } from "@/lib/access";
 import { NotesMarkdown } from "@/components/markdown";
+import { NoteSurface } from "@/components/note-surface";
+import { ReadAloudButton } from '@/components/accessibility-tools';
 
 export default async function NotePage({ params }: { params: Promise<{ noteId: string }> }) {
   const user = await requireUser();
@@ -18,8 +20,10 @@ export default async function NotePage({ params }: { params: Promise<{ noteId: s
   if (!note || !canViewContent(user, note)) notFound();
   const quiz = note.topic?.papers[0];
 
+  const canEdit = user.role === "TEACHER" || user.role === "ADMIN" || user.role === "SUPER_ADMIN";
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <NoteSurface canEdit={canEdit} returnTo={`/dashboard/notes/${note.id}`}>
+    <div className="max-w-3xl mx-auto space-y-4" data-reading-content>
       <Link
         href={`/dashboard/classes/${note.subject.classGrade.slug}/${note.subject.slug}`}
         className="text-sm font-bold text-primary"
@@ -32,14 +36,16 @@ export default async function NotePage({ params }: { params: Promise<{ noteId: s
         </p>
         <h1 className="font-display text-4xl mt-2">{note.title}</h1>
       </header>
+      <ReadAloudButton label="Listen to this lesson" />
       <article className="rounded-[1.8rem] bg-white border p-6 md:p-10 shadow-sm">
         <NotesMarkdown content={note.content} />
       </article>
       {quiz && (
         <Link href={`/dashboard/papers/${quiz.id}`} className="block rounded-3xl bg-primary text-white px-6 py-4 font-bold">
-          Practice
+          {quiz.kind === "TOPIC_QUIZ" ? "Play a short quiz" : "Practice"}
         </Link>
       )}
     </div>
+    </NoteSurface>
   );
 }

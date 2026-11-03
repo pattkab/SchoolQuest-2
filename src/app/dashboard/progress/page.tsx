@@ -2,7 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { TrendChart } from "@/components/trend-chart";
-import { shortSubjectName } from "@/lib/taxonomy";
+import { classWithTerm, shortSubjectName } from "@/lib/taxonomy";
 
 const PASS = 0.5;
 
@@ -47,7 +47,7 @@ export default async function ProgressPage() {
         <p className="text-xs font-bold uppercase tracking-widest text-primary">Your dashboard</p>
         <h1 className="font-display text-4xl">{user.name || "Learner"}</h1>
         <p className="text-sm text-muted-foreground">
-          {[user.classGrade?.shortName, user.school, user.studentNumber].filter(Boolean).join(" · ") || "Add your class in Profile"}
+          {[user.classGrade ? classWithTerm(user.classGrade.shortName) : null, user.school, user.studentNumber].filter(Boolean).join(" · ") || "Add your class in Profile"}
         </p>
       </div>
 
@@ -78,7 +78,7 @@ export default async function ProgressPage() {
             <Link key={attempt.id} href={`/dashboard/attempts/${attempt.id}`} className="flex items-center justify-between rounded-3xl border bg-white px-4 py-3">
               <span>
                 <span className="block font-bold">{attempt.paper.title}</span>
-                <span className="text-sm text-muted-foreground">{attempt.paper.subject.classGrade.shortName} · {shortSubjectName(attempt.paper.subject.name)}</span>
+                <span className="text-sm text-muted-foreground">{attempt.paper.subject.classGrade.shortName} · {shortSubjectName(attempt.paper.subject.name)} · {attempt.status === "IN_PROGRESS" ? (attempt.pausedAt ? "Paused" : "In progress") : "Submitted"}{spentLabel(attempt.timeSpentSeconds)}</span>
               </span>
               <span className="font-display text-2xl">{percent}%</span>
             </Link>
@@ -87,6 +87,12 @@ export default async function ProgressPage() {
       </section>
     </div>
   );
+}
+
+function spentLabel(seconds: number | null) {
+  if (!seconds || seconds <= 0) return "";
+  if (seconds < 60) return ` · ${seconds} sec`;
+  return ` · ${Math.floor(seconds / 60)} min`;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

@@ -8,6 +8,7 @@ export const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "schoolquest-7555e.firebasestorage.app",
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "529526431115",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:529526431115:web:5f439ac1510d753034238e",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "",
 };
 
 // Initialize Firebase

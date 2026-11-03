@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { balance, schoolFor, ugx } from "@/lib/school";
 import { addChargeAction, addPaymentAction } from "@/app/actions/school";
+import { MoneyField } from "@/components/fields";
 
 export default async function FeesPage() {
   const user = await requireUser();
@@ -25,7 +26,7 @@ export default async function FeesPage() {
             {students.map((student) => <option key={student.id} value={student.id}>{student.name}</option>)}
           </select>
           <input name="label" required placeholder="Term 1 fees" className="w-full h-11 rounded-2xl border px-3" />
-          <input name="amount" required type="number" min={1} placeholder="Amount" className="w-full h-11 rounded-2xl border px-3" />
+          <MoneyField name="amount" placeholder="Amount" />
           <button type="submit" className="h-11 rounded-2xl bg-primary px-4 text-white font-bold">Save bill</button>
         </form>
         <form action={addPaymentAction} className="rounded-3xl border bg-white p-4 space-y-2">
@@ -33,7 +34,7 @@ export default async function FeesPage() {
           <select name="userId" className="w-full h-11 rounded-2xl border px-3">
             {students.map((student) => <option key={student.id} value={student.id}>{student.name}</option>)}
           </select>
-          <input name="amount" required type="number" min={1} placeholder="Amount" className="w-full h-11 rounded-2xl border px-3" />
+          <MoneyField name="amount" placeholder="Amount" />
           <input name="note" placeholder="Cash, MoMo…" className="w-full h-11 rounded-2xl border px-3" />
           <button type="submit" className="h-11 rounded-2xl bg-primary px-4 text-white font-bold">Save payment</button>
         </form>

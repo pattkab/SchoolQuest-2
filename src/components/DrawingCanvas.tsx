@@ -14,7 +14,7 @@ export default function DrawingCanvas({ onChange, defaultValue }: DrawingCanvasP
   const [isDrawing, setIsSubDrawing] = useState(false);
   const [color, setColor] = useState("#000000");
   const [tool, setTool] = useState<"pencil" | "eraser">("pencil");
-  const [lineWidth, setLineWidth] = useState(4);
+  const lineWidth = 4;
   const [undoStack, setUndoStack] = useState<string[]>([]);
 
   // Setup canvas with touch support
@@ -162,7 +162,8 @@ export default function DrawingCanvas({ onChange, defaultValue }: DrawingCanvasP
             variant={tool === "pencil" ? "default" : "outline"}
             size="sm"
             onClick={() => setTool("pencil")}
-            className="gap-2"
+            aria-pressed={tool === 'pencil'}
+            className="gap-2 min-h-11"
           >
             <Pencil className="h-4 w-4" /> Draw
           </Button>
@@ -171,7 +172,8 @@ export default function DrawingCanvas({ onChange, defaultValue }: DrawingCanvasP
             variant={tool === "eraser" ? "default" : "outline"}
             size="sm"
             onClick={() => setTool("eraser")}
-            className="gap-2"
+            aria-pressed={tool === 'eraser'}
+            className="gap-2 min-h-11"
           >
             <Eraser className="h-4 w-4" /> Eraser
           </Button>
@@ -184,8 +186,10 @@ export default function DrawingCanvas({ onChange, defaultValue }: DrawingCanvasP
               <button
                 key={hex}
                 type="button"
+                aria-label={`Draw in ${{ '#000000': 'black', '#ef4444': 'red', '#3b82f6': 'blue', '#22c55e': 'green', '#f59e0b': 'amber' }[hex]}`}
+                aria-pressed={color === hex}
                 onClick={() => setColor(hex)}
-                className={`h-7 w-7 rounded-full border-2 transition-transform ${
+                className={`h-11 w-11 rounded-full border-2 transition-transform ${
                   color === hex ? "scale-110 border-gray-400" : "border-transparent"
                 }`}
                 style={{ backgroundColor: hex }}
@@ -200,6 +204,7 @@ export default function DrawingCanvas({ onChange, defaultValue }: DrawingCanvasP
             variant="outline"
             size="icon"
             onClick={handleUndo}
+            aria-label="Undo the last drawing stroke"
             disabled={undoStack.length === 0}
           >
             <Undo className="h-4 w-4" />
@@ -209,6 +214,7 @@ export default function DrawingCanvas({ onChange, defaultValue }: DrawingCanvasP
             variant="destructive"
             size="icon"
             onClick={handleClear}
+            aria-label="Clear the drawing"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -219,6 +225,7 @@ export default function DrawingCanvas({ onChange, defaultValue }: DrawingCanvasP
       <div className="border-4 border-gray-100 rounded-xl overflow-hidden bg-white max-w-full">
         <canvas
           ref={canvasRef}
+          aria-label="Drawing canvas. Use Describe in words instead for a text alternative."
           width={600}
           height={350}
           onMouseDown={startDrawing}

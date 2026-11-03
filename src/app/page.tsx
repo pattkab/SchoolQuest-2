@@ -1,26 +1,40 @@
+import type { Metadata } from "next";
 import Link from 'next/link';
-import Image from 'next/image';
 import { BrandMark } from '@/components/shell';
 import { SiteFooter } from '@/components/site-footer';
 import { PublicMobileNav } from '@/components/public-mobile-nav';
-import { ArrowRight, BookOpen, PencilLine, TrendingUp, GraduationCap, Sparkles, Check, Presentation } from 'lucide-react';
+import { KitoMascot } from '@/components/kito-mascot';
+import { ArrowRight, GraduationCap, Presentation } from 'lucide-react';
 
-const steps = [{ icon: BookOpen, title: 'Aha starts here.', line: 'Understand the topic with clear, curriculum-based notes.', tone: 'mint', number: '01' }, { icon: PencilLine, title: 'Give it a go.', line: 'Build confidence with practice papers for your class.', tone: 'lilac', number: '02' }, { icon: TrendingUp, title: 'See yourself grow.', line: 'Get feedback, track progress, and celebrate every step.', tone: 'peach', number: '03' }];
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
+const starts = [
+  { label: 'Little explorers', grade: 'Baby · Middle · Top', emoji: '🌱' },
+  { label: 'Bright beginners', grade: 'Primary 1–3', emoji: '🎨' },
+  { label: 'Growing minds', grade: 'Primary 4–6', emoji: '🔬' },
+  { label: 'Future ready', grade: 'Primary 7', emoji: '🚀' },
+];
+
 export default function Home() {
   return <div className="mobile-navigation-page mobile-app-frame min-h-screen flex flex-col">
     <header className="mobile-app-bar lg:sticky lg:top-0 px-5 md:px-10 flex items-center justify-between lg:py-4"><BrandMark /><div className="flex items-center gap-5"><Link href="/login" className="hidden sm:inline text-sm font-bold">Sign in</Link><Link href="/login?tab=join" className="quest-button quest-button-small">Get started <ArrowRight className="h-4 w-4" /></Link></div></header>
     <main className="flex-1">
       <section className="landing-hero page-rise max-w-6xl mx-auto px-5 md:px-10">
-        <div><span className="eyebrow"><span className="h-2 w-2 rounded-full bg-primary" /> BIG DREAMS START WITH LITTLE DISCOVERIES</span><h1 className="font-display display-hero mt-6">A brighter future.<br /><span className="text-primary">One quest at a time.</span></h1><p className="mt-6 max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground">From your first letters to your P.7 exams. Make learning an adventure with notes, practice, and feedback that helps you grow.</p><div className="mt-7 flex flex-wrap gap-3"><Link href="/login?tab=join" className="quest-button">Start my learning journey <ArrowRight className="h-5 w-5" /></Link><Link href="/login" className="quest-button quest-button-secondary">I already have an account</Link></div><div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-muted-foreground"><span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Ugandan curriculum</span><span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Learn at your pace</span><span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Baby Class to P.7</span></div></div>
-        <div className="order-first lg:order-last overflow-hidden rounded-[2rem] border-4 border-white bg-white shadow-xl">
-          <Image src="/hero-students.png" alt="Two students smiling together in their classroom" width={1402} height={1122} sizes="(min-width: 1024px) 440px, (min-width: 640px) 600px, 100vw" preload className="w-full h-auto max-h-72 lg:max-h-none object-cover" />
-          <p className="px-5 py-3 text-center text-sm font-bold text-primary">Big smiles. Bright futures.</p>
+        <div>
+          <h1 className="font-display display-hero">A brighter future.<br /><span className="text-primary">One quest at a time.</span></h1>
+          <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">Ugandan primary school notes, quizzes and past papers, from Baby Class to Primary 7. Learn with Kito through short challenges and educational videos.</p>
+          <div className="mt-7 flex flex-wrap gap-3"><Link href="/login" className="quest-button">Sign in <ArrowRight aria-hidden="true" className="h-5 w-5" /></Link><Link href="/guest" className="quest-button quest-button-secondary">Continue as a guest</Link></div>
         </div>
+        <figure className="quest-mascot-stage order-first lg:order-last">
+          <KitoMascot />
+          <figcaption>Hi, I’m Kito! Let’s learn together.</figcaption>
+        </figure>
       </section>
-      <section className="max-w-6xl mx-auto px-5 md:px-10 py-8"><div className="text-center"><p className="eyebrow justify-center">LEARNING, WITH A LITTLE MORE WONDER</p><h2 className="font-display text-2xl sm:text-3xl mt-3">Find your spark. Follow your curiosity.</h2></div><div className="stagger grid md:grid-cols-3 gap-4 mt-7">{steps.map(({ icon: Icon, title, line, tone, number }) => <article key={title} className={`quest-panel feature-card tone-${tone}`}><div className="flex items-center justify-between"><span className="feature-icon"><Icon className="h-6 w-6" /></span><span className="font-display text-3xl opacity-20">{number}</span></div><h3 className="font-display text-xl mt-6">{title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{line}</p></article>)}</div></section>
-      <section className="max-w-6xl mx-auto px-5 md:px-10 py-8"><div className="section-heading"><div><p className="eyebrow">A JOURNEY FOR EVERY STAGE</p><h2 className="font-display text-2xl mt-2">Where will you begin?</h2></div><GraduationCap className="h-8 w-8 text-primary" /></div><div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">{[{ label: 'Little explorers', grade: 'Baby · Middle · Top', emoji: '🌱' }, { label: 'Bright beginners', grade: 'Primary 1–3', emoji: '🎨' }, { label: 'Growing minds', grade: 'Primary 4–6', emoji: '🔬' }, { label: 'Future ready', grade: 'Primary 7', emoji: '🚀' }].map((band, index) => <Link key={band.label} href="/login?tab=join" className={`subject-tile subject-tone-${index}`}><span className="text-3xl" aria-hidden="true">{band.emoji}</span><h3 className="font-extrabold text-sm mt-4">{band.label}</h3><p className="mt-1 text-xs text-muted-foreground">{band.grade}</p><ArrowRight className="mt-4 h-4 w-4" /></Link>)}</div></section>
-      <section className="max-w-6xl mx-auto px-5 md:px-10 py-8"><div className="educator-banner"><span className="feature-icon"><Presentation className="h-7 w-7" /></span><div className="flex-1"><p className="eyebrow">FOR THE PEOPLE WHO INSPIRE</p><h2 className="font-display mt-2 text-2xl">Great learning starts with you.</h2><p className="mt-2 text-sm text-muted-foreground">A focused space for teachers to mark work and for schools to support their learners.</p></div><Link href="/login?pathway=teacher" className="quest-button quest-button-secondary">Explore your teaching space <ArrowRight className="h-4 w-4" /></Link></div></section>
-      <section className="max-w-6xl mx-auto px-5 md:px-10 pb-8"><div className="landing-closing"><Sparkles className="mx-auto h-8 w-8 text-primary" /><h2 className="font-display text-2xl sm:text-3xl mt-4">Your next “I did it!” starts here.</h2><p className="mt-3 text-sm text-muted-foreground">Open a new chapter. Discover what you can do.</p><Link href="/login?tab=join" className="quest-button mt-6">Let’s begin <ArrowRight className="h-4 w-4" /></Link></div></section>
+      <section className="max-w-6xl mx-auto px-5 md:px-10 py-8">
+        <div className="section-heading"><div><h2 className="font-display text-2xl">Find your spark. Pick where you begin.</h2></div><GraduationCap className="h-8 w-8 text-primary" /></div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">{starts.map((band, index) => <Link key={band.label} href="/login?tab=join&role=learner" className={`subject-tile subject-tone-${index}`}><span className="text-3xl" aria-hidden="true">{band.emoji}</span><h3 className="font-extrabold text-sm mt-4">{band.label}</h3><p className="mt-1 text-xs text-muted-foreground">{band.grade}</p><ArrowRight className="mt-4 h-4 w-4" /></Link>)}</div>
+      </section>
+      <section className="max-w-6xl mx-auto px-5 md:px-10 pb-8"><div className="educator-banner"><span className="feature-icon"><Presentation className="h-7 w-7" /></span><div className="flex-1"><h2 className="font-display text-2xl">Teachers and schools</h2></div><Link href="/login?tab=join" className="quest-button quest-button-secondary">Open your space <ArrowRight className="h-4 w-4" /></Link></div></section>
     </main><SiteFooter /><PublicMobileNav />
   </div>;
 }

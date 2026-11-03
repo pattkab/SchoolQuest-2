@@ -1,3 +1,4 @@
+import { submittedAnswerText } from '@/lib/accessibility-settings';
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -13,6 +14,7 @@ export default async function AttemptPage({ params }: { params: Promise<{ attemp
     include: {
       paper: { include: { subject: { include: { classGrade: true } } } },
       answers: { include: { question: true }, orderBy: { createdAt: "asc" } },
+      logs: { orderBy: { createdAt: "asc" } },
     },
   });
   if (!attempt) notFound();
@@ -28,9 +30,22 @@ export default async function AttemptPage({ params }: { params: Promise<{ attemp
         <h1 className="font-display text-4xl mt-1">{attempt.paper.title}</h1>
         <p className="mt-2 font-bold text-primary text-xl">
           {attempt.score} / {attempt.maxScore}
+          {attempt.maxScore ? ` · ${Math.round((attempt.score / attempt.maxScore) * 100)}%` : ""}
           {attempt.pendingCount ? ` · ${attempt.pendingCount} awaiting teacher` : ""}
         </p>
+        {attempt.finalizedAt && <p className="mt-2 text-sm text-muted-foreground">Submitted {attempt.finalizedAt.toLocaleString("en-UG")}. This result stays fixed unless a teacher reviews it.</p>}
+        {attempt.logs.length > 0 && <ol className="mt-3 space-y-1 text-sm text-muted-foreground">{attempt.logs.map((entry) => <li key={entry.id}>{entry.createdAt.toLocaleString("en-UG")} · {entry.message}</li>)}</ol>}
       </header>
+      {attempt.answers.some((answer) => answer.isCorrect === false) && (
+        <section className="rounded-[1.6rem] bg-white border p-5">
+          <h2 className="font-display text-2xl">Revise</h2>
+          <ul className="mt-2 list-disc pl-5 text-sm">
+            {attempt.answers.filter((answer) => answer.isCorrect === false).map((answer) => (
+              <li key={answer.id}>{answer.question.prompt}</li>
+            ))}
+          </ul>
+        </section>
+      )}
       {attempt.answers.map((answer, i) => (
         <article key={answer.id} className="rounded-[1.6rem] bg-white border p-5">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -38,12 +53,13 @@ export default async function AttemptPage({ params }: { params: Promise<{ attemp
           </p>
           <p className="font-semibold mt-2">{answer.question.prompt}</p>
           <p className="mt-3 rounded-2xl bg-muted px-3 py-2 text-sm">
-            Your answer: {answer.studentAnswer?.startsWith("data:image") ? "drawing submitted" : answer.studentAnswer || "—"}
+            Your answer: {answer.studentAnswer?.startsWith("data:image") ? "drawing submitted" : submittedAnswerText(answer.question.type, answer.studentAnswer)}
           </p>
           <p className="mt-2 text-sm">
             Marks: {answer.pointsAwarded ?? "pending"} / {answer.question.points}
           </p>
           {answer.feedback && <p className="mt-2 text-sm text-muted-foreground">{answer.feedback}</p>}
+          {answer.question.explanation && <p className="mt-2 text-sm">Model answer: {answer.question.explanation}</p>}
         </article>
       ))}
     </div>

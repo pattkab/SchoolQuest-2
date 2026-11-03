@@ -1,82 +1,95 @@
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
-import { setStudentClassAction } from "@/app/actions/auth";
-import { joinClassroomAction } from "@/app/actions/marking";
-import { DoCard, workLinks } from "@/components/do-card";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { CLASS_BANDS, splitSubjects } from "@/lib/taxonomy";
+import { attachLoose, type LinkedTopic } from "@/lib/topics";
+import { defaultSubjectSlug } from "@/lib/taxonomy";
+import { LearnPicker, type LearnClass, type LearnItem } from "@/components/learn-picker";
 
-const subjectPick = {
-  orderBy: { order: "asc" as const },
-  include: {
-    _count: { select: { notes: { where: { status: "PUBLISHED" } }, papers: { where: { status: "PUBLISHED" } } } },
-    notes: { where: { status: "PUBLISHED" }, orderBy: { order: "asc" as const }, take: 1, select: { id: true } },
-    papers: { where: { status: "PUBLISHED" }, orderBy: { createdAt: "asc" as const }, take: 1, select: { id: true } },
-  },
-};
+function currentTerm() {
+  const month = new Date().getMonth();
+  if (month < 4) return "1";
+  if (month < 8) return "2";
+  return "3";
+}
 
-export default async function LearnHome() {
+function itemsFor(subject: {
+  topics: LinkedTopic[];
+  notes: { id: string; title: string }[];
+  papers: { id: string; title: string; kind: string }[];
+}): LearnItem[] {
+  const seen = new Set<string>();
+  const items: LearnItem[] = [];
+  for (const topic of attachLoose(subject.topics, subject.notes, subject.papers)) {
+    for (const note of topic.notes) {
+      const key = `note:${note.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      items.push({ id: note.id, title: note.title, term: topic.term, kind: "note", href: `/dashboard/notes/${note.id}` });
+    }
+    for (const paper of topic.papers) {
+      const key = `paper:${paper.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      items.push({ id: paper.id, title: paper.title, term: topic.term, kind: "paper", play: paper.kind === "TOPIC_QUIZ" ? "quiz" : "paper", href: `/dashboard/papers/${paper.id}` });
+    }
+  }
+  return items;
+}
+
+export default async function LearnHome({ query }: { query: { class?: string; subject?: string; term?: string; mode?: string } }) {
   const user = await requireUser();
-  const classes = await db.classGrade.findMany({
+  const grades = await db.classGrade.findMany({
     where: { isActive: true },
     orderBy: { order: "asc" },
-    select: { id: true, slug: true, shortName: true, name: true },
+    select: {
+      slug: true,
+      shortName: true,
+      subjects: {
+        orderBy: { order: "asc" },
+        select: {
+          slug: true,
+          name: true,
+          topics: {
+            orderBy: { order: "asc" },
+            select: {
+              id: true,
+              name: true,
+              term: true,
+              notes: { where: { status: "PUBLISHED" }, orderBy: { order: "asc" }, select: { id: true, title: true } },
+              papers: { where: { status: "PUBLISHED" }, orderBy: { createdAt: "asc" }, select: { id: true, title: true, kind: true } },
+            },
+          },
+          notes: { where: { status: "PUBLISHED", topicId: null }, select: { id: true, title: true } },
+          papers: { where: { status: "PUBLISHED", topicId: null }, select: { id: true, title: true, kind: true } },
+        },
+      },
+    },
   });
-  const myClass = user.classGradeId
-    ? await db.classGrade.findUnique({
-        where: { id: user.classGradeId },
-        include: { subjects: subjectPick },
-      })
-    : null;
-  const { core } = myClass ? splitSubjects(myClass.slug, myClass.subjects) : { core: [] };
-
-  return (
-    <div className="space-y-8">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-primary">Learn</p>
-        <h1 className="font-display">{user.name?.split(" ")[0] || "Start"}</h1>
-        <p className="text-base text-muted-foreground mt-1">
-          {myClass ? myClass.shortName : "Pick your class"}
-          {" · "}
-          <Link href="/dashboard/curriculum" className="font-bold text-primary">Syllabus</Link>
-        </p>
-      </div>
-
-      {!myClass && user.role === "STUDENT" && (
-        <form action={setStudentClassAction} className="rounded-3xl bg-white border p-4 flex flex-col sm:flex-row gap-3">
-          <input type="hidden" name="userId" value={user.id} />
-          <select name="classGradeId" className="flex-1 h-12 rounded-2xl border px-3">
-            {CLASS_BANDS.map((band) => (
-              <optgroup key={band.id} label={band.short}>
-                {classes.filter((cls) => (band.slugs as readonly string[]).includes(cls.slug)).map((cls) => (
-                  <option key={cls.id} value={cls.id}>{cls.shortName}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          <button type="submit" className="h-12 rounded-2xl px-6 bg-primary text-white font-bold">Save</button>
-        </form>
-      )}
-
-      {myClass && (
-        <section className="stagger grid sm:grid-cols-2 gap-4">
-          {core.map((subject) => (
-            <DoCard
-              key={subject.id}
-              name={subject.name}
-              color={subject.color}
-              paperCount={subject._count.papers}
-              {...workLinks(myClass.slug, subject)}
-            />
-          ))}
-        </section>
-      )}
-
-      <form action={joinClassroomAction} className="flex gap-2 max-w-md">
-        <Input name="code" placeholder="Class code" className="rounded-2xl" />
-        <button type="submit" className="rounded-2xl px-4 bg-primary text-white font-bold">Join</button>
-      </form>
-    </div>
-  );
+  const classes: LearnClass[] = grades.map((grade) => ({
+    slug: grade.slug,
+    shortName: grade.shortName,
+    subjects: grade.subjects.map((subject) => ({
+      slug: subject.slug,
+      name: subject.name,
+      items: itemsFor(subject),
+    })),
+  }));
+  const home = user.classGradeId ? await db.classGrade.findUnique({ where: { id: user.classGradeId }, select: { slug: true } }) : null;
+  const classSlug = classes.some((item) => item.slug === query.class) ? query.class! : home?.slug || classes[0]?.slug || "";
+  const grade = classes.find((item) => item.slug === classSlug);
+  const subjectSlug = grade?.subjects.some((item) => item.slug === query.subject) ? query.subject! : defaultSubjectSlug(classSlug, grade?.subjects || []) || "";
+  const mode = query.mode === "paper" ? "paper" : "notes";
+  const explicitTerm = query.term === "1" || query.term === "2" || query.term === "3";
+  let term = explicitTerm ? query.term! : currentTerm();
+  if (!explicitTerm) {
+    const chosen = grade?.subjects.find((item) => item.slug === subjectSlug);
+    const kind = mode === "notes" ? "note" : "paper";
+    const has = (value: string) => chosen?.items.some((item) => item.kind === kind && item.term === Number(value));
+    if (!has(term)) term = (["1", "2", "3"] as const).find((value) => has(value)) || term;
+  }
+  if (!classSlug || !subjectSlug) return <p>No classes are ready yet.</p>;
+  if (query.class !== classSlug || query.subject !== subjectSlug || query.term !== term || query.mode !== mode) {
+    redirect(`/dashboard/learn?class=${classSlug}&subject=${subjectSlug}&term=${term}&mode=${mode}`);
+  }
+  return <LearnPicker classes={classes} classSlug={classSlug} subjectSlug={subjectSlug} term={term} mode={mode} />;
 }

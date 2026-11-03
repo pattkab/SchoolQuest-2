@@ -47,12 +47,10 @@ GOOGLE_GENAI_USE_VERTEXAI="True"
    npm install
    ```
 
-2. **Configure Local Database (SQLite by default)**
-   We use SQLite by default to make local onboarding instant without requiring Docker.
+2. **Configure the local database (PostgreSQL)**
+   Create a database and set `DATABASE_URL` in `.env` to its connection string.
    ```bash
-   # Push schema to SQLite
    npx prisma db push
-   # Seed standard Ugandan Levels & subjects
    npx tsx prisma/seed.ts
    ```
 

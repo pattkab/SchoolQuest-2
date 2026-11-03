@@ -1,28 +1,32 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { signIn } from "@/auth";
+import { auth, signIn } from "@/auth";
 import { db } from "@/lib/db";
-import { schoolById } from "@/lib/ug-schools";
+import { registerStudentAccount } from "@/lib/student-account";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
+import { reportOps } from "@/lib/ops-log";
+import { rateLimit } from "@/lib/rate-limit";
+import { canonicalPhone, phoneKeys } from "@/lib/phone";
+
+import { randomCode } from "@/lib/school";
 
 function cleanPhone(value: FormDataEntryValue | null) {
-  return String(value || "").replace(/\s+/g, "");
+  return canonicalPhone(String(value || ""));
 }
 
 export async function loginAction(formData: FormData) {
   const phone = cleanPhone(formData.get("phone"));
   const password = String(formData.get("password") || "");
-  const intent = String(formData.get("intent") || "STUDENT");
+  if (!rateLimit(`login:${phone}`, 8, 15 * 60_000).ok) {
+    reportOps("auth.login_limited", {});
+    redirect("/login?error=limited");
+  }
   try {
-    await signIn("credentials", { phone, password, intent, redirectTo: "/dashboard" });
+    await signIn("credentials", { phone, password, redirectTo: "/start" });
   } catch (error) {
-    if (error instanceof AuthError) {
-      const pathway = String(formData.get("pathway") || "student");
-      const safePathway = ["student", "teacher", "school", "site"].includes(pathway) ? pathway : "student";
-      redirect(`/login?error=invalid&pathway=${safePathway}`);
-    }
+    if (error instanceof AuthError) redirect("/login?error=invalid");
     throw error;
   }
 }
@@ -30,49 +34,52 @@ export async function loginAction(formData: FormData) {
 export async function registerStudentAction(formData: FormData) {
   const phone = cleanPhone(formData.get("phone"));
   const password = String(formData.get("password") || "");
-  const name = String(formData.get("name") || "").trim();
-  const classGradeId = String(formData.get("classGradeId") || "") || null;
-  const sex = String(formData.get("sex") || "");
-  const guardianName = String(formData.get("guardianName") || "").trim();
-  const guardianPhone = cleanPhone(formData.get("guardianPhone"));
-  const born = String(formData.get("dateOfBirth") || "");
-  const dateOfBirth = born ? new Date(`${born}T00:00:00.000Z`) : null;
-  const school = schoolById(String(formData.get("emisSchoolId") || ""));
-  if (!phone || password.length < 4 || !name || !classGradeId || !guardianName || !guardianPhone || (sex !== "Female" && sex !== "Male") || !dateOfBirth || Number.isNaN(dateOfBirth.getTime())) {
-    redirect("/login?tab=join&error=missing");
+  if (!rateLimit(`register:${phone}`, 5, 60 * 60_000).ok) {
+    reportOps("auth.register_limited", {});
+    redirect("/login?tab=join&error=limited");
   }
-  if (!school) redirect("/login?tab=join&error=school");
-
-  const existing = await db.user.findUnique({ where: { phone } });
-  if (existing) redirect("/login?tab=join&error=exists");
-
-  const trialEnds = new Date();
-  trialEnds.setDate(trialEnds.getDate() + 14);
-
-  await db.user.create({
-    data: {
-      phone,
-      name,
-      passwordHash: bcrypt.hashSync(password, 10),
-      role: "STUDENT",
-      classGradeId,
-      sex,
-      dateOfBirth,
-      guardianName,
-      guardianPhone,
-      emisSchoolId: school.id,
-      school: school.name,
-      district: school.district,
-      trialStartsAt: new Date(),
-      trialEndsAt: trialEnds,
-    },
+  const created = await registerStudentAccount({
+    phone,
+    password,
+    name: String(formData.get("name") || ""),
+    classGradeId: String(formData.get("classGradeId") || ""),
+    sex: String(formData.get("sex") || ""),
+    guardianName: String(formData.get("guardianName") || ""),
+    guardianPhone: cleanPhone(formData.get("guardianPhone")),
+    dateOfBirth: String(formData.get("dateOfBirth") || ""),
+    emisSchoolId: String(formData.get("emisSchoolId") || ""),
   });
+  if ("error" in created) redirect(`/login?tab=join&error=${created.error}`);
 
-  await signIn("credentials", { phone, password, intent: "STUDENT", redirectTo: "/dashboard" });
+  await signIn("credentials", { phone, password, intent: "STUDENT", redirectTo: "/start" });
+}
+
+export async function registerSchoolAction(formData: FormData) {
+  const session = await auth();
+  if (session?.user?.id && await db.user.findUnique({ where: { id: session.user.id }, select: { id: true } })) redirect("/dashboard");
+  const name = String(formData.get("name") || "").trim();
+  const schoolName = String(formData.get("schoolName") || "").trim();
+  const district = String(formData.get("district") || "").trim();
+  const phone = cleanPhone(formData.get("phone"));
+  const password = String(formData.get("password") || "");
+  if (!name || !schoolName || !district || !/^07\d{8}$/.test(phone) || password.length < 4) redirect("/register/school?error=missing");
+  if (!rateLimit(`register-school:${phone}`, 5, 60 * 60_000).ok) redirect("/register/school?error=limited");
+  const existing = await db.user.findFirst({ where: { phone: { in: phoneKeys(phone) } } });
+  if (existing) redirect("/register/school?error=exists");
+  const passwordHash = await bcrypt.hash(password, 10);
+  await db.$transaction(async (tx) => {
+    const user = await tx.user.create({ data: { name, phone, passwordHash, role: "SCHOOL_ADMIN", school: schoolName, district } });
+    const school = await tx.school.create({ data: { name: schoolName, district, ownerId: user.id, code: randomCode("SQ-", 8) } });
+    await tx.user.update({ where: { id: user.id }, data: { schoolId: school.id } });
+  });
+  await signIn("credentials", { phone, password, redirectTo: "/start" });
 }
 
 export async function registerTeacherAction(formData: FormData) {
-  const phone = cleanPhone(formData.get("phone"));
+  const session = await auth();
+  const current = session?.user?.id ? await db.user.findUnique({ where: { id: session.user.id }, include: { teacherProfile: true } }) : null;
+  if (current && (current.role !== "TEACHER" || current.teacherProfile)) redirect("/dashboard");
+  const phone = current?.phone || cleanPhone(formData.get("phone"));
   const password = String(formData.get("password") || "");
   const fullName = String(formData.get("fullName") || "").trim();
   const registrationNumber = String(formData.get("registrationNumber") || "").trim().toUpperCase();
@@ -89,50 +96,39 @@ export async function registerTeacherAction(formData: FormData) {
     .map((s) => s.trim())
     .filter(Boolean);
   const bio = String(formData.get("bio") || "").trim();
-  const nationalId = String(formData.get("nationalId") || "").trim();
   const email = String(formData.get("email") || "").trim() || null;
 
-  if (!phone || password.length < 4 || !fullName || !registrationNumber || !school || !district || !qualification) {
+  if ((!current && (!phone || password.length < 4)) || !fullName || !registrationNumber || !school || !district || !qualification) {
     redirect("/register/teacher?error=missing");
   }
+  if (!rateLimit(`register-teacher:${current?.id || phone}`, 5, 60 * 60_000).ok) {
+    reportOps("auth.register_limited", {});
+    redirect("/register/teacher?error=limited");
+  }
 
-  const existingPhone = await db.user.findUnique({ where: { phone } });
+  const existingPhone = !current && await db.user.findFirst({ where: { phone: { in: phoneKeys(phone) } } });
   if (existingPhone) redirect("/register/teacher?error=exists");
   const existingReg = await db.teacherProfile.findUnique({ where: { registrationNumber } });
   if (existingReg) redirect("/register/teacher?error=reg");
 
-  const user = await db.user.create({
+  const profile = {
+    fullName, registrationNumber, school, district, qualification,
+    yearsExperience: Number.isFinite(yearsExperience) ? yearsExperience : 0,
+    subjects: JSON.stringify(subjects), classes: JSON.stringify(classes), bio: bio || null, status: "PENDING",
+  };
+  if (current) {
+    await db.user.update({ where: { id: current.id }, data: { name: fullName, teacherProfile: { create: profile } } });
+    redirect("/dashboard/teacher");
+  }
+  await db.user.create({
     data: {
-      phone,
-      email,
-      name: fullName,
-      passwordHash: bcrypt.hashSync(password, 10),
-      role: "TEACHER",
-      school,
-      district,
-      trialStartsAt: new Date(),
-      trialEndsAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
+      phone, email, name: fullName, passwordHash: await bcrypt.hash(password, 10), role: "TEACHER", school, district,
+      trialStartsAt: new Date(), trialEndsAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
+      teacherProfile: { create: profile },
     },
   });
 
-  await db.teacherProfile.create({
-    data: {
-      userId: user.id,
-      fullName,
-      registrationNumber,
-      nationalId: nationalId || null,
-      school,
-      district,
-      qualification,
-      yearsExperience: Number.isFinite(yearsExperience) ? yearsExperience : 0,
-      subjects: JSON.stringify(subjects),
-      classes: JSON.stringify(classes),
-      bio: bio || null,
-      status: "PENDING",
-    },
-  });
-
-  await signIn("credentials", { phone, password, intent: "TEACHER", redirectTo: "/dashboard/teacher" });
+  await signIn("credentials", { phone, password, intent: "TEACHER", redirectTo: "/start" });
 }
 
 export async function setStudentClassAction(formData: FormData) {
