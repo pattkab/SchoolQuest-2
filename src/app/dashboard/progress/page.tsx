@@ -89,8 +89,8 @@ export default async function ProgressPage() {
   );
 }
 
-function spentLabel(seconds: number) {
-  if (seconds <= 0) return "";
+function spentLabel(seconds: number | null) {
+  if (!seconds || seconds <= 0) return "";
   if (seconds < 60) return ` · ${seconds} sec`;
   return ` · ${Math.floor(seconds / 60)} min`;
 }
