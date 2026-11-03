@@ -11,12 +11,7 @@ export default auth((req) => {
     prefix === "/" ? pathname === "/" : pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
 
-  if (isPublic) {
-    if (req.auth && (pathname === "/login" || pathname.startsWith("/register"))) {
-      return Response.redirect(new URL("/dashboard", req.nextUrl));
-    }
-    return null;
-  }
+  if (isPublic) return null;
 
   if (!req.auth && (pathname.startsWith("/dashboard") || pathname.startsWith("/setup"))) {
     return Response.redirect(new URL("/login", req.nextUrl));

@@ -1,3 +1,4 @@
+import { GettingStarted } from "@/components/getting-started";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser, isAdmin } from "@/lib/session";
@@ -20,10 +21,15 @@ export default async function AdminHomePage() {
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-primary">Site administrator</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-primary">Site manager</p>
         <h1 className="font-display mt-2">Your platform, at a glance.</h1>
         <p className="mt-3 text-sm text-muted-foreground">Support your educators, review content, and keep learning moving.</p>
       </div>
+      <GettingStarted title="Set up your site manager workspace" steps={[
+        { title: "Review teacher applications", detail: "Check pending applications and record your decisions.", href: "/dashboard/admin/teachers" },
+        { title: "Review the learning library", detail: "Check the notes and practice available to learners.", href: "/dashboard/admin/library" },
+        { title: "Check platform activity", detail: "See how many learners and educators are using School Quest.", href: "/dashboard/admin/analytics" },
+      ]} />
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Tile href="/dashboard/admin/teachers" label="Pending teachers" value={String(pendingTeachers)} note={`${teachers} accredited`} />
         <Tile href="/dashboard/teacher/marking" label="Scripts to mark" value={String(pendingMarks)} note={`${learners} learners`} />

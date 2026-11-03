@@ -88,18 +88,18 @@ export async function gradeOpenAnswer(
 
   const query = `
     You are an expert examiner for the Ugandan curriculum.
-    Evaluate the student's answer against the question prompt and the correct answer rubric.
+    Evaluate the learner's answer against the question prompt and the correct answer rubric.
     Be encouraging but fair. Provide partial credit if they understand the concept but got details wrong.
 
     Question Prompt: "${prompt}"
-    Student's Answer: "${studentAnswer}"
+    Learner's Answer: "${studentAnswer}"
     Correct Answer/Rubric: "${correctAnswerRubric}"
     Maximum Points Available: ${maxPoints}
 
     Provide the result as a raw valid JSON object match this schema:
     {
       "score": number (0 to ${maxPoints}),
-      "explanation": "A short, clear 1-2 sentence explanation to the student of why they received this score, highlighting any mistakes or what was good.",
+      "explanation": "A short, clear 1-2 sentence explanation to the learner of why they received this score, highlighting any mistakes or what was good.",
       "confidence": number from 0 to 1,
       "needsReview": true when the rubric is thin, the wording is ambiguous, or you are unsure
     }
@@ -139,12 +139,12 @@ export async function gradeDrawingAnswer(
 
   const query = `
     You are an expert art/diagram examiner for primary & secondary schools.
-    Evaluate the student's drawing against the question prompt.
+    Evaluate the learner's drawing against the question prompt.
     Prompt: "${prompt}"
     Max points: ${maxPoints}
 
     Assess whether the drawing correctly depicts what was asked (e.g. if asked to draw a bucket, is there a bucket shape? If asked to draw a circle, is there a circular shape?).
-    Be lenient with drawing quality since students use low-end touchscreens.
+    Be lenient with drawing quality since learners use low-end touchscreens.
     
     Provide the result as a raw valid JSON object match this schema:
     {

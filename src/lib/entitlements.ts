@@ -16,25 +16,25 @@ export async function hasPremium(userId: string, now = new Date(), tx: Tx | type
   return rows.some((row) => entitlementActive(row, now));
 }
 
-export async function refreshSubscriptionCache(userId: string) {
-  const rows = await db.entitlement.findMany({ where: { userId, revokedAt: null } });
+export async function refreshSubscriptionCache(userId: string, tx: Tx | typeof db = db) {
+  const rows = await tx.entitlement.findMany({ where: { userId, revokedAt: null } });
   const active = rows.filter((row) => entitlementActive(row));
   const endsAt = active.sort((a, b) => b.endsAt.getTime() - a.endsAt.getTime())[0]?.endsAt ?? null;
-  await db.user.update({ where: { id: userId }, data: { subscriptionEndsAt: endsAt } });
+  await tx.user.update({ where: { id: userId }, data: { subscriptionEndsAt: endsAt } });
 }
 
-export async function grantEntitlement(input: { userId: string; planCode: string; source: string; providerRef: string; days: number; now?: Date }) {
-  const existing = await db.entitlement.findUnique({ where: { providerRef: input.providerRef } });
+export async function grantEntitlement(input: { userId: string; planCode: string; source: string; providerRef: string; days: number; now?: Date }, tx: Tx | typeof db = db) {
+  const existing = await tx.entitlement.findUnique({ where: { providerRef: input.providerRef } });
   if (existing) return { entitlement: existing, created: false };
   const now = input.now ?? new Date();
-  const current = await db.entitlement.findMany({ where: { userId: input.userId, revokedAt: null } });
+  const current = await tx.entitlement.findMany({ where: { userId: input.userId, revokedAt: null } });
   const latest = current.filter((row) => entitlementActive(row, now)).sort((a, b) => b.endsAt.getTime() - a.endsAt.getTime())[0];
   const startsAt = latest && latest.endsAt > now ? latest.endsAt : now;
   const endsAt = new Date(startsAt.getTime() + input.days * 24 * 60 * 60 * 1000);
-  const entitlement = await db.entitlement.create({
+  const entitlement = await tx.entitlement.create({
     data: { userId: input.userId, planCode: input.planCode, source: input.source, providerRef: input.providerRef, startsAt, endsAt },
   });
-  await refreshSubscriptionCache(input.userId);
+  await refreshSubscriptionCache(input.userId, tx);
   return { entitlement, created: true };
 }
 

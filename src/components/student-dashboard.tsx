@@ -1,9 +1,9 @@
+import { GettingStarted } from "@/components/getting-started";
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { requireUser } from '@/lib/session';
 import { classWithTerm, shortSubjectName } from '@/lib/taxonomy';
-import { QuestArt } from '@/components/quest-art';
-import { StudentsPhoto } from '@/components/students-photo';
+import { KitoMascot } from '@/components/kito-mascot';
 import { ArrowRight, BookOpen, Flame, Sparkles, Trophy, ChevronRight, Calculator, FlaskConical, Languages, Globe, Compass } from 'lucide-react';
 
 const subjectIcons = [Calculator, Languages, FlaskConical, Globe, BookOpen, Compass];
@@ -22,14 +22,29 @@ export default async function StudentDashboard() {
   const libraryKinds = [["LESSON_NOTES", "Lesson notes"], ["PAST_PAPER", "Past papers"], ["SCHEME_OF_WORK", "Schemes"], ["HOLIDAY_PACKAGE", "Holiday"]] as const;
   return <div className="space-y-4">
     <div className="flex items-center justify-between gap-3"><h1 className="font-display">Hey, {user.name?.split(' ')[0] || 'explorer'}</h1><span className="context-chip shrink-0">{classWithTerm(user.classGrade?.shortName)}</span></div>
-    <figure className="students-feature">
-      <StudentsPhoto className="students-feature-photo students-feature-photo-compact" />
-      <figcaption>Big smiles. Bright futures.</figcaption>
-    </figure>
-    <section className="learning-hero">
-      <div className="relative z-10 min-w-0"><h2 className="font-display max-w-md text-2xl">Continue where you left off</h2><Link href={nextHref} className="quest-button quest-button-light mt-4">{continuing ? 'Continue' : 'Start'}<ArrowRight className="h-4 w-4" /></Link></div>
-      <QuestArt compact />
+    <section className="learner-quest" aria-labelledby="learner-quest-title">
+      <div className="min-w-0">
+        <p className="learner-quest-kicker">Meet Kito, your quest guide</p>
+        <h2 id="learner-quest-title" className="font-display text-3xl">{continuing ? "Ready to keep going?" : "What shall we explore today?"}</h2>
+        <p className="mt-2">Read something new, practise a topic, or see how far you’ve come.</p>
+        <Link href={nextHref} className="quest-button quest-button-light mt-4">{continuing ? "Continue your practice" : "Start learning"}<ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
+      </div>
+      <KitoMascot />
     </section>
+    <section className="learner-activities" aria-label="Choose your next activity">
+      {[
+        { title: "Read notes", detail: "Learn something new", href: "/dashboard/learn?mode=notes", icon: BookOpen, tone: "mint" },
+        { title: quiz ? "Play a quiz" : "Practise a topic", detail: quiz ? "Try a quick challenge" : "Find practice for your class", href: quiz ? `/dashboard/papers/${quiz.id}` : "/dashboard/learn?mode=paper", icon: Sparkles, tone: "lilac" },
+        { title: "My progress", detail: "See what you’ve done", href: "/dashboard/progress", icon: Trophy, tone: "peach" },
+      ].map(({ title, detail, href, icon: Icon, tone }) => <Link key={title} href={href} className={`learner-activity tone-${tone}`}>
+        <Icon aria-hidden="true" className="h-6 w-6" /><strong>{title}</strong><span>{detail}</span>
+      </Link>)}
+    </section>
+    {user.role === "STUDENT" && !completed && !continuing && <GettingStarted title="Your first steps as a learner" steps={[
+      { title: "Explore your class", detail: "Find notes and activities for the class you’re in.", href: "/dashboard/learn" },
+      { title: "Try a quiz", detail: "Practise a topic and see what to work on next.", href: quiz ? `/dashboard/papers/${quiz.id}` : "/dashboard/learn" },
+      { title: "See your progress", detail: "Come back after practising to find your results and streak.", href: "/dashboard/progress" },
+    ]} />}
     {quiz && <Link href={`/dashboard/papers/${quiz.id}`} className="flex items-center justify-between rounded-3xl border bg-white px-4 py-3"><span><span className="block text-xs font-bold uppercase tracking-widest text-primary">Short quiz</span><span className="font-bold">{quiz.title}</span></span><span className="font-bold text-primary">Play</span></Link>}
     <section aria-label="Your learning progress" className="grid grid-cols-3 gap-2.5 sm:gap-4">
       {[{ icon: Flame, value: user.currentStreak, label: 'Day streak', tone: 'peach' }, { icon: Sparkles, value: user.xp, label: 'Learning XP', tone: 'lilac' }, { icon: Trophy, value: completed, label: 'Papers completed', tone: 'mint' }].map(({ icon: Icon, value, label, tone }) => <Link href="/dashboard/progress" key={label} className={`metric-card tone-${tone}`}><span className="metric-icon"><Icon className="h-5 w-5" /></span><strong>{value.toLocaleString()}</strong><span>{label}</span></Link>)}

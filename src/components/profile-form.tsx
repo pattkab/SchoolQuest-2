@@ -1,35 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useFormStatus } from "react-dom";
 import { completeProfileAction } from "@/app/actions/school";
 
 export function ProfileForm({
-  locked,
+  editing,
+  needsSchool,
+  needsSchoolCode,
   defaults,
   classes,
 }: {
-  locked: boolean;
+  editing: boolean;
+  needsSchool: boolean;
+  needsSchoolCode: boolean;
   defaults: { name: string; phone: string; role: string; classGradeId: string };
   classes: { id: string; shortName: string }[];
 }) {
-  const [role, setRole] = useState(locked ? defaults.role : "STUDENT");
+
   return (
     <form action={completeProfileAction} className="space-y-4">
       <label className="block text-sm font-bold">
         Name
         <input name="name" required defaultValue={defaults.name} className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
       </label>
-      {!locked && (
-        <label className="block text-sm font-bold">
-          I am
-          <select name="role" value={role} onChange={(event) => setRole(event.target.value)} className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal">
-            <option value="STUDENT">Student</option>
-            <option value="TEACHER">Teacher</option>
-            <option value="SCHOOL_ADMIN">School manager</option>
-          </select>
-        </label>
-      )}
-      {role === "STUDENT" && (
+      {defaults.role === "STUDENT" && (
         <>
           <label className="block text-sm font-bold">
             Class
@@ -42,13 +36,13 @@ export function ProfileForm({
           </label>
         </>
       )}
-      {role === "TEACHER" && !locked && (
+      {needsSchoolCode && (
         <label className="block text-sm font-bold">
-          School code
-          <input name="schoolCode" placeholder="SQ-DEMO" className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
+          School code (optional)
+          <input name="schoolCode" placeholder="Ask your school administrator" className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
         </label>
       )}
-      {role === "SCHOOL_ADMIN" && !locked && (
+      {needsSchool && (
         <>
           <label className="block text-sm font-bold">
             School name
@@ -61,10 +55,18 @@ export function ProfileForm({
         </>
       )}
       <label className="block text-sm font-bold">
-        Phone
-        <input name="phone" defaultValue={defaults.phone} placeholder="07..." className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
+        Phone (optional)
+        <input type="tel" autoComplete="tel" name="phone" defaultValue={defaults.phone} placeholder="07..." className="mt-1 w-full h-12 rounded-2xl border px-3 font-normal" />
       </label>
-      <button type="submit" className="h-12 w-full rounded-2xl bg-primary text-white font-bold">Save</button>
+      <SaveProfile editing={editing} />
     </form>
   );
+}
+
+
+function SaveProfile({ editing }: { editing: boolean }) {
+  const { pending } = useFormStatus();
+  return <button type="submit" disabled={pending} className="h-12 w-full rounded-2xl bg-primary text-white font-bold disabled:opacity-60">
+    {pending ? "Saving…" : editing ? "Save changes" : "Save and open dashboard"}
+  </button>;
 }

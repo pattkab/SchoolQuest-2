@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { BrandMark } from "@/components/shell";
 import { ProfileForm } from "@/components/profile-form";
+import { pathwayForRole } from "@/lib/pathways";
 import { SiteFooter } from "@/components/site-footer";
 
 const errors: Record<string, string> = {
@@ -20,24 +21,31 @@ export default async function SetupPage({
 }) {
   const { error } = await searchParams;
   const user = await requireUser();
-  const classes = await db.classGrade.findMany({
+  const chooseClass = user.role === "STUDENT" && !user.classGradeId;
+  const needsSchool = user.role === "SCHOOL_ADMIN" && !user.ownedSchool;
+  const editing = user.profileComplete && !chooseClass && !needsSchool;
+  const pathway = pathwayForRole(user.role);
+  const classes = user.role === "STUDENT" ? await db.classGrade.findMany({
     where: { isActive: true },
     orderBy: { order: "asc" },
     select: { id: true, shortName: true },
-  });
+  }) : [];
 
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-1 px-5 py-8 max-w-md mx-auto w-full">
         <BrandMark />
-        <h1 className="font-display text-4xl mt-8">{!user.classGradeId && user.role === "STUDENT" ? "Choose your class" : user.profileComplete ? "Profile" : "Set up"}</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {!user.classGradeId && user.role === "STUDENT" ? "This opens the notes and practice for your class." : user.profileComplete ? "Update your name and phone." : "Student, teacher, or school manager."}
+        <p className="eyebrow mt-8">{pathway.label} space</p>
+        <h1 className="font-display text-4xl mt-2">{chooseClass ? "Choose your class" : needsSchool ? "Set up your school" : editing ? "Edit your profile" : "Finish setting up your profile"}</h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          {chooseClass ? "We’ll show you notes and practice for your class. You can change it from your profile later." : needsSchool ? "Add your school name and district to create a workspace for enrolment, attendance, and fees." : editing ? "Update your contact details." : "Confirm your details to open your dashboard."}
         </p>
-        {error && <p className="mt-4 rounded-2xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">{errors[error] || "Try again."}</p>}
+        {error && <p role="alert" className="mt-4 rounded-2xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">{errors[error] || "Try again."}</p>}
         <div className="mt-6">
           <ProfileForm
-            locked={user.profileComplete}
+            editing={editing}
+            needsSchool={needsSchool}
+            needsSchoolCode={user.role === "TEACHER" && !user.profileComplete && !user.schoolId}
             defaults={{
               name: user.name || "",
               phone: user.phone || "",
@@ -47,7 +55,7 @@ export default async function SetupPage({
             classes={classes}
           />
         </div>
-        {user.profileComplete && (
+        {editing && (
           <Link href="/dashboard/profile" className="inline-block mt-4 text-sm font-bold text-primary">Back to my profile</Link>
         )}
       </main>

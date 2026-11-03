@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${plusJakarta.variable} ${display.variable} h-full antialiased`} suppressHydrationWarning>
-      <body className="min-h-full flex flex-col"><script dangerouslySetInnerHTML={{ __html: "try{var s=JSON.parse(localStorage.getItem('schoolquest.accessibility.v1')||'{}');if(s.textSize)document.documentElement.style.fontSize=s.textSize+'%'}catch(e){}" }} /><SkipToContent /><PullToRefresh /><FirebaseSignals /><OfflineShell />{children}<AccessibilityTools /></body>
+      <body className="min-h-full flex flex-col"><script dangerouslySetInnerHTML={{ __html: "try{var s=JSON.parse(localStorage.getItem('schoolquest.accessibility.v1')||'{}');if([100,125,150,175,200].includes(Number(s.textSize)))document.documentElement.style.fontSize=Number(s.textSize)+'%';if(s.calmDisplay===true)document.documentElement.dataset.a11yCalm='true'}catch(e){}" }} /><SkipToContent /><PullToRefresh /><FirebaseSignals /><OfflineShell />{children}<AccessibilityTools /></body>
     </html>
   );
 }

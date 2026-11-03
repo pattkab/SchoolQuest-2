@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/session";
+import { homeForRole, requireUser } from "@/lib/session";
 import { schoolById } from "@/lib/ug-schools";
 import { randomCode, schoolFor, todayKey } from "@/lib/school";
 
@@ -16,7 +16,7 @@ export async function completeProfileAction(formData: FormData) {
   const user = await requireUser();
   const name = String(formData.get("name") || "").trim();
   const phone = cleanPhone(formData.get("phone")) || null;
-  const role = user.profileComplete ? user.role : String(formData.get("role") || "STUDENT");
+  const role = user.role;
   const classGradeId = String(formData.get("classGradeId") || "") || null;
   const schoolCode = String(formData.get("schoolCode") || "").trim().toUpperCase();
   const schoolName = String(formData.get("schoolName") || "").trim();
@@ -35,17 +35,17 @@ export async function completeProfileAction(formData: FormData) {
     if (taken && taken.id !== user.id) redirect("/setup?error=phone");
   }
 
-  if (!user.profileComplete && role === "SCHOOL_ADMIN") {
+  if (role === "SCHOOL_ADMIN" && !user.ownedSchool) {
     if (!schoolName) redirect("/setup?error=missing");
-    const code = randomCode("SQ-", 4);
-    await db.user.update({
-      where: { id: user.id },
-      data: { name, phone, role: "SCHOOL_ADMIN", district: district || null, school: schoolName, profileComplete: true },
+    await db.$transaction(async (tx) => {
+      const school = await tx.school.create({
+        data: { name: schoolName, code: randomCode("SQ-", 8), district: district || null, ownerId: user.id },
+      });
+      await tx.user.update({
+        where: { id: user.id },
+        data: { name, phone, district: district || null, school: schoolName, schoolId: school.id, profileComplete: true },
+      });
     });
-    const school = await db.school.create({
-      data: { name: schoolName, code, district: district || null, ownerId: user.id },
-    });
-    await db.user.update({ where: { id: user.id }, data: { schoolId: school.id } });
     redirect("/dashboard/school");
   }
 
@@ -58,23 +58,25 @@ export async function completeProfileAction(formData: FormData) {
         name,
         phone,
         role: "TEACHER",
-        schoolId: school?.id || null,
-        school: school?.name || null,
-        district: school?.district || null,
+        ...(school ? { schoolId: school.id, school: school.name, district: school.district } : {}),
         profileComplete: true,
       },
     });
-    redirect("/dashboard");
+    redirect("/dashboard/teacher");
   }
 
-  if (role === "STUDENT" && !classGradeId && !user.classGradeId) redirect("/setup?error=class");
+  if (role === "STUDENT") {
+    const gradeId = classGradeId || user.classGradeId;
+    if (!gradeId || !await db.classGrade.findFirst({ where: { id: gradeId, isActive: true }, select: { id: true } })) {
+      redirect("/setup?error=class");
+    }
+  }
   await db.user.update({
     where: { id: user.id },
     data: {
       name,
       phone,
-      role: user.profileComplete ? user.role : "STUDENT",
-      classGradeId: classGradeId || user.classGradeId,
+      ...(role === "STUDENT" ? { classGradeId: classGradeId || user.classGradeId } : {}),
       ...(role === "STUDENT" && !user.profileComplete
         ? {
             sex,
@@ -89,7 +91,7 @@ export async function completeProfileAction(formData: FormData) {
       profileComplete: true,
     },
   });
-  redirect(user.role === "SCHOOL_ADMIN" ? "/dashboard/school" : "/dashboard");
+  redirect(homeForRole(user.role));
 }
 
 export async function joinSchoolAction(formData: FormData) {
@@ -185,7 +187,7 @@ export async function markAttendanceAction(code: string) {
   }
   const studentNumber = code.trim().toUpperCase();
   const student = await db.user.findUnique({ where: { studentNumber } });
-  if (!student || student.schoolId !== school.id) return { ok: false, message: "No student with that ID." };
+  if (!student || student.schoolId !== school.id) return { ok: false, message: "No learner with that ID." };
   const day = todayKey();
   await db.attendanceMark.upsert({
     where: { userId_day: { userId: student.id, day } },
@@ -193,7 +195,7 @@ export async function markAttendanceAction(code: string) {
     create: { schoolId: school.id, userId: student.id, teacherId: teacher.id, day },
   });
   revalidatePath("/dashboard/school/attendance");
-  return { ok: true, message: `${student.name || "Student"} · present` };
+  return { ok: true, message: `${student.name || "Learner"} · present` };
 }
 
 export async function sendMessageAction(formData: FormData) {

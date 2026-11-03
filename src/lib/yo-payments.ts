@@ -20,26 +20,28 @@ function field(xml: string, tag: string): string {
 export function isVerifiedSuccess(response: YoResponse, amountUgx: number) {
   return response.Status.toUpperCase() === "OK"
     && response.TransactionStatus.toUpperCase() === "SUCCEEDED"
-    && response.CurrencyCode.toUpperCase().startsWith("UGX")
+    && /^UGX(?:-[A-Z0-9]+)?$/i.test(response.CurrencyCode)
     && Number(response.Amount) === amountUgx;
 }
+export function yoMode() {
+  if (!process.env.YO_API_USERNAME || !process.env.YO_API_PASSWORD) return null;
+  if (process.env.YO_API_MODE === "sandbox") return "sandbox";
+  if (process.env.YO_API_MODE === "production" && process.env.YO_PRODUCTION_ENABLED === "true") return "production";
+  return null;
+}
+
 async function request(fields: Record<string, string>): Promise<YoResponse> {
   const username = process.env.YO_API_USERNAME;
   const password = process.env.YO_API_PASSWORD;
-  const mode = process.env.YO_API_MODE;
-  if (!username || !password || !["sandbox","production"].includes(mode || "")) {
-    throw new Error("Yo Payments is not configured. No charge was made.");
-  }
-  if (mode === "production" && process.env.YO_PRODUCTION_ENABLED !== "true") {
-    throw new Error("Live collections need explicit activation. No charge was made.");
-  }
+  const mode = yoMode();
+  if (!username || !password || !mode) throw new Error("Mobile money checkout is unavailable.");
   const body = '<?xml version="1.0" encoding="UTF-8"?><AutoCreate><Request>'
     + Object.entries({ APIUsername: username, APIPassword: password, ...fields })
       .map(([key, value]) => '<' + key + '>' + escapeXml(value) + '</' + key + '>').join("")
     + '</Request></AutoCreate>';
   const response = await fetch(mode === "production" ? LIVE : SANDBOX, {
-    method: "POST", headers: { "Content-Type": "application/xml" },
-    body, cache: "no-store", signal: AbortSignal.timeout(20000),
+    method: "POST", headers: { "Content-Type": "text/xml", "Content-transfer-encoding": "text" },
+    body, redirect: "error", cache: "no-store", signal: AbortSignal.timeout(20000),
   });
   if (!response.ok) throw new Error("Payment provider unavailable. Check status before retrying.");
   const xml = await response.text();
@@ -51,10 +53,17 @@ async function request(fields: Record<string, string>): Promise<YoResponse> {
   };
 }
 export async function initiateYoCollection(msisdn: string, amountUgx: number, externalReference: string) {
+  const notifications: Record<string, string> = {};
+  if (process.env.YO_CALLBACK_URL) {
+    const callback = new URL(process.env.YO_CALLBACK_URL);
+    if (callback.protocol !== "https:") throw new Error("Invalid Yo callback URL.");
+    callback.searchParams.set("payment", externalReference);
+    notifications.InstantNotificationUrl = callback.href;
+    notifications.FailureNotificationUrl = callback.href;
+  }
   return request({ Method: "acdepositfunds", NonBlocking: "TRUE", Account: msisdn,
-    Amount: String(amountUgx), Narrative: "SchoolQuest Student Pro Annual", ExternalReference: externalReference });
+    Amount: String(amountUgx), Narrative: "SchoolQuest Premium", ExternalReference: externalReference, ...notifications });
 }
-export async function verifyYoCollection(providerReference: string, externalReference: string) {
-  return request({ Method: "actransactioncheckstatus", TransactionReference: providerReference,
-    PrivateTransactionReference: externalReference, DepositTransactionType: "PULL" });
+export async function verifyYoCollection(providerReference: string) {
+  return request({ Method: "actransactioncheckstatus", TransactionReference: providerReference, DepositTransactionType: "PULL" });
 }

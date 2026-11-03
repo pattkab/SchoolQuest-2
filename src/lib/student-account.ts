@@ -24,6 +24,8 @@ export async function registerStudentAccount(input: StudentRegistration) {
   if (!phone || input.password.length < 4 || !name || !input.classGradeId) {
     return { error: "missing" as const };
   }
+  const grade = await db.classGrade.findFirst({ where: { id: input.classGradeId, isActive: true }, select: { id: true } });
+  if (!grade) return { error: "missing" as const };
   const school = input.emisSchoolId ? schoolById(input.emisSchoolId) : null;
   const existing = await db.user.findFirst({ where: { phone: { in: phoneKeys(input.phone) } } });
   if (existing) return { error: "exists" as const };

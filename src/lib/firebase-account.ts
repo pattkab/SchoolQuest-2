@@ -5,7 +5,7 @@ type GoogleAccount = { email: string; name: string; image: string | null };
 
 const certificates = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
 
-function googlePhoto(value: unknown) {
+export function googlePhoto(value: unknown) {
   try {
     const url = new URL(String(value || ""));
     const host = url.hostname;

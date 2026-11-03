@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { checkQuizAnswer, completeQuiz, startQuiz } from "@/app/actions/marking";
+import { QuestSoundToggle } from "@/components/quest-sound-toggle";
+import { playQuestSound, prepareQuestSound } from "@/lib/quest-sounds";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -72,13 +74,17 @@ export default function QuizGame({
 
   async function submit(value: string) {
     if (!question || check || busy || !value.trim()) return;
+    prepareQuestSound();
     setBusy(true);
     setError("");
     try {
       const id = await ensureAttempt();
       const result = await checkQuizAnswer({ attemptId: id, questionId: question.id, value });
       setCheck(result);
-      if (result.correct) setCorrectCount((count) => count + 1);
+      if (result.correct) {
+        setCorrectCount((count) => count + 1);
+        playQuestSound("correct");
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "The answer could not be checked.");
     } finally {
@@ -94,10 +100,12 @@ export default function QuizGame({
       return;
     }
     if (!attemptId) return;
+    prepareQuestSound();
     setBusy(true);
     try {
       const result = await completeQuiz(attemptId);
       setDone({ score: result.score, maxScore: result.maxScore });
+      playQuestSound("complete");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "The quiz could not be saved.");
     } finally {
@@ -121,7 +129,7 @@ export default function QuizGame({
 
   if (done) {
     return (
-      <div className="max-w-xl mx-auto rounded-[2rem] bg-white border p-8 text-center space-y-4">
+      <div className="max-w-xl mx-auto rounded-[2rem] bg-white border p-8 text-center quiz-celebration space-y-4">
         <p className="text-xs font-bold uppercase tracking-widest text-primary">Short quiz</p>
         <h1 className="font-display text-4xl">{paper.title}</h1>
         <p className="font-display text-6xl text-primary">{correctCount}/{questions.length}</p>
@@ -140,6 +148,7 @@ export default function QuizGame({
         <Link href={paper.backHref} className="text-sm font-bold text-primary">← {paper.className} {paper.subject}</Link>
         <p className="text-sm font-bold">{correctCount} correct</p>
       </div>
+      <QuestSoundToggle />
       <div className="rounded-[2rem] bg-white border p-6 space-y-4">
         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Short quiz · {index + 1} of {questions.length}</p>
         <h1 className="font-display text-3xl leading-snug">{question.prompt}</h1>
@@ -163,7 +172,7 @@ export default function QuizGame({
             <Button type="submit" className="rounded-2xl h-12" disabled={Boolean(check) || busy || !choice.trim()}>Check</Button>
           </form>
         )}
-        {check && <p role="status" className={`rounded-2xl px-4 py-3 font-bold ${check.correct ? "bg-emerald-50" : "bg-amber-50"}`}>{check.feedback}</p>}
+        {check && <p role="status" className={`rounded-2xl px-4 py-3 font-bold ${check.correct ? "bg-emerald-50 quiz-celebration" : "bg-amber-50"}`}>{check.feedback}</p>}
         {error && <p role="alert" className="text-sm font-bold text-red-700">{error}</p>}
         {check && <Button className="rounded-2xl h-12 w-full" disabled={busy} onClick={() => void next()}>{index + 1 < questions.length ? "Next" : "See score"}</Button>}
       </div>

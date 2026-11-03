@@ -1,14 +1,16 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { signIn } from "@/auth";
+import { auth, signIn } from "@/auth";
 import { db } from "@/lib/db";
 import { registerStudentAccount } from "@/lib/student-account";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { reportOps } from "@/lib/ops-log";
 import { rateLimit } from "@/lib/rate-limit";
-import { canonicalPhone } from "@/lib/phone";
+import { canonicalPhone, phoneKeys } from "@/lib/phone";
+
+import { randomCode } from "@/lib/school";
 
 function cleanPhone(value: FormDataEntryValue | null) {
   return canonicalPhone(String(value || ""));
@@ -52,8 +54,32 @@ export async function registerStudentAction(formData: FormData) {
   await signIn("credentials", { phone, password, intent: "STUDENT", redirectTo: "/dashboard" });
 }
 
-export async function registerTeacherAction(formData: FormData) {
+export async function registerSchoolAction(formData: FormData) {
+  const session = await auth();
+  if (session?.user?.id && await db.user.findUnique({ where: { id: session.user.id }, select: { id: true } })) redirect("/dashboard");
+  const name = String(formData.get("name") || "").trim();
+  const schoolName = String(formData.get("schoolName") || "").trim();
+  const district = String(formData.get("district") || "").trim();
   const phone = cleanPhone(formData.get("phone"));
+  const password = String(formData.get("password") || "");
+  if (!name || !schoolName || !district || !/^07\d{8}$/.test(phone) || password.length < 4) redirect("/register/school?error=missing");
+  if (!rateLimit(`register-school:${phone}`, 5, 60 * 60_000).ok) redirect("/register/school?error=limited");
+  const existing = await db.user.findFirst({ where: { phone: { in: phoneKeys(phone) } } });
+  if (existing) redirect("/register/school?error=exists");
+  const passwordHash = await bcrypt.hash(password, 10);
+  await db.$transaction(async (tx) => {
+    const user = await tx.user.create({ data: { name, phone, passwordHash, role: "SCHOOL_ADMIN", school: schoolName, district } });
+    const school = await tx.school.create({ data: { name: schoolName, district, ownerId: user.id, code: randomCode("SQ-", 8) } });
+    await tx.user.update({ where: { id: user.id }, data: { schoolId: school.id } });
+  });
+  await signIn("credentials", { phone, password, redirectTo: "/dashboard/school" });
+}
+
+export async function registerTeacherAction(formData: FormData) {
+  const session = await auth();
+  const current = session?.user?.id ? await db.user.findUnique({ where: { id: session.user.id }, include: { teacherProfile: true } }) : null;
+  if (current && (current.role !== "TEACHER" || current.teacherProfile)) redirect("/dashboard");
+  const phone = current?.phone || cleanPhone(formData.get("phone"));
   const password = String(formData.get("password") || "");
   const fullName = String(formData.get("fullName") || "").trim();
   const registrationNumber = String(formData.get("registrationNumber") || "").trim().toUpperCase();
@@ -73,47 +99,33 @@ export async function registerTeacherAction(formData: FormData) {
   const nationalId = String(formData.get("nationalId") || "").trim();
   const email = String(formData.get("email") || "").trim() || null;
 
-  if (!phone || password.length < 4 || !fullName || !registrationNumber || !school || !district || !qualification) {
+  if ((!current && (!phone || password.length < 4)) || !fullName || !registrationNumber || !school || !district || !qualification) {
     redirect("/register/teacher?error=missing");
   }
-  if (!rateLimit(`register-teacher:${phone}`, 5, 60 * 60_000).ok) {
+  if (!rateLimit(`register-teacher:${current?.id || phone}`, 5, 60 * 60_000).ok) {
     reportOps("auth.register_limited", {});
     redirect("/register/teacher?error=limited");
   }
 
-  const existingPhone = await db.user.findUnique({ where: { phone } });
+  const existingPhone = !current && await db.user.findFirst({ where: { phone: { in: phoneKeys(phone) } } });
   if (existingPhone) redirect("/register/teacher?error=exists");
   const existingReg = await db.teacherProfile.findUnique({ where: { registrationNumber } });
   if (existingReg) redirect("/register/teacher?error=reg");
 
-  const user = await db.user.create({
+  const profile = {
+    fullName, registrationNumber, nationalId: nationalId || null, school, district, qualification,
+    yearsExperience: Number.isFinite(yearsExperience) ? yearsExperience : 0,
+    subjects: JSON.stringify(subjects), classes: JSON.stringify(classes), bio: bio || null, status: "PENDING",
+  };
+  if (current) {
+    await db.user.update({ where: { id: current.id }, data: { name: fullName, teacherProfile: { create: profile } } });
+    redirect("/dashboard/teacher");
+  }
+  await db.user.create({
     data: {
-      phone,
-      email,
-      name: fullName,
-      passwordHash: bcrypt.hashSync(password, 10),
-      role: "TEACHER",
-      school,
-      district,
-      trialStartsAt: new Date(),
-      trialEndsAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
-    },
-  });
-
-  await db.teacherProfile.create({
-    data: {
-      userId: user.id,
-      fullName,
-      registrationNumber,
-      nationalId: nationalId || null,
-      school,
-      district,
-      qualification,
-      yearsExperience: Number.isFinite(yearsExperience) ? yearsExperience : 0,
-      subjects: JSON.stringify(subjects),
-      classes: JSON.stringify(classes),
-      bio: bio || null,
-      status: "PENDING",
+      phone, email, name: fullName, passwordHash: await bcrypt.hash(password, 10), role: "TEACHER", school, district,
+      trialStartsAt: new Date(), trialEndsAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
+      teacherProfile: { create: profile },
     },
   });
 

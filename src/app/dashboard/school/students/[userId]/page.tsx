@@ -24,7 +24,7 @@ export default async function StudentCardPage({
     <div className="space-y-4">
       <h1 className="font-display text-4xl no-print">ID card</h1>
       <IdCard
-        name={student.name || "Student"}
+        name={student.name || "Learner"}
         studentNumber={student.studentNumber}
         school={school.name}
         className={student.classGrade?.shortName || ""}

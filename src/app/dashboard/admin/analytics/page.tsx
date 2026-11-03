@@ -23,7 +23,7 @@ export default async function AdminAnalyticsPage() {
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Stat label="All users" value={String(users.length)} />
-        <Stat label="Students" value={String(students)} />
+        <Stat label="Learners" value={String(students)} />
         <Stat label="Teachers" value={String(teachers)} />
         <Stat label="Schools" value={String(schools)} />
       </div>

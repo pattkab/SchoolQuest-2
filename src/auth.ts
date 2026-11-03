@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { authConfig } from "./auth.config";
 import { db } from "./lib/db";
-import { accountFromFirebaseToken } from "./lib/firebase-account";
+import { accountFromFirebaseToken, googlePhoto } from "./lib/firebase-account";
 import { passwordMatches } from "./lib/password";
 import { phoneKeys } from "./lib/phone";
 
@@ -77,7 +77,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const email = profile?.email;
       if (!email) return false;
       const name = profile.name || "Learner";
-      const image = typeof profile.picture === "string" ? profile.picture : null;
+      const image = googlePhoto(profile.picture);
       await db.user.upsert({
         where: { email },
         update: { name, profileComplete: true, ...(image ? { image } : {}) },

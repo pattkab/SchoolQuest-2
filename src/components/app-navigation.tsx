@@ -1,11 +1,12 @@
 "use client";
 
+import { ProfileAvatar } from "./profile-avatar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BookOpen, LayoutDashboard, Library, ChartNoAxesCombined, UserRound, Users, ClipboardCheck, Wallet, ScanLine, Upload, ShieldCheck } from "lucide-react";
 
 const icons = { dashboard: LayoutDashboard, learn: BookOpen, library: Library, progress: ChartNoAxesCombined, profile: UserRound, users: Users, marking: ClipboardCheck, fees: Wallet, attendance: ScanLine, upload: Upload, admin: ShieldCheck };
-export type NavigationItem = { href: string; label: string; icon: keyof typeof icons; image?: string | null };
+export type NavigationItem = { href: string; label: string; icon: keyof typeof icons; image?: string | null; avatar?: string | null; name?: string | null };
 
 export function AppNavigation({ items, desktop = false }: { items: NavigationItem[]; desktop?: boolean }) {
   const pathname = usePathname();
@@ -17,7 +18,7 @@ export function AppNavigation({ items, desktop = false }: { items: NavigationIte
       const active = current === item.href;
       return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined}
         className={desktop ? `sidebar-link ${active ? 'is-active' : ''}` : `bottom-nav-link ${active ? 'is-active' : ''}`}>
-        {item.image ? <img src={item.image} alt="" referrerPolicy="no-referrer" className="bottom-nav-photo" /> : <Icon aria-hidden="true" className="h-5 w-5 shrink-0" strokeWidth={active ? 2.5 : 1.8} />}
+        {item.icon === "profile" ? <ProfileAvatar name={item.name} image={item.image} avatar={item.avatar} className="bottom-nav-photo inline-grid place-items-center" /> : <Icon aria-hidden="true" className="h-5 w-5 shrink-0" strokeWidth={active ? 2.5 : 1.8} />}
         <span>{item.label}</span>
         {desktop && active && <span className="ml-auto h-2 w-2 rounded-full bg-primary" />}
       </Link>;

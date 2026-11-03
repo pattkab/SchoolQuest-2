@@ -12,6 +12,7 @@ export function ClearableInput({
   inputMode,
   autoComplete,
   type = "text",
+  defaultValue = "",
 }: {
   id: string;
   name: string;
@@ -21,8 +22,9 @@ export function ClearableInput({
   inputMode?: "text" | "tel" | "numeric" | "decimal";
   autoComplete?: string;
   type?: string;
+  defaultValue?: string;
 }) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(defaultValue);
   return (
     <div className="relative">
       <input

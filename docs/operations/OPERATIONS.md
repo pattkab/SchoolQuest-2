@@ -39,7 +39,7 @@ Set these on the host, not in Git.
 | `AUTH_URL` | Public site URL |
 | `AUTH_TRUST_HOST` | `true` behind Netlify |
 | `SCHOOLQUEST_ENV` | `development`, `staging`, or `production` |
-| `YO_API_USERNAME`, `YO_API_PASSWORD`, `YO_WEBHOOK_SECRET` | Mobile-money checkout and signed notices |
+| `YO_API_USERNAME`, `YO_API_PASSWORD`, `YO_API_MODE`, `YO_PRODUCTION_ENABLED`, `YO_CALLBACK_URL` | Server-side Yo mobile money checkout and notifications |
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Optional Google sign-in |
 | `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION` | Optional AI marking and digitization |
 
@@ -75,7 +75,7 @@ An unsigned iOS build was produced locally in Phase 4 with CocoaPods. GitHub’s
 
 Premium turns on only after the server verifies a payment.
 
-- Web mobile money creates a pending payment. Yo Payments must sign the raw body with `YO_WEBHOOK_SECRET` in `x-schoolquest-signature`.
+- Web mobile money requests a wallet prompt from Yo Payments. Configure `YO_CALLBACK_URL` as the public HTTPS URL for `/api/billing/yo` so Yo can notify School Quest when status changes. School Quest checks the transaction directly with Yo using its stored reference before granting access. Learners can also check status on the subscription page. Use separate sandbox credentials with `YO_API_MODE=sandbox`; sandbox payments do not grant Premium. For live collections set `YO_API_MODE=production` and `YO_PRODUCTION_ENABLED=true` in the hosting environment.
 - Google Play and Apple notices fail closed until store credentials and a real verifier are configured. An unsigned Apple notice cannot revoke or extend access.
 - A repeated verified notice does not extend the period twice.
 - Tablets, books, and shirts do not open Premium.
@@ -113,8 +113,10 @@ The server writes one JSON line for payment rejection, examination save failure,
 ## Remaining manual steps
 
 - Hosted Postgres URL in Netlify.
-- `YO_WEBHOOK_SECRET` and Yo Payments account.
+- Yo Payments merchant credentials and the public HTTPS callback URL.
 - Google Play service account and the upload keystore.
 - Apple in-app purchase key.
 - Optional Google sign-in and Firebase measurement ids.
 - A staging host, if one is wanted before production.
+
+Set `SCHOOLQUEST_PROMO_CODES` in the server environment to comma-separated code and day pairs such as `YOUR-CAMPAIGN:30`. Each configured code grants its specified number of Premium days once per account. Remove the pair to close the campaign. Use distinct codes for new campaigns.

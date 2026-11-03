@@ -21,7 +21,7 @@ export function StudentsPhoto({ className, priority = false }: { className?: str
   return (
     <Image
       src="/hero-students.jpg"
-      alt="Two students smiling together in their classroom"
+      alt="Two learners smiling together in their classroom"
       width={960}
       height={768}
       priority={priority}

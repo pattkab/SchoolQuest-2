@@ -1,3 +1,4 @@
+import { GettingStarted } from "@/components/getting-started";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -11,6 +12,8 @@ export default async function TeacherDeskPage() {
   const user = await requireUser();
   if (user.role === "STUDENT" || user.role === "PARENT") redirect(homeForRole(user.role));
   const profile = user.teacherProfile;
+  const accredited = profile?.status === "ACCREDITED";
+  const applicationStatus = profile?.status === "PENDING" ? "Accreditation under review" : profile?.status === "REJECTED" ? "Accreditation was declined" : profile?.status === "SUSPENDED" ? "Accreditation suspended" : "Accredited teacher";
   const classes = await db.classGrade.findMany({ where: { isActive: true }, orderBy: { order: "asc" } });
   const rooms = await db.classroom.findMany({
     where: { teacherId: user.id },
@@ -24,7 +27,7 @@ export default async function TeacherDeskPage() {
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--gold)]">YOUR TEACHING DASHBOARD</p>
         <h1 className="font-display text-4xl mt-2">Hello, {profile?.fullName || user.name || "teacher"} 👋</h1>
         <p className="text-white/75 mt-2">
-          {profile ? `${profile.registrationNumber} · ${profile.status}` : "A space to help every learner grow."}
+          {profile ? `${profile.registrationNumber} · ${applicationStatus}` : "A space to help every learner grow."}
         </p>
         <div className="flex flex-wrap gap-3 mt-5">
           <Link href="/dashboard/teacher/marking" className="rounded-full bg-white text-[var(--ink)] px-5 py-2 font-bold">
@@ -40,12 +43,14 @@ export default async function TeacherDeskPage() {
         {[{ icon: ClipboardCheck, value: pending, label: "Awaiting marking", tone: "peach" }, { icon: GraduationCap, value: rooms.length, label: "Your classrooms", tone: "lilac" }, { icon: Users, value: rooms.reduce((total, room) => total + room._count.enrollments, 0), label: "Enrolled learners", tone: "mint" }].map(({ icon: Icon, value, label, tone }) => <div key={label} className={`metric-card tone-${tone}`}><Icon className="h-5 w-5" /><strong>{value}</strong><span>{label}</span></div>)}
       </section>
 
-      {(!profile || profile.status !== "ACCREDITED") && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && (
-        <div className="rounded-[1.5rem] bg-amber-50 border border-amber-100 p-5">
-          <p className="font-bold">{profile?.status || "Apply to mark"}</p>
-          {!profile && <Link href="/register/teacher" className="inline-block mt-3 font-bold text-primary">Apply</Link>}
-        </div>
-      )}
+      {user.role === "TEACHER" && <GettingStarted title="Set up your teaching workspace"
+        intro={profile?.status === "PENDING" ? "Your application is under review. You can join your school for attendance while you wait." : profile?.status === "REJECTED" ? "Your accreditation was declined. Contact your site manager about the decision." : undefined}
+        steps={[
+          { title: user.schoolId ? "Open attendance" : "Join your school", detail: "Ask your school administrator for the school code, then enter it on the Attendance page.", href: "/dashboard/school/attendance" },
+          !profile ? { title: "Apply for accreditation", detail: "Use your MoES or UTS registration number to apply to mark work.", href: "/register/teacher" }
+            : { title: accredited ? "Review learner work" : applicationStatus, detail: accredited ? "Open your marking queue to see work awaiting review." : "Your site manager handles accreditation decisions.", href: accredited ? "/dashboard/teacher/marking" : undefined },
+          { title: "Open a classroom", detail: accredited ? "Create a room below and share its code with your learners." : "Classroom creation opens once your accreditation is approved.", href: accredited ? "#open-classroom" : undefined },
+        ]} />}
 
       <section className="grid lg:grid-cols-2 gap-5">
         <div className="rounded-[1.6rem] bg-white border p-5 space-y-3">
@@ -59,7 +64,7 @@ export default async function TeacherDeskPage() {
           ))}
         </div>
         {(profile?.status === "ACCREDITED" || user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
-        <form action={createClassroomAction} className="rounded-[1.6rem] bg-white border p-5 space-y-3">
+        <form id="open-classroom" action={createClassroomAction} className="rounded-[1.6rem] bg-white border p-5 space-y-3">
           <h2 className="font-display text-2xl">Open a classroom</h2>
           <label htmlFor="classroom-name" className="block text-xs font-bold">Classroom name</label>
           <Input id="classroom-name" name="name" placeholder="P.6 Afternoon revision" className="rounded-2xl" required />

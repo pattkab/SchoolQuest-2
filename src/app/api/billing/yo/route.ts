@@ -1,25 +1,21 @@
-import { confirmYoPayment } from "@/lib/billing";
-import { reportOps } from "@/lib/ops-log";
+import { db } from "@/lib/db";
 import { rateLimit, requestRateKey } from "@/lib/rate-limit";
+import { reconcileYoPayment, yoProvider } from "@/lib/yo-checkout";
 
 export async function POST(request: Request) {
-  if (!rateLimit(requestRateKey(request, "billing-yo"), 30, 60_000).ok) {
-    return Response.json({ ok: false, error: "Too many requests." }, { status: 429 });
+  if (!rateLimit(requestRateKey(request, "billing-yo"), 60, 60_000).ok) {
+    return new Response(null, { status: 429 });
   }
-  const rawBody = await request.text();
-  const signature = request.headers.get("x-schoolquest-signature") || "";
-  let payload: { idempotencyKey?: string; providerRef?: string; status?: string; amount?: number };
+  const key = new URL(request.url).searchParams.get("payment");
+  if (!key || !/^[0-9a-f-]{36}$/.test(key)) return new Response(null, { status: 400 });
+  const payment = await db.paymentTransaction.findUnique({ where: { idempotencyKey: key } });
+  if (!payment || payment.provider !== yoProvider()) return new Response(null, { status: 404 });
+  if (payment.status === "PENDING" && !payment.providerRef) return new Response(null, { status: 503 });
   try {
-    payload = JSON.parse(rawBody) as typeof payload;
+    // Notification data never determines the outcome. Query Yo with the stored reference.
+    await reconcileYoPayment(payment);
+    return new Response("OK");
   } catch {
-    reportOps("billing.yo_invalid", {});
-    return Response.json({ ok: false, error: "The payment notification could not be verified." }, { status: 403 });
-  }
-  try {
-    const result = await confirmYoPayment({ rawBody, signature, payload });
-    return Response.json({ ok: true, duplicate: result.duplicate, active: Boolean(result.entitlement && !result.entitlement.revokedAt) });
-  } catch {
-    reportOps("billing.yo_rejected", {});
-    return Response.json({ ok: false, error: "The payment notification could not be verified." }, { status: 403 });
+    return new Response(null, { status: 503 });
   }
 }
