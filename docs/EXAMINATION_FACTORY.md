@@ -1,6 +1,12 @@
 # SchoolQuest Examination Factory
 
-The canonical checkout is `schoolquest`, backed by `pattkab/schoolquest`. Its web app, Capacitor shells and Flutter client share the SchoolQuest backend. The older SchoolQuest-2 repositories preserve historical snapshots. The preview and production checkouts are archived under the sibling `.schoolquest-archive` directory with their local files intact. The newer exam and entitlement engines are the runtime source of truth.
+The canonical checkout is `/Volumes/XPATT/APPS/schoolquest`, backed by `pattkab/schoolquest` on `codex/unified-schoolquest`. Its web app, Capacitor shells and Flutter client share this backend. Older SchoolQuest-2 repositories and the sibling `.schoolquest-archive` folders are historical snapshots. Do not develop in those copies.
+
+## Queue papers from the dashboard
+
+An administrator opens Examination Factory at `/dashboard/teacher/digitization`. The page reads `data/fresh-teacher/summary.json`, which is counted from the full inventory. Choose a class, subject, and whether to read exam papers, marking guides, or notes. The action downloads the next matching PDFs from the pinned GitHub revision, checks each file against its Git blob, and queues a private digitization job. Learners cannot see a paper until a teacher approves and publishes it.
+
+Objective answers are marked from the approved key. Written answers that miss the keyword rubric, and low-confidence AI marks, stay with a teacher. Set `GEMINI_API_KEY` for Gemini API access. A Vertex project is used only when that key is absent.
 
 ## Refresh the Fresh Teacher inventory
 

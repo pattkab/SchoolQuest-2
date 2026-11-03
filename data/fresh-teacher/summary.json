@@ -1,0 +1,109 @@
+{
+  "revision": "b8d0ff510e6f087613a152454cf2b2a871edf3cd",
+  "documents": 15776,
+  "paths": 28086,
+  "byKind": {
+    "paper": 13535,
+    "guide": 358,
+    "notes": 1579,
+    "other": 304
+  },
+  "byClass": {
+    "s3": {
+      "paper": 344,
+      "guide": 2,
+      "notes": 53,
+      "other": 7
+    },
+    "s2": {
+      "paper": 310,
+      "guide": 1,
+      "notes": 54,
+      "other": 13
+    },
+    "s4": {
+      "paper": 2007,
+      "guide": 77,
+      "notes": 168,
+      "other": 49
+    },
+    "p7": {
+      "paper": 3842,
+      "guide": 111,
+      "notes": 169,
+      "other": 15
+    },
+    "baby": {
+      "paper": 278,
+      "guide": 0,
+      "notes": 46,
+      "other": 0
+    },
+    "top": {
+      "paper": 68,
+      "guide": 0,
+      "notes": 16,
+      "other": 0
+    },
+    "p1": {
+      "paper": 578,
+      "guide": 6,
+      "notes": 122,
+      "other": 2
+    },
+    "s6": {
+      "paper": 2581,
+      "guide": 133,
+      "notes": 187,
+      "other": 8
+    },
+    "s1": {
+      "paper": 272,
+      "guide": 1,
+      "notes": 44,
+      "other": 6
+    },
+    "s5": {
+      "paper": 405,
+      "guide": 10,
+      "notes": 77,
+      "other": 6
+    },
+    "p3": {
+      "paper": 500,
+      "guide": 1,
+      "notes": 110,
+      "other": 4
+    },
+    "p4": {
+      "paper": 432,
+      "guide": 1,
+      "notes": 118,
+      "other": 8
+    },
+    "p6": {
+      "paper": 596,
+      "guide": 4,
+      "notes": 136,
+      "other": 7
+    },
+    "p2": {
+      "paper": 517,
+      "guide": 5,
+      "notes": 89,
+      "other": 4
+    },
+    "p5": {
+      "paper": 561,
+      "guide": 4,
+      "notes": 129,
+      "other": 7
+    },
+    "middle": {
+      "paper": 102,
+      "guide": 0,
+      "notes": 27,
+      "other": 0
+    }
+  }
+}

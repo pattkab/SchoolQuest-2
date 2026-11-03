@@ -518,6 +518,7 @@ function markLongAnswer(q: MarkableQuestion, answer: string, max: number): MarkR
     }
   }
   const points = Math.min(max, Math.round((earned / total) * max * 10) / 10);
+  if (points <= 0) return pending(q);
   return {
     status: "AUTO",
     isCorrect: points >= max,

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test tests/phase0.test.ts tests/evidence.test.ts tests/accessibility.test.ts tests/exam-engine.test.ts tests/offline.test.ts tests/digitization.test.ts tests/mobile-api.test.ts tests/entitlements.test.ts tests/release-guards.test.ts tests/phone.test.ts",
+    "test": "tsx --test tests/phase0.test.ts tests/evidence.test.ts tests/accessibility.test.ts tests/exam-engine.test.ts tests/offline.test.ts tests/digitization.test.ts tests/fresh-teacher-catalog.test.ts tests/mobile-api.test.ts tests/entitlements.test.ts tests/release-guards.test.ts tests/phone.test.ts",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma skills sync || exit 0",
     "db:push": "prisma db push",

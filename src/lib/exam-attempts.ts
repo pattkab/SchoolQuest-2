@@ -221,10 +221,19 @@ async function gradeAnswers(questions: MarkableQuestion[], answers: Record<strin
           ? await gradeDrawingAnswer(question.prompt, studentAnswer, question.points)
           : await gradeOpenAnswer(question.prompt, studentAnswer, question.markingGuide || question.correctAnswer, question.points);
         if (Number.isFinite(ai.score) && typeof ai.explanation === "string" && ai.explanation && !ai.explanation.toLowerCase().includes("unable")) {
-          points = Math.max(0, Math.min(question.points, ai.score));
-          feedback = `Provisional. A teacher still needs to confirm this mark. ${ai.explanation}`;
-          isCorrect = ai.score >= question.points;
-          gradingStatus = "AI";
+          const suggested = Math.max(0, Math.min(question.points, ai.score));
+          const uncertain = ai.needsReview === true || (typeof ai.confidence === "number" && ai.confidence < 0.6);
+          if (uncertain) {
+            feedback = `A teacher needs to confirm this answer. Suggested mark ${suggested} of ${question.points}. ${ai.explanation}`;
+            gradingStatus = "PENDING_TEACHER";
+            points = 0;
+            isCorrect = null;
+          } else {
+            points = suggested;
+            feedback = `Provisional. A teacher still needs to confirm this mark. ${ai.explanation}`;
+            isCorrect = ai.score >= question.points;
+            gradingStatus = "AI";
+          }
         }
       } catch {
         gradingStatus = "PENDING_TEACHER";

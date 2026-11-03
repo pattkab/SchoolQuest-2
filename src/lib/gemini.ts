@@ -56,6 +56,23 @@ markdown uses short headings and bullets a learner can revise from. Do not inven
 export interface GradingResult {
   score: number;
   explanation: string;
+  confidence?: number;
+  needsReview?: boolean;
+}
+
+export function aiConfigured() {
+  return Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_CLOUD_PROJECT);
+}
+
+export function parseGrade(raw: string): GradingResult {
+  const parsed = JSON.parse(raw) as Partial<GradingResult>;
+  const confidence = typeof parsed.confidence === "number" ? parsed.confidence : undefined;
+  return {
+    score: Number(parsed.score),
+    explanation: typeof parsed.explanation === "string" ? parsed.explanation : "",
+    confidence,
+    needsReview: parsed.needsReview === true,
+  };
 }
 
 /**
@@ -82,7 +99,9 @@ export async function gradeOpenAnswer(
     Provide the result as a raw valid JSON object match this schema:
     {
       "score": number (0 to ${maxPoints}),
-      "explanation": "A short, clear 1-2 sentence explanation to the student of why they received this score, highlighting any mistakes or what was good."
+      "explanation": "A short, clear 1-2 sentence explanation to the student of why they received this score, highlighting any mistakes or what was good.",
+      "confidence": number from 0 to 1,
+      "needsReview": true when the rubric is thin, the wording is ambiguous, or you are unsure
     }
 
     Do not wrap inside markdown code blocks. Give ONLY the JSON object.
@@ -95,7 +114,7 @@ export async function gradeOpenAnswer(
     });
 
     const cleaned = (response.text || "").replace(/```json/g, "").replace(/```/g, "").trim();
-    return JSON.parse(cleaned) as GradingResult;
+    return parseGrade(cleaned);
   } catch {
     reportOps("marking.ai_failed", { kind: "open" });
     return {
@@ -130,7 +149,9 @@ export async function gradeDrawingAnswer(
     Provide the result as a raw valid JSON object match this schema:
     {
       "score": number (0 to ${maxPoints}),
-      "explanation": "A short 1-2 sentence feedback explaining why they got this grade."
+      "explanation": "A short 1-2 sentence feedback explaining why they got this grade.",
+      "confidence": number from 0 to 1,
+      "needsReview": true when the drawing is unclear or you are unsure
     }
 
     Do not wrap inside markdown code blocks. Give ONLY the JSON object.
@@ -151,7 +172,7 @@ export async function gradeDrawingAnswer(
     });
 
     const cleaned = (response.text || "").replace(/```json/g, "").replace(/```/g, "").trim();
-    return JSON.parse(cleaned) as GradingResult;
+    return parseGrade(cleaned);
   } catch {
     reportOps("marking.ai_failed", { kind: "drawing" });
     return {

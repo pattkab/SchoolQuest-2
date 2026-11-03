@@ -81,6 +81,8 @@ test("a written answer follows its rubric and stays unmarked when a teacher is r
   const guide = JSON.stringify({ criteria: [{ label: "definition", marks: 2, keywords: ["set", "elements"] }, { label: "example", marks: 2, keywords: ["example"] }] });
   const marked = markAnswer(question({ type: "LONG_ANSWER", correctAnswer: JSON.stringify(""), markingGuide: guide }), "A set is a collection of elements.");
   assert.equal(marked.points, 2);
+  const equivalent = markAnswer(question({ type: "LONG_ANSWER", correctAnswer: JSON.stringify(""), markingGuide: guide }), "It is a group of objects.");
+  assert.equal(equivalent.status, "PENDING");
   const review = markAnswer(question({ type: "LONG_ANSWER", correctAnswer: JSON.stringify(""), markingGuide: guide, requiresTeacher: true }), "A set is a collection of elements.");
   assert.equal(review.status, "PENDING");
   assert.equal(review.points, 0);
