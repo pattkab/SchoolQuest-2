@@ -1,4 +1,4 @@
-import { collectionFor, type PaperCollection } from "@/lib/fresh-teacher-catalog";
+import { collectionFor, isAnswerKey, isQuestionPaperWithAnswers, type PaperCollection } from "@/lib/fresh-teacher-catalog";
 
 export type SchemeQuestion = {
   number: string;
@@ -34,7 +34,7 @@ export function schemeMatchKey(filePath: string) {
   return filePath
     .toLowerCase()
     .replace(/\.pdf$/i, "")
-    .replace(/marking guide|mark scheme|marking scheme|with answers|answer sheet|answers?/gi, " ")
+    .replace(/marking guide|mark scheme|marking scheme|with answers|answer sheet|answer guide|answer book|suggested answers|model answers|expected answers|possible answers|answers?/gi, " ")
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -61,12 +61,12 @@ export function examQuestionText(text: string) {
 
 export function questionsFromPaperText(paperText: string, guideText: string | null): SchemeQuestion[] {
   const split = splitAnswers(examQuestionText(paperText).text);
-  const body = split.body;
+  const body = questionBody(split.body);
   const answerText = [guideText, split.answers].filter(Boolean).join("\n");
   const answers = answerMap(answerText);
   const chunks = questionChunks(body);
   return chunks.slice(0, 40).map((chunk) => {
-    const options = chunk.options;
+    const options = chunk.options && chunk.options.length >= 2 ? chunk.options : null;
     const rawAnswer = answers.get(chunk.number) || "";
     const letter = rawAnswer.trim().match(/^([A-D])\b/i)?.[1]?.toUpperCase();
     const correct = options && letter ? options[letter.charCodeAt(0) - 65] || letter : rawAnswer;
@@ -84,9 +84,19 @@ export function questionsFromPaperText(paperText: string, guideText: string | nu
   });
 }
 
+function answerIsUsable(question: SchemeQuestion) {
+  const answer = question.correctAnswer.trim();
+  const prompt = question.prompt.trim().toLowerCase();
+  if (!answer) return false;
+  const value = answer.toLowerCase();
+  if (value === prompt) return false;
+  if (answer.length > 24 && (prompt.startsWith(value.slice(0, 24)) || value.startsWith(prompt.slice(0, 24)))) return false;
+  return true;
+}
+
 export function schemeStatus(questions: SchemeQuestion[]): "draft" | "ready" {
   if (questions.length < 2) return "draft";
-  const answered = questions.filter((question) => question.correctAnswer.trim().length > 0).length;
+  const answered = questions.filter(answerIsUsable).length;
   return answered === questions.length ? "ready" : "draft";
 }
 
@@ -96,9 +106,31 @@ export function paperKindFor(collection: MarkingSchemeFile["collection"]) {
   return "MOCK";
 }
 
+export function schemeRole(filePath: string, collection: string): "paper" | "guide" {
+  if (isQuestionPaperWithAnswers(filePath)) return "paper";
+  if (isAnswerKey(filePath) || collection === "guide") return "guide";
+  return "paper";
+}
+
+export function schemeCollection(filePath: string, collection: string): MarkingSchemeFile["collection"] {
+  if (collection === "holiday" || collection === "past-paper" || collection === "exam") return collection;
+  const text = filePath.toLowerCase();
+  if (/holiday/.test(text)) return "holiday";
+  if (/past paper|\bple\b|\buneb\b/.test(text)) return "past-paper";
+  return "exam";
+}
+
 export function isLibraryPaper(filePath: string) {
   const collection = collectionFor(filePath);
   return collection === "past-paper" || collection === "holiday" || collection === "exam" || collection === "guide";
+}
+
+/** Start at the first Section A question, after the numbered instructions on the cover. */
+function questionBody(text: string) {
+  const match = text.match(/\n\s*section\s+a\b[\s\S]{0,120}?\n\s*1\s*[.)]\s+\S/i);
+  if (!match || match.index == null) return text;
+  const start = text.slice(match.index).search(/\n\s*1\s*[.)]\s+\S/);
+  return start < 0 ? text : text.slice(match.index + start).replace(/^\s+/, "");
 }
 
 function splitAnswers(text: string) {

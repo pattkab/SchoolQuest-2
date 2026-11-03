@@ -18,7 +18,7 @@ npm run papers:schemes
 npm run papers:import
 ```
 
-`papers:pull` saves past papers, holiday packages, exams, and marking guides in `data/fresh-teacher/library`. The PDF bytes stay on this computer. `papers:schemes` reads the saved files locally, pairs a paper with its marking guide, and writes `data/fresh-teacher/schemes/<git blob>.json`. A scheme is ready only when every parsed question has an answer taken from the paper or its guide. `papers:import` copies ready schemes into the database. Learner marking then uses those stored answers. Run `papers:schemes -- --limit=40` to prepare the next batch.
+`papers:pull` saves past papers, holiday packages, exams, and marking guides in `data/fresh-teacher/library`. `papers:pull -- --guides` fetches answer keys and question papers with printed answers that the paper download did not already select. The PDF bytes stay on this computer. `papers:schemes` reads the saved files locally, pairs each paper with its GitHub marking guide, and writes `data/fresh-teacher/schemes/<git blob>.json`. A scheme is ready only when every parsed question has an answer taken from the paper or its guide. `papers:import` copies ready schemes into the database, including each answer on the question. Learner marking then uses those stored answers. Run `papers:schemes -- --limit=40` to prepare the next batch.
 
 ## Refresh the Fresh Teacher inventory
 

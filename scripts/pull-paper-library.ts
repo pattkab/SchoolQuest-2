@@ -1,11 +1,12 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { classifyFreshTeacherPath, collectionFor, LIBRARY_COLLECTIONS } from "../src/lib/fresh-teacher-catalog";
+import { classifyFreshTeacherPath, collectionFor, isAnswerKey, isQuestionPaperWithAnswers, LIBRARY_COLLECTIONS } from "../src/lib/fresh-teacher-catalog";
 
 const root = process.cwd();
 const library = path.join(root, "data", "fresh-teacher", "library");
-const indexPath = path.join(root, "data", "fresh-teacher", "library-index.json");
+const guidesOnly = process.argv.includes("--guides");
+const indexPath = path.join(root, "data", "fresh-teacher", guidesOnly ? "guides-index.json" : "library-index.json");
 
 type InventoryDocument = {
   gitBlob: string;
@@ -55,7 +56,13 @@ async function main() {
     const filePath = document.paths[0] || "";
     const classified = classifyFreshTeacherPath(filePath);
     const collection = collectionFor(filePath, classified.kind);
-    if (!LIBRARY_COLLECTIONS.has(collection) || document.bytes > 15_000_000 || document.bytes < 1000) return [];
+    if (document.bytes > 15_000_000 || document.bytes < 1000) return [];
+    if (guidesOnly) {
+      const markingSource = isAnswerKey(filePath) || isQuestionPaperWithAnswers(filePath);
+      if (!markingSource || /interview/.test(filePath) || queuedByPaperPull(filePath)) return [];
+      return [{ document, filePath, classified, collection: isAnswerKey(filePath) ? "guide" : collection }];
+    }
+    if (!LIBRARY_COLLECTIONS.has(collection)) return [];
     return [{ document, filePath, classified, collection }];
   });
   console.log(`selected ${selected.length} files`);
@@ -117,6 +124,14 @@ async function main() {
   await saveIndex(index);
   const done = Object.values(index.files).filter((file) => file.saved).length;
   console.log(`library ready: ${done} pdfs in data/fresh-teacher/library`);
+}
+
+/** The paper pull already running selected these with the earlier filename rules. */
+function queuedByPaperPull(filePath: string) {
+  const text = filePath.toLowerCase().replace(/[_./-]+/g, " ");
+  if (/marking guide|mark scheme|marking scheme|with answers|answer sheet/.test(text)) return true;
+  if (/lesson note|\bnotes\b|scheme of work|\bschemes\b/.test(text)) return false;
+  return /holiday|past paper|\bple\b|\buneb\b|\bexam\b|end of term|\beoy\b|\beot\b|\bbot\b|\bmock\b|\bset\b/.test(text);
 }
 
 main().catch((error: unknown) => {

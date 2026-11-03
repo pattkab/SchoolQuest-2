@@ -19,6 +19,7 @@
     "ios:open": "cap open ios",
     "mobile:test": "tsx --test tests/mobile-config.test.ts",
     "papers:pull": "tsx scripts/pull-paper-library.ts",
+    "papers:guides": "tsx scripts/pull-paper-library.ts --guides",
     "papers:schemes": "tsx scripts/build-marking-schemes.ts",
     "papers:import": "tsx scripts/import-marking-schemes.ts"
   },

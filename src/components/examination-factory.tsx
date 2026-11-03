@@ -32,7 +32,7 @@ export async function ExaminationFactory({ queued = 0 }: { queued?: number }) {
             ? `${summary.documents.toLocaleString()} unique files from ${summary.paths.toLocaleString()} paths. ${summary.byKind.paper.toLocaleString()} look like exams, ${summary.byKind.guide.toLocaleString()} like marking guides, and ${summary.byKind.notes.toLocaleString()} like notes.`
             : "The Fresh Teacher inventory summary is not on this computer yet."}
         </p>
-        <p className="text-sm text-muted-foreground mt-1">Past papers, holiday packages, and exams are stored on this computer. Their marking schemes are saved beside them and mark learner answers. Live AI marking stays off unless SCHOOLQUEST_LIVE_AI_MARKING is turned on.</p>
+        <p className="text-sm text-muted-foreground mt-1">Past papers, holiday packages, exams, and marking guides are stored from GitHub. A guide is paired with its paper, and those saved answers mark the learner. Live AI marking stays off unless SCHOOLQUEST_LIVE_AI_MARKING is turned on.</p>
       </div>
       {queued > 0 && <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{queued} {queued === 1 ? "file is" : "files are"} queued for reading. Learners cannot see them yet.</p>}
       {summary && (

@@ -73,16 +73,36 @@ export function classifyFreshTeacherPath(filePath: string) {
   const yearMatch = text.match(/\b(19|20)\d{2}\b/);
   const year = yearMatch ? Number(yearMatch[0]) : null;
   let kind: CatalogKind = "other";
-  if (/marking guide|mark scheme|marking scheme|with answers|answer sheet/.test(text)) kind = "guide";
+  if (isAnswerKey(filePath)) kind = "guide";
   else if (/lesson note|\bnotes\b|scheme of work|\bschemes\b/.test(text)) kind = "notes";
   else if (/syllabus|curriculum/.test(text)) kind = "other";
   else if (classSlug || subjectSlug) kind = "paper";
   return { classSlug, subjectSlug, kind, year };
 }
 
+const questionWithAnswers = /with answers|questions?\s+(?:and|&)\s+answers|qns?\s+(?:and|&)\s+answers|qtns?\s+(?:and|&)\s+answers|qns?\s+and\s+answer\b/;
+const answerKey = /marking guide|mark scheme|marking scheme|answer sheet|answer guide|answer book|suggested answers|model answers|expected answers|possible answers|\banswers\b/;
+
+function catalogText(filePath: string) {
+  return filePath.toLowerCase().replace(/[_./-]+/g, " ");
+}
+
+/** A question paper that already prints its answers, so the scheme can be read from the same file. */
+export function isQuestionPaperWithAnswers(filePath: string) {
+  return questionWithAnswers.test(catalogText(filePath));
+}
+
+/** A dedicated marking guide or answer key, rather than the question paper itself. */
+export function isAnswerKey(filePath: string) {
+  const text = catalogText(filePath);
+  if (/marking allowance/.test(text)) return false;
+  if (isQuestionPaperWithAnswers(filePath)) return false;
+  return answerKey.test(text);
+}
+
 export function collectionFor(filePath: string, kind: CatalogKind = classifyFreshTeacherPath(filePath).kind): PaperCollection {
-  const text = filePath.toLowerCase().replace(/[_./-]+/g, " ");
-  if (kind === "guide" || /marking guide|mark scheme|marking scheme|with answers|answer sheet/.test(text)) return "guide";
+  const text = catalogText(filePath);
+  if (isAnswerKey(filePath)) return "guide";
   if (kind === "notes") return "notes";
   if (/holiday/.test(text)) return "holiday";
   if (/past paper|\bple\b|\buneb\b/.test(text)) return "past-paper";
