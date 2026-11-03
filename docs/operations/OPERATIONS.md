@@ -1,8 +1,18 @@
 # SchoolQuest operations
 
-GitHub is the source for this app. The feature branch is `feature/schoolquest-platform-hardening`. The live site at https://schoolquestweb.netlify.app is unchanged until a hosted Postgres URL is added in Netlify and a reviewed release is deployed.
+GitHub is the source for School Quest. Production runs on Netlify at https://schoolquest.cc.
 
-This file is the setup, release, and incident guide. Branch protection on GitHub was not changed.
+## Preview first, release in batches
+
+Use local development for quick iterations. Push a branch or update its pull request for review. For a hosted check, install and sign in to the Netlify CLI, set `NETLIFY_SITE_ID`, then run `npm run deploy:preview` from a clean checkout. The command creates a draft deployment using the deploy-preview environment. Before testing writes, verify that the preview uses an isolated database and that its payment settings cannot make live charges.
+
+Group approved changes into one release. Publish only when the batch is needed in production. Record the preview URL, its full commit SHA, and the checks that passed. Once the release has been explicitly approved, check out that same commit and run:
+
+```sh
+SCHOOLQUEST_RELEASE_COMMIT=<reviewed-preview-full-sha> npm run deploy:production
+```
+
+The release command checks the SHA and rejects a dirty checkout or local production environment files. After publishing, smoke-test the live site once. Routine checks, pull requests, and branch pushes should never trigger a production deploy. Keep Netlify Git auto-publishing disabled for the production project.
 
 ## Architecture
 

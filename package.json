@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "deploy:preview": "node scripts/deploy-netlify.mjs preview",
+    "deploy:production": "node scripts/deploy-netlify.mjs production",
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --test tests/phase0.test.ts tests/evidence.test.ts tests/accessibility.test.ts tests/exam-engine.test.ts tests/offline.test.ts tests/digitization.test.ts tests/fresh-teacher-catalog.test.ts tests/marking-scheme.test.ts tests/quiz-game.test.ts tests/mobile-api.test.ts tests/entitlements.test.ts tests/release-guards.test.ts tests/phone.test.ts",
