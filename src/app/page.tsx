@@ -23,7 +23,7 @@ export default function Home() {
         <div>
           <h1 className="font-display display-hero">A brighter future.<br /><span className="text-primary">One quest at a time.</span></h1>
           <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">Ugandan primary school notes, quizzes and past papers, from Baby Class to Primary 7. Learn with Kito through short challenges and educational videos.</p>
-          <div className="mt-7 flex flex-wrap gap-3"><Link href="/login?tab=join&role=learner" className="quest-button">Start learning <ArrowRight className="h-5 w-5" /></Link><Link href="/login" className="quest-button quest-button-secondary">Sign in</Link></div>
+          <div className="mt-7 flex flex-wrap gap-3"><Link href="/login" className="quest-button">Sign in <ArrowRight aria-hidden="true" className="h-5 w-5" /></Link><Link href="/guest" className="quest-button quest-button-secondary">Continue as a guest</Link></div>
         </div>
         <figure className="quest-mascot-stage order-first lg:order-last">
           <KitoMascot />

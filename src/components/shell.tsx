@@ -43,7 +43,7 @@ export async function DashboardShell({ user, children }: { user: ShellUser; chil
     { href: "/dashboard#edutainment", label: "Edutainment", icon: "game" },
     { href: "/dashboard/subscribe", label: "Subscription", icon: "fees" },
   ] : [];
-  const menuLinks: NavigationItem[] = [...links, ...extraLinks, { href: "/dashboard/settings", label: "Settings", icon: "settings" }];
+  const menuLinks: NavigationItem[] = [...links, ...extraLinks, { href: "/start", label: "Getting started", icon: "dashboard" }, { href: "/dashboard/settings", label: "Settings", icon: "settings" }];
   const grades = await db.classGrade.findMany({ where: { isActive: true }, orderBy: { order: 'asc' }, select: { slug: true, shortName: true, subjects: { orderBy: { order: 'asc' }, select: { slug: true, name: true } } } });
   const classes = grades.map(grade => { const { core, more } = splitSubjects(grade.slug, grade.subjects); return { slug: grade.slug, shortName: grade.shortName, subjects: [...core, ...more] }; });
   return <div data-space={pathway.id} className="mobile-navigation-page min-h-screen">

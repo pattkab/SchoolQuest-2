@@ -14,6 +14,9 @@ function cleanPhone(value: FormDataEntryValue | null) {
 
 export async function completeProfileAction(formData: FormData) {
   const user = await requireUser();
+  const fromWizard = formData.get("from") === "start";
+  const setupError = (error: string) => redirect(`/setup?error=${error}${fromWizard ? "&from=start" : ""}`);
+  const nextStep = "/start?step=destination";
   const role = user.role;
   const editing = user.profileComplete
     && (role !== "STUDENT" || Boolean(user.classGradeId))
@@ -26,16 +29,16 @@ export async function completeProfileAction(formData: FormData) {
     : user.phone;
   const classGradeId = String(formData.get("classGradeId") || "") || user.classGradeId;
 
-  if (!name) redirect("/setup?error=missing");
+  if (!name) setupError("missing");
   if (phone && phone !== user.phone) {
     const taken = await db.user.findFirst({ where: { id: { not: user.id }, phone: { in: phoneKeys(phone) } } });
-    if (taken) redirect("/setup?error=phone");
+    if (taken) setupError("phone");
   }
 
   if (role === "SCHOOL_ADMIN" && !user.ownedSchool) {
     const schoolName = String(formData.get("schoolName") || "").trim();
     const district = String(formData.get("district") || "").trim();
-    if (!schoolName) redirect("/setup?error=missing");
+    if (!schoolName) setupError("missing");
     await db.$transaction(async (tx) => {
       const school = await tx.school.create({
         data: { name: schoolName, code: randomCode("SQ-", 8), district: district || null, ownerId: user.id },
@@ -45,13 +48,13 @@ export async function completeProfileAction(formData: FormData) {
         data: { name, phone, district: district || null, school: schoolName, schoolId: school.id, profileComplete: true },
       });
     });
-    redirect("/dashboard/school");
+    redirect(fromWizard ? nextStep : "/dashboard/school");
   }
 
   if (!user.profileComplete && role === "TEACHER") {
     const schoolCode = user.schoolId ? "" : String(formData.get("schoolCode") || "").trim().toUpperCase();
     const school = schoolCode ? await db.school.findUnique({ where: { code: schoolCode } }) : null;
-    if (schoolCode && !school) redirect("/setup?error=school");
+    if (schoolCode && !school) setupError("school");
     await db.user.update({
       where: { id: user.id },
       data: {
@@ -62,13 +65,13 @@ export async function completeProfileAction(formData: FormData) {
         profileComplete: true,
       },
     });
-    redirect("/dashboard/teacher");
+    redirect(fromWizard ? nextStep : "/dashboard/teacher");
   }
 
   if (role === "STUDENT" && (!classGradeId || !await db.classGrade.findFirst({
     where: { id: classGradeId, isActive: true },
     select: { id: true },
-  }))) redirect("/setup?error=class");
+  }))) setupError("class");
 
   await db.user.update({
     where: { id: user.id },
@@ -80,6 +83,7 @@ export async function completeProfileAction(formData: FormData) {
     },
   });
   revalidatePath("/dashboard", "layout");
+  if (fromWizard) redirect(nextStep);
   if (editing) redirect("/dashboard/profile");
   redirect(homeForRole(user.role));
 }

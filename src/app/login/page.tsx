@@ -24,7 +24,7 @@ const errors: Record<string, string> = {
 };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; tab?: string; role?: string }> }) {
-  if (await getSessionUser()) redirect("/dashboard");
+  if (await getSessionUser()) redirect("/start");
   const { error, tab, role } = await searchParams;
   const join = tab === 'join';
   const learner = join && (role === 'learner' || Boolean(error));
@@ -65,6 +65,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               {learner ? <JoinForm classes={classes} /> : <SignInForm />}
             </>
           )}
+          <Link href="/guest" className="mt-5 block text-center font-bold text-primary underline">Continue as a guest</Link>
           <p className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" /> Your learning. Your own secure space.</p>
         </div>
       </main>

@@ -21,9 +21,10 @@ const errors: Record<string, string> = {
 export default async function SetupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; from?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, from } = await searchParams;
+  const fromWizard = from === "start";
   const user = await requireUser();
   const chooseClass = user.role === "STUDENT" && !user.classGradeId;
   const needsSchool = user.role === "SCHOOL_ADMIN" && !user.ownedSchool;
@@ -39,8 +40,8 @@ export default async function SetupPage({
     <div data-space={pathway.id} className="min-h-screen flex flex-col">
       <main className="flex-1 px-5 py-8 max-w-md mx-auto w-full">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href={editing ? "/dashboard/profile" : "/"} className="space-back">
-            <ChevronLeft aria-hidden="true" className="h-5 w-5" /> {editing ? "Back to profile" : "Back to home"}
+          <Link href={fromWizard ? "/start" : editing ? "/dashboard/profile" : "/"} className="space-back">
+            <ChevronLeft aria-hidden="true" className="h-5 w-5" /> {fromWizard ? "Back to getting started" : editing ? "Back to profile" : "Back to home"}
           </Link>
           <BrandMark href="/" />
         </div>
@@ -53,6 +54,7 @@ export default async function SetupPage({
         <div className="mt-6">
           <ProfileForm
             editing={editing}
+            fromWizard={fromWizard}
             needsSchool={needsSchool}
             needsSchoolCode={user.role === "TEACHER" && !user.profileComplete && !user.schoolId}
             defaults={{

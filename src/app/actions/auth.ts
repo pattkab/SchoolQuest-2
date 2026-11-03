@@ -24,7 +24,7 @@ export async function loginAction(formData: FormData) {
     redirect("/login?error=limited");
   }
   try {
-    await signIn("credentials", { phone, password, redirectTo: "/dashboard" });
+    await signIn("credentials", { phone, password, redirectTo: "/start" });
   } catch (error) {
     if (error instanceof AuthError) redirect("/login?error=invalid");
     throw error;
@@ -51,7 +51,7 @@ export async function registerStudentAction(formData: FormData) {
   });
   if ("error" in created) redirect(`/login?tab=join&error=${created.error}`);
 
-  await signIn("credentials", { phone, password, intent: "STUDENT", redirectTo: "/dashboard" });
+  await signIn("credentials", { phone, password, intent: "STUDENT", redirectTo: "/start" });
 }
 
 export async function registerSchoolAction(formData: FormData) {
@@ -72,7 +72,7 @@ export async function registerSchoolAction(formData: FormData) {
     const school = await tx.school.create({ data: { name: schoolName, district, ownerId: user.id, code: randomCode("SQ-", 8) } });
     await tx.user.update({ where: { id: user.id }, data: { schoolId: school.id } });
   });
-  await signIn("credentials", { phone, password, redirectTo: "/dashboard/school" });
+  await signIn("credentials", { phone, password, redirectTo: "/start" });
 }
 
 export async function registerTeacherAction(formData: FormData) {
@@ -128,7 +128,7 @@ export async function registerTeacherAction(formData: FormData) {
     },
   });
 
-  await signIn("credentials", { phone, password, intent: "TEACHER", redirectTo: "/dashboard/teacher" });
+  await signIn("credentials", { phone, password, intent: "TEACHER", redirectTo: "/start" });
 }
 
 export async function setStudentClassAction(formData: FormData) {
