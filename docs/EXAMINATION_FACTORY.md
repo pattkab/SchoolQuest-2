@@ -6,7 +6,19 @@ The canonical checkout is `/Volumes/XPATT/APPS/schoolquest`, backed by `pattkab/
 
 An administrator opens Examination Factory at `/dashboard/teacher/digitization`. The page reads `data/fresh-teacher/summary.json`, which is counted from the full inventory. Choose a class, subject, and whether to read exam papers, marking guides, or notes. The action downloads the next matching PDFs from the pinned GitHub revision, checks each file against its Git blob, and queues a private digitization job. Learners cannot see a paper until a teacher approves and publishes it.
 
-Objective answers are marked from the approved key. Written answers that miss the keyword rubric, and low-confidence AI marks, stay with a teacher. Set `GEMINI_API_KEY` for Gemini API access. A Vertex project is used only when that key is absent.
+Objective answers are marked from the approved key. Written answers that miss the keyword rubric stay with a teacher. Live AI marking is off unless `SCHOOLQUEST_LIVE_AI_MARKING=true`.
+
+## Stored papers and marking schemes
+
+The low-cost path does not call an AI key when a learner submits.
+
+```sh
+npm run papers:pull
+npm run papers:schemes
+npm run papers:import
+```
+
+`papers:pull` saves past papers, holiday packages, exams, and marking guides in `data/fresh-teacher/library`. The PDF bytes stay on this computer. `papers:schemes` reads the saved files locally, pairs a paper with its marking guide, and writes `data/fresh-teacher/schemes/<git blob>.json`. A scheme is ready only when every parsed question has an answer taken from the paper or its guide. `papers:import` copies ready schemes into the database. Learner marking then uses those stored answers. Run `papers:schemes -- --limit=40` to prepare the next batch.
 
 ## Refresh the Fresh Teacher inventory
 

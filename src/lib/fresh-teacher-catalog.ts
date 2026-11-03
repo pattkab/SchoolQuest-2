@@ -1,4 +1,5 @@
 export type CatalogKind = "paper" | "guide" | "notes" | "other";
+export type PaperCollection = "past-paper" | "holiday" | "exam" | "guide" | "notes" | "other";
 
 export type ClassifiedDocument = {
   gitBlob: string;
@@ -78,6 +79,18 @@ export function classifyFreshTeacherPath(filePath: string) {
   else if (classSlug || subjectSlug) kind = "paper";
   return { classSlug, subjectSlug, kind, year };
 }
+
+export function collectionFor(filePath: string, kind: CatalogKind = classifyFreshTeacherPath(filePath).kind): PaperCollection {
+  const text = filePath.toLowerCase().replace(/[_./-]+/g, " ");
+  if (kind === "guide" || /marking guide|mark scheme|marking scheme|with answers|answer sheet/.test(text)) return "guide";
+  if (kind === "notes") return "notes";
+  if (/holiday/.test(text)) return "holiday";
+  if (/past paper|\bple\b|\buneb\b/.test(text)) return "past-paper";
+  if (/\bexam\b|end of term|\beoy\b|\beot\b|\bbot\b|\bmock\b|\bset\b/.test(text)) return "exam";
+  return "other";
+}
+
+export const LIBRARY_COLLECTIONS = new Set<PaperCollection>(["past-paper", "holiday", "exam", "guide"]);
 
 export function classifyInventoryDocument(document: {
   gitBlob: string;

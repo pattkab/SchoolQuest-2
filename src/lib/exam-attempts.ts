@@ -209,6 +209,7 @@ async function gradeAnswers(questions: MarkableQuestion[], answers: Record<strin
     let points = marked.points;
     let isCorrect = marked.isCorrect;
     const shouldAskAi =
+      process.env.SCHOOLQUEST_LIVE_AI_MARKING === "true" &&
       Boolean(studentAnswer) &&
       !isDrawingDescription(question.type, studentAnswer) &&
       (OPEN_TYPES.has(question.type) || marked.status === "PENDING") &&

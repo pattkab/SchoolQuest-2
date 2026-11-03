@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test tests/phase0.test.ts tests/evidence.test.ts tests/accessibility.test.ts tests/exam-engine.test.ts tests/offline.test.ts tests/digitization.test.ts tests/fresh-teacher-catalog.test.ts tests/mobile-api.test.ts tests/entitlements.test.ts tests/release-guards.test.ts tests/phone.test.ts",
+    "test": "tsx --test tests/phase0.test.ts tests/evidence.test.ts tests/accessibility.test.ts tests/exam-engine.test.ts tests/offline.test.ts tests/digitization.test.ts tests/fresh-teacher-catalog.test.ts tests/marking-scheme.test.ts tests/mobile-api.test.ts tests/entitlements.test.ts tests/release-guards.test.ts tests/phone.test.ts",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma skills sync || exit 0",
     "db:push": "prisma db push",
@@ -17,7 +17,10 @@
     "android:open": "cap open android",
     "ios:sync": "cap sync ios",
     "ios:open": "cap open ios",
-    "mobile:test": "tsx --test tests/mobile-config.test.ts"
+    "mobile:test": "tsx --test tests/mobile-config.test.ts",
+    "papers:pull": "tsx scripts/pull-paper-library.ts",
+    "papers:schemes": "tsx scripts/build-marking-schemes.ts",
+    "papers:import": "tsx scripts/import-marking-schemes.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

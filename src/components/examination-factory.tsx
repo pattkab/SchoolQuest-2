@@ -2,7 +2,6 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { queueFreshTeacherAction } from "@/app/dashboard/teacher/digitization/queue-action";
 import { FACTORY_CLASSES, FACTORY_SUBJECTS } from "@/lib/fresh-teacher-catalog";
-import { aiConfigured } from "@/lib/gemini";
 
 type Summary = {
   revision: string;
@@ -33,11 +32,7 @@ export async function ExaminationFactory({ queued = 0 }: { queued?: number }) {
             ? `${summary.documents.toLocaleString()} unique files from ${summary.paths.toLocaleString()} paths. ${summary.byKind.paper.toLocaleString()} look like exams, ${summary.byKind.guide.toLocaleString()} like marking guides, and ${summary.byKind.notes.toLocaleString()} like notes.`
             : "The Fresh Teacher inventory summary is not on this computer yet."}
         </p>
-        <p className="text-sm text-muted-foreground mt-1">
-          {aiConfigured()
-            ? "AI reading is configured. A teacher still approves every paper before learners can answer it."
-            : "Add GEMINI_API_KEY to read papers into questions. Queued files stay hidden until then."}
-        </p>
+        <p className="text-sm text-muted-foreground mt-1">Past papers, holiday packages, and exams are stored on this computer. Their marking schemes are saved beside them and mark learner answers. Live AI marking stays off unless SCHOOLQUEST_LIVE_AI_MARKING is turned on.</p>
       </div>
       {queued > 0 && <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{queued} {queued === 1 ? "file is" : "files are"} queued for reading. Learners cannot see them yet.</p>}
       {summary && (
