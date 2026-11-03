@@ -3,16 +3,24 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
 import json
+import os
+import re
 from pathlib import Path
 from urllib.parse import quote, urljoin, urlsplit, unquote, urldefrag
 from urllib.request import Request, urlopen
 
 REPO = "Fresh-Teacher/fresh-teacher.github.io"
+PAGES_HOST = "fresh-teacher.github.io"
+MIRRORS = {"s6-fresh-teacher.vercel.app": "s6"}
 API = f"https://api.github.com/repos/{REPO}"
 
 
 def get_json(url):
-    with urlopen(Request(url, headers={"Accept": "application/vnd.github+json"}), timeout=45) as response:
+    headers = {"Accept": "application/vnd.github+json"}
+    token = os.environ.get("GH_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    with urlopen(Request(url, headers=headers), timeout=45) as response:
         return json.load(response)
 
 
@@ -91,15 +99,86 @@ def inventory(crawl_links=False):
     return result
 
 
+def mounted_tree(name):
+    repo = f"Fresh-Teacher/{name}"
+    try:
+        revision = get_json(f"https://api.github.com/repos/{repo}/commits/HEAD")["sha"]
+        tree = get_json(f"https://api.github.com/repos/{repo}/git/trees/{revision}?recursive=1")
+        if tree["truncated"]:
+            raise ValueError("GitHub returned a partial tree")
+        return name, repo, revision, tree["tree"], None
+    except (OSError, ValueError) as error:
+        return name, repo, None, [], str(error)
+
+
+def resolve_mounts(result):
+    """GitHub project Pages sites are mounted under /<repo>/ on the same host."""
+    crawl = result["crawl"]
+    links = crawl["unresolvedPdfLinks"]
+    prefixes = set()
+    for url in links:
+        parsed = urlsplit(url)
+        path = unquote(parsed.path).strip("/")
+        name, slash, _ = path.partition("/")
+        if parsed.hostname in MIRRORS:
+            prefixes.add(MIRRORS[parsed.hostname])
+        elif parsed.hostname == PAGES_HOST and slash and re.fullmatch(r"[a-zA-Z0-9_.-]+", name):
+            prefixes.add(name)
+    by_blob = {document["gitBlob"]: document for document in result["documents"]}
+    by_path = {path: document for document in by_blob.values() for path in document["paths"]}
+    mounts = crawl.setdefault("projectSites", {})
+    with ThreadPoolExecutor(max_workers=5) as workers:
+        for name, repo, revision, entries, error in workers.map(mounted_tree, sorted(prefixes)):
+            if error:
+                mounts[name] = {"error": error}
+                continue
+            count = 0
+            for entry in entries:
+                path = entry["path"]
+                if entry["type"] != "blob" or not path.lower().endswith(".pdf"):
+                    continue
+                count += 1
+                site_path = f"{name}/{path}"
+                digest = entry["sha"]
+                document = by_blob.setdefault(digest, {
+                    "gitBlob": digest, "bytes": entry["size"], "paths": [],
+                    "source": {"repository": repo, "revision": revision, "path": path},
+                    "sourceUrl": f"https://raw.githubusercontent.com/{repo}/{revision}/{quote(path)}",
+                    "rights": "unverified",
+                })
+                if site_path not in document["paths"]:
+                    document["paths"].append(site_path)
+                by_path[site_path] = document
+            mounts[name] = {"revision": revision, "pdfPaths": count}
+    for url, listed_in in list(links.items()):
+        parsed = urlsplit(url)
+        path = unquote(parsed.path.lstrip("/"))
+        mirror = MIRRORS.get(parsed.hostname)
+        if mirror:
+            document = by_path.get(f"{mirror}/{path}")
+        else:
+            document = by_path.get(path) if parsed.hostname == PAGES_HOST else None
+        if document:
+            document["listedIn"] = sorted(set(document.get("listedIn", []) + listed_in))
+            del links[url]
+    result["documents"] = list(by_blob.values())
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
     parser.add_argument("--crawl-links", action="store_true", help="Scan every HTML and JSON file for PDF links")
+    parser.add_argument("--resolve-mounts", action="store_true", help="Resolve project Pages repositories from a saved link scan")
     args = parser.parse_args()
-    result = inventory(args.crawl_links)
+    if args.resolve_mounts and not args.crawl_links:
+        result = json.loads(args.output.read_text(encoding="utf-8"))
+    else:
+        result = inventory(args.crawl_links)
+    if args.resolve_mounts:
+        resolve_mounts(result)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.output.with_suffix(".tmp")
-    temporary.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    temporary.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     temporary.replace(args.output)
     documents = result["documents"]
     print(f'{sum(len(d["paths"]) for d in documents)} PDF paths, {len(documents)} unique blobs')

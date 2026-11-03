@@ -180,11 +180,11 @@ export async function saveExamAnswers(
   if (!canMutateAttempt(attempt.status, attempt.finalizedAt)) {
     return { saved: false, expired: true, stale: [] as string[], versions: {}, ...clock(attempt), result: await loadResult(attempt.id) };
   }
-  const applied = await applyWrites(attempt.id, writes);
   if (isPastDeadline(attempt.deadlineAt, new Date())) {
     const result = await finalizeExam(userId, attempt.id, {}, {});
-    return { saved: true, expired: true, ...applied, ...clock(attempt, new Date()), remainingMs: 0, result };
+    return { saved: false, expired: true, stale: [] as string[], versions: {}, ...clock(attempt, new Date()), remainingMs: 0, result };
   }
+  const applied = await applyWrites(attempt.id, writes);
   return { saved: true, expired: false, ...applied, ...clock(attempt, new Date()), result: null };
 }
 
@@ -249,7 +249,8 @@ export async function finalizeExam(
   const savedRows = await db.answer.findMany({ where: { attemptId }, select: { questionId: true, studentAnswer: true, version: true } });
   const saved: Record<string, VersionedAnswer> = {};
   for (const row of savedRows) saved[row.questionId] = { value: row.studentAnswer || "", version: row.version };
-  const merged = Object.keys(incoming).length ? mergeAttemptAnswers(saved, incoming) : { ...fallbackAnswers };
+  const deadlinePassed = isPastDeadline(attempt.deadlineAt, new Date());
+  const merged = deadlinePassed ? {} : Object.keys(incoming).length ? mergeAttemptAnswers(saved, incoming) : { ...fallbackAnswers };
   for (const [questionId, value] of Object.entries(saved)) {
     if (merged[questionId] === undefined) merged[questionId] = value.value;
   }

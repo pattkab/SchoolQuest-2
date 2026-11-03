@@ -45,12 +45,21 @@ export async function correctQuestion(formData: FormData) {
   if (!draft || !draft.questions[index]) throw new Error("Nothing to correct yet.");
   const question = draft.questions[index];
   question.prompt = String(formData.get("prompt") || "").trim();
+  const illustration = formData.get("illustration");
+  if (illustration instanceof File && illustration.size) {
+    if (illustration.size > 750_000) throw new Error("Use an illustration under 750 KB.");
+    const bytes = Buffer.from(await illustration.arrayBuffer());
+    const png = bytes.subarray(0, 8).equals(Buffer.from("89504e470d0a1a0a", "hex"));
+    const jpeg = bytes.subarray(0, 3).equals(Buffer.from("ffd8ff", "hex"));
+    if (!png && !jpeg) throw new Error("Upload a PNG or JPEG crop from the original paper.");
+    question.imageUrl = `data:image/${png ? "png" : "jpeg"};base64,${bytes.toString("base64")}`;
+  }
   question.explanation = String(formData.get("markingGuide") || "").trim() || null;
   const points = Number(formData.get("points"));
   question.points = points > 0 ? points : null;
   if (question.type !== "DIAGRAM_LABEL") question.correctAnswer = String(formData.get("correctAnswer") || "").trim();
   recheckQuestion(draft, index);
-  await updateDraft(jobId, user.id, draft, "A teacher corrected a question.");
+  await updateDraft(jobId, user.id, draft, "A teacher corrected a question.", job.updatedAt);
   revalidatePath(`/dashboard/teacher/digitization/${jobId}`);
 }
 
@@ -67,19 +76,19 @@ export async function confirmDiagram(formData: FormData) {
   }
   confirmLabels(draft, index, accepted);
   recheckQuestion(draft, index);
-  await updateDraft(jobId, user.id, draft, "A teacher confirmed diagram labels.");
+  await updateDraft(jobId, user.id, draft, "A teacher confirmed diagram labels.", job.updatedAt);
   revalidatePath(`/dashboard/teacher/digitization/${jobId}`);
 }
 
 export async function setJobSubject(formData: FormData) {
   const user = await reviewer();
   const jobId = String(formData.get("jobId") || "");
-  await ownedJob(jobId, user.id, user.role);
+  const job = await ownedJob(jobId, user.id, user.role);
   const subjectId = String(formData.get("subjectId") || "");
   const title = String(formData.get("title") || "").trim();
   const year = Number(formData.get("year"));
   if (!subjectId) throw new Error("Choose a subject.");
-  const draft = readDraft((await db.digitizationJob.findUnique({ where: { id: jobId } }))?.draft || null);
+  const draft = readDraft(job.draft);
   if (draft) {
     if (title) draft.title = title;
     const duration = Number(formData.get("durationMinutes"));
@@ -87,7 +96,7 @@ export async function setJobSubject(formData: FormData) {
     draft.durationMinutes = duration || null;
   }
   await db.digitizationJob.update({
-    where: { id: jobId },
+    where: { id: jobId, updatedAt: job.updatedAt, status: { in: ["QUEUED", "FAILED", "AWAITING_REVIEW", "NEEDS_CORRECTION"] } },
     data: { subjectId, title: title || undefined, year: year || null, draft: draft ? JSON.stringify(draft) : undefined },
   });
   revalidatePath(`/dashboard/teacher/digitization/${jobId}`);

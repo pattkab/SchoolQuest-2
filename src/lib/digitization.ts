@@ -4,7 +4,7 @@ import { pdfHasText } from "@/lib/ingest";
 export const DAILY_JOB_CAP = 20;
 export const DAILY_TOKEN_CAP = 20_000;
 export const MAX_ATTEMPTS = 2;
-export const BLOCKING = new Set(["missing-prompt", "missing-marks", "duplicate", "unsupported-answer", "unconfirmed-diagram", "invalid-type"]);
+export const BLOCKING = new Set(["missing-prompt", "missing-marks", "duplicate", "unsupported-answer", "unconfirmed-diagram", "missing-illustration", "invalid-type"]);
 
 const QUESTION_TYPES = new Set([
   "MULTIPLE_CHOICE", "MULTI_SELECT", "FILL_BLANK", "SHORT_ANSWER", "NUMERIC", "CALCULATION",
@@ -23,6 +23,7 @@ export type DraftQuestion = {
   number: string | null;
   parentNumber: string | null;
   imagePage: number | null;
+  imageUrl?: string | null;
   labels: DraftLabel[];
   issues: string[];
 };
@@ -84,6 +85,7 @@ export function normalizeDraft(raw: unknown, fallbackTitle: string): DraftPaper 
     const open = type === "LONG_ANSWER" || type === "COMPREHENSION" || type === "DRAWING";
     if (!open && type !== "DIAGRAM_LABEL" && type !== "INVALID" && !correct) issues.push("unsupported-answer");
     if (type === "DIAGRAM_LABEL") issues.push("unconfirmed-diagram");
+    if (typeof item.imagePage === "number" && item.imagePage > 0) issues.push("missing-illustration");
     return {
       type,
       prompt,
@@ -129,6 +131,7 @@ export function recheckQuestion(draft: DraftPaper, index: number) {
   if (key && draft.questions.some((other, otherIndex) => otherIndex !== index && other.prompt.toLowerCase() === key)) issues.push("duplicate");
   const open = question.type === "LONG_ANSWER" || question.type === "COMPREHENSION" || question.type === "DRAWING";
   if (!open && question.type !== "DIAGRAM_LABEL" && question.type !== "INVALID" && !question.correctAnswer) issues.push("unsupported-answer");
+  if (question.imagePage && !question.imageUrl) issues.push("missing-illustration");
   if (question.type === "DIAGRAM_LABEL") {
     const ready = question.labels.length > 0 && question.labels.every((label) => label.confirmed && label.accept);
     const without = issues.filter((issue) => issue !== "unconfirmed-diagram");

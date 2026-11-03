@@ -11,6 +11,7 @@ const ISSUE: Record<string, string> = {
   "missing-marks": "Marks are missing",
   duplicate: "This question is repeated",
   "unsupported-answer": "No accepted answer",
+  "missing-illustration": "Attach the original illustration",
   "unconfirmed-diagram": "Diagram labels need a teacher",
   "invalid-type": "Question type is not supported",
   "no-questions": "No questions were found",
@@ -24,6 +25,7 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
   if (!job || (job.createdById !== user.id && !isAdmin(user.role))) notFound();
   const draft = readDraft(job.draft);
   const blocking = draft ? blockingIssues(draft) : ["no-questions"];
+  const editable = ["AWAITING_REVIEW", "NEEDS_CORRECTION"].includes(job.status);
   const subjects = await db.subject.findMany({ orderBy: [{ classGrade: { order: "asc" } }, { order: "asc" }], include: { classGrade: true } });
 
   return (
@@ -46,7 +48,7 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
         </div>
       ) : null}
 
-      <form action={setJobSubject} className="grid gap-2 rounded-2xl border bg-white p-4">
+      {editable || ["QUEUED", "FAILED"].includes(job.status) ? <form action={setJobSubject} className="grid gap-2 rounded-2xl border bg-white p-4">
         <input type="hidden" name="jobId" value={job.id} />
         <label className="text-sm" htmlFor="title">Title</label>
         <input id="title" name="title" defaultValue={draft?.title || job.title || ""} className="h-11 rounded-xl border px-3" />
@@ -62,9 +64,9 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
           <input id="durationMinutes" name="durationMinutes" type="number" min="1" max="1440" defaultValue={draft.durationMinutes ?? ""} className="h-11 rounded-xl border px-3" />
         </> : null}
         <button className="h-11 rounded-2xl border px-4">Save details</button>
-      </form>
+      </form> : null}
 
-      {draft?.questions.map((question, index) => (
+      {editable && draft?.questions.map((question, index) => (
         <section key={`${question.number || "q"}-${index}`} className="rounded-2xl border bg-white p-4 space-y-3">
           <p className="text-sm text-muted-foreground">{question.number || index + 1} · {question.type}{question.page ? ` · page ${question.page}` : ""}</p>
           {question.issues.length ? <ul className="text-sm">{question.issues.map((issue) => <li key={issue}>{ISSUE[issue] || issue}</li>)}</ul> : null}
@@ -82,6 +84,10 @@ export default async function DigitizationJobPage({ params }: { params: Promise<
                 <input id={`answer-${index}`} name="correctAnswer" defaultValue={question.correctAnswer} className="h-11 rounded-xl border px-3" />
               </>
             ) : null}
+            {question.imagePage ? <>
+              <label className="text-sm" htmlFor={`illustration-${index}`}>{question.imageUrl ? "Replace illustration" : "Original illustration crop"}</label>
+              <input id={`illustration-${index}`} type="file" name="illustration" accept="image/png,image/jpeg" />
+            </> : null}
             <label className="text-sm" htmlFor={`rubric-${index}`}>Marking guide</label>
             <textarea id={`rubric-${index}`} name="markingGuide" defaultValue={question.explanation || ""} rows={2} className="rounded-xl border px-3 py-2" />
             <button className="h-11 rounded-2xl border px-4">Save correction</button>

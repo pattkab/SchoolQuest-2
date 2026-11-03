@@ -133,7 +133,11 @@ export async function approveContentAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) redirect("/dashboard/admin/readiness");
   if (kind === "note") await db.note.update({ where: { id }, data: { status: "PUBLISHED" } });
-  if (kind === "paper") await db.paper.update({ where: { id }, data: { status: "PUBLISHED" } });
+  if (kind === "paper") {
+    const job = await db.digitizationJob.findFirst({ where: { paperId: id }, select: { id: true } });
+    if (job) redirect(`/dashboard/teacher/digitization/${job.id}`);
+    await db.paper.update({ where: { id }, data: { status: "PUBLISHED" } });
+  }
   revalidatePath("/dashboard/admin/readiness");
   redirect("/dashboard/admin/readiness");
 }

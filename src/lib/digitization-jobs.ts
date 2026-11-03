@@ -164,6 +164,7 @@ export async function approveJob(jobId: string, actorId: string) {
             type: question.type,
             prompt: question.prompt,
             displayNumber: question.number,
+            imageUrl: question.imageUrl,
             options: question.options ? JSON.stringify(question.options) : null,
             correctAnswer: question.type === "DIAGRAM_LABEL"
               ? JSON.stringify({ labels: question.labels.map((label) => ({ id: label.id, x: label.x, y: label.y, prompt: label.prompt, accept: [label.accept] })) })
@@ -228,11 +229,14 @@ export function readDraft(raw: string | null): DraftPaper | null {
   try { return JSON.parse(raw) as DraftPaper; } catch { return null; }
 }
 
-export async function updateDraft(jobId: string, actorId: string, draft: DraftPaper, message: string) {
+export async function updateDraft(jobId: string, actorId: string, draft: DraftPaper, message: string, updatedAt: Date) {
   const blocking = blockingIssues(draft);
-  await logEvent(jobId, "edited", message, actorId);
-  return db.digitizationJob.update({
-    where: { id: jobId },
-    data: { draft: JSON.stringify(draft), status: blocking.length ? "NEEDS_CORRECTION" : "AWAITING_REVIEW", reviewerId: actorId, reviewedAt: new Date() },
+  return db.$transaction(async (tx) => {
+    const job = await tx.digitizationJob.update({
+      where: { id: jobId, updatedAt, status: { in: ["AWAITING_REVIEW", "NEEDS_CORRECTION"] } },
+      data: { draft: JSON.stringify(draft), status: blocking.length ? "NEEDS_CORRECTION" : "AWAITING_REVIEW", reviewerId: actorId, reviewedAt: new Date() },
+    });
+    await tx.digitizationEvent.create({ data: { jobId, stage: "edited", message, actorId } });
+    return job;
   });
 }

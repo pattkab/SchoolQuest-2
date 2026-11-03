@@ -15,6 +15,11 @@ const inventorySchema = z.object({
     gitBlob: sha,
     bytes: z.number().int().positive(),
     paths: z.array(z.string()).nonempty(),
+    source: z.object({
+      repository: z.string().regex(/^Fresh-Teacher\/[a-zA-Z0-9_.-]+$/),
+      revision: sha,
+      path: z.string(),
+    }).optional(),
   })),
 });
 
@@ -53,12 +58,13 @@ async function main() {
     const document = byBlob.get(approval.gitBlob);
     if (!document || document.bytes > 15_000_000) throw new Error(`Missing or oversized PDF: ${approval.gitBlob}`);
     await db.subject.findUniqueOrThrow({ where: { id: approval.subjectId }, select: { id: true } });
-    const sourcePath = document.paths[0];
+    const source = document.source ?? { repository: repo, revision: inventory.revision, path: document.paths[0] };
+    const sourcePath = source.path;
     const segments = sourcePath.split("/");
     if (segments.some((segment) => !segment || segment === "." || segment === "..") || !/\.pdf$/i.test(sourcePath)) {
       throw new Error("Invalid PDF path.");
     }
-    const url = `https://raw.githubusercontent.com/${repo}/${inventory.revision}/${segments.map(encodeURIComponent).join("/")}`;
+    const url = `https://raw.githubusercontent.com/${source.repository}/${source.revision}/${segments.map(encodeURIComponent).join("/")}`;
     const response = await fetch(url, { redirect: "error", signal: AbortSignal.timeout(60_000) });
     if (!response.ok || !response.body) throw new Error(`Download failed: HTTP ${response.status}`);
     const chunks: Uint8Array[] = [];
