@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { JoinForm } from "@/components/join-form";
@@ -11,6 +12,8 @@ import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import { getSessionUser } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { PATHWAYS } from "@/lib/pathways";
+
+export const metadata: Metadata = { title: "Sign in", robots: { index: false, follow: true } };
 
 const errors: Record<string, string> = {
   exists: "This phone already has an account. Sign in to continue.",

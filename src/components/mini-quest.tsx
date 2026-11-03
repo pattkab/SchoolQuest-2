@@ -28,7 +28,7 @@ export function MiniQuest() {
       {!question ? (
         <>
           <p role="status" className="quiz-celebration my-2 font-bold">Quest complete! You solved all three challenges.</p>
-          <button type="button" className="quest-button" onClick={() => move(0)}>Play again</button>
+          <button type="button" data-button-tone="blue" className="quest-button" onClick={() => move(0)}>Play again</button>
         </>
       ) : (
         <>
@@ -50,7 +50,7 @@ export function MiniQuest() {
             </div>
           </fieldset>
           <p role="status" className="my-2 min-h-6">{choice && (correct ? "You got it!" : question.hint)}</p>
-          {correct && <button type="button" className="quest-button" onClick={() => {
+          {correct && <button type="button" data-button-tone="mint" className="quest-button" onClick={() => {
             if (step === questions.length - 1) {
               prepareQuestSound();
               playQuestSound("complete");

@@ -29,7 +29,7 @@ export default async function StudentDashboard() {
         <p className="learner-quest-kicker">Meet Kito, your quest guide</p>
         <h2 id="learner-quest-title" className="font-display text-3xl">{continuing ? "Ready to keep going?" : "What shall we explore today?"}</h2>
         <p className="mt-2">Read something new, practise a topic, or see how far you’ve come.</p>
-        <Link href={nextHref} className="quest-button quest-button-light mt-4">{continuing ? "Continue your practice" : "Start learning"}<ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
+        <Link href={nextHref} data-button-tone="gold" className="quest-button quest-button-light mt-4">{continuing ? "Continue your practice" : "Start learning"}<ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
         <nav aria-label="Explore more activities" className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
           <a href="#educational-videos" className="inline-flex min-h-11 items-center font-bold underline underline-offset-4">Watch videos</a>
           <a href="#edutainment" className="inline-flex min-h-11 items-center font-bold underline underline-offset-4">Learn through play</a>

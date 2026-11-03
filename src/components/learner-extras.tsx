@@ -42,7 +42,7 @@ export function LearnerExtras({ quizId }: { quizId?: string }) {
           <p className="mt-1 text-sm text-muted-foreground">Learn through play with quick puzzles and quizzes.</p>
         </div>
         <MiniQuest />
-        {quizId && <Link href={`/dashboard/papers/${quizId}`} className="quest-button quest-button-secondary">Try a class quiz</Link>}
+        {quizId && <Link href={`/dashboard/papers/${quizId}`} data-button-tone="blue" className="quest-button quest-button-secondary">Try a class quiz</Link>}
       </section>
     </>
   );

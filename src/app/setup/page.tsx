@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
@@ -6,6 +7,8 @@ import { BrandMark } from "@/components/shell";
 import { ProfileForm } from "@/components/profile-form";
 import { pathwayForRole } from "@/lib/pathways";
 import { SiteFooter } from "@/components/site-footer";
+
+export const metadata: Metadata = { title: "Set up your profile", robots: { index: false, follow: true } };
 
 const errors: Record<string, string> = {
   missing: "Fill the required fields.",

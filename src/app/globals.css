@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: 210 30% 98%;
+  --background: 0 0% 100%;
   --foreground: 219 38% 17%;
   --card: 0 0% 100%;
   --card-foreground: 162 28% 12%;
@@ -55,8 +55,8 @@
   --radius-md: calc(var(--radius) - 3px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 8px);
-  --font-sans: var(--font-plus-jakarta);
-  --font-serif: var(--font-source-serif);
+  --font-sans: var(--font-school-quest);
+  --font-serif: var(--font-school-quest);
 }
 
 * { border-color: hsl(var(--border)); }
@@ -64,7 +64,7 @@
 html, body { min-height: 100%; color-scheme: light; }
 
 body {
-  font-family: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-school-quest), ui-sans-serif, system-ui, sans-serif;
   font-size: 1.0625rem;
   line-height: 1.55;
   letter-spacing: -0.011em;
@@ -106,7 +106,7 @@ button, a, input, select, textarea { touch-action: manipulation; }
 }
 
 .font-display {
-  font-family: var(--font-plus-jakarta), ui-sans-serif, sans-serif;
+  font-family: var(--font-school-quest), ui-sans-serif, sans-serif;
   font-weight: 800;
   letter-spacing: -0.045em;
 }
@@ -157,7 +157,7 @@ h2.font-display { line-height: 1.15; }
 .brand-mark:hover { transform: rotate(-6deg) scale(1.05); }
 
 .prose-notes { font-size: 1.125rem; }
-.prose-notes h1 { font-family: var(--font-plus-jakarta), ui-sans-serif, sans-serif; font-size: 2.15rem; line-height: 1.15; margin: 0 0 0.8rem; }
+.prose-notes h1 { font-family: var(--font-school-quest), ui-sans-serif, sans-serif; font-size: 2.15rem; line-height: 1.15; margin: 0 0 0.8rem; }
 .prose-notes h2 { font-size: 1.35rem; margin: 1.6rem 0 0.5rem; color: var(--forest); }
 .prose-notes h3 { font-size: 1.15rem; margin: 1.2rem 0 0.4rem; }
 .prose-notes p, .prose-notes li { line-height: 1.75; margin: 0.55rem 0; }
@@ -430,24 +430,24 @@ html[data-a11y-scaled="true"] .space-label { font-size: 1rem; overflow-wrap: any
 
 /* The learner space borrows paper, foliage, and ink from the reading illustration. */
 html:not([data-a11y-contrast="true"]) [data-space="student"] {
-  --background: 39 77% 96%;
-  --foreground: 23 36% 17%;
-  --card: 42 100% 98%;
+  --background: 0 0% 100%;
+  --foreground: 233 28% 19%;
+  --card: 0 0% 100%;
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
-  --primary: 16 65% 34%;
-  --muted: 39 43% 91%;
-  --muted-foreground: 26 25% 34%;
-  --border: 32 36% 75%;
-  --input: 32 35% 57%;
+  --primary: 267 48% 39%;
+  --muted: 254 30% 94%;
+  --muted-foreground: 234 15% 36%;
+  --border: 245 25% 83%;
+  --input: 245 17% 57%;
   --ring: 273 36% 40%;
-  --ink: #39271c;
-  --paper: #fcf2df;
-  --forest: #79331f;
+  --ink: #292840;
+  --paper: #fff;
+  --forest: #4b2873;
   --space-ink: #3a604e;
   --space-wash: #e1efdf;
-  --storybook-cream: #fffaf0;
+  --storybook-cream: #fff;
   --storybook-gold: #f7dc9c;
   --storybook-mint: #deedda;
   --storybook-lilac: #efe1f1;
@@ -490,10 +490,28 @@ html:not([data-a11y-contrast="true"]) [data-space="student"] .profile-banner {
 }
 
 html:not([data-a11y-contrast="true"]) [data-space="student"] .quest-button:not(.quest-button-secondary, .quest-button-light) {
-  box-shadow: 0 3px 0 #6c2d1c;
+  box-shadow: 0 3px 0 #4b2873;
 }
 
 html:not([data-a11y-contrast="true"]) [data-space="student"] :is(.quest-button-secondary, .quest-button-light) {
   background-color: var(--storybook-cream);
   color: var(--ink);
+}
+
+/* Activity colors pair with their text and icons so color isn't the only cue. */
+html:not([data-a11y-contrast="true"]) [data-space="student"] .learner-activity.tone-mint { color: #16534a; }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .learner-activity.tone-lilac { color: #4d2d72; }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .learner-activity.tone-peach { color: #72333f; }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .quest-button[data-button-tone="mint"] { background: #176957; color: white; box-shadow: 0 3px 0 #10473c; }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .quest-button[data-button-tone="blue"] { background: #245aaa; color: white; box-shadow: 0 3px 0 #173c75; }
+html:not([data-a11y-contrast="true"]) [data-space="student"] .quest-button[data-button-tone="gold"] { background: #ffdc86; color: #422b13; box-shadow: 0 3px 0 #b88224; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-a11y-calm="true"]) [data-space="student"] .quest-button:active:not(:disabled) {
+    animation: learner-button-press .2s ease-out;
+  }
+}
+@keyframes learner-button-press {
+  50% { scale: .97; }
+  100% { scale: 1; }
 }

@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import Link from 'next/link';
 import { BrandMark } from '@/components/shell';
 import { SiteFooter } from '@/components/site-footer';
 import { PublicMobileNav } from '@/components/public-mobile-nav';
 import { KitoMascot } from '@/components/kito-mascot';
 import { ArrowRight, GraduationCap, Presentation } from 'lucide-react';
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const starts = [
   { label: 'Little explorers', grade: 'Baby · Middle · Top', emoji: '🌱' },
@@ -19,7 +22,7 @@ export default function Home() {
       <section className="landing-hero page-rise max-w-6xl mx-auto px-5 md:px-10">
         <div>
           <h1 className="font-display display-hero">A brighter future.<br /><span className="text-primary">One quest at a time.</span></h1>
-          <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">Notes and practice, from Baby Class to P.7.</p>
+          <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">Ugandan primary school notes, quizzes and past papers, from Baby Class to Primary 7. Learn with Kito through short challenges and educational videos.</p>
           <div className="mt-7 flex flex-wrap gap-3"><Link href="/login?tab=join&role=learner" className="quest-button">Start learning <ArrowRight className="h-5 w-5" /></Link><Link href="/login" className="quest-button quest-button-secondary">Sign in</Link></div>
         </div>
         <figure className="quest-mascot-stage order-first lg:order-last">
