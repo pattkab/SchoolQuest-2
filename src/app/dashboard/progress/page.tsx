@@ -78,7 +78,7 @@ export default async function ProgressPage() {
             <Link key={attempt.id} href={`/dashboard/attempts/${attempt.id}`} className="flex items-center justify-between rounded-3xl border bg-white px-4 py-3">
               <span>
                 <span className="block font-bold">{attempt.paper.title}</span>
-                <span className="text-sm text-muted-foreground">{attempt.paper.subject.classGrade.shortName} · {shortSubjectName(attempt.paper.subject.name)}</span>
+                <span className="text-sm text-muted-foreground">{attempt.paper.subject.classGrade.shortName} · {shortSubjectName(attempt.paper.subject.name)} · {attempt.status === "IN_PROGRESS" ? (attempt.pausedAt ? "Paused" : "In progress") : "Submitted"}{attempt.timeSpentSeconds ? ` · ${Math.floor(attempt.timeSpentSeconds / 60)} min` : ""}</span>
               </span>
               <span className="font-display text-2xl">{percent}%</span>
             </Link>

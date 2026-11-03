@@ -1,5 +1,20 @@
 /** Server-time and answer-version rules for an examination attempt. */
 
+export const DEFAULT_EXAM_MINUTES = 120;
+
+export function examMinutes(durationMinutes: number | null | undefined) {
+  return durationMinutes && durationMinutes > 0 ? durationMinutes : DEFAULT_EXAM_MINUTES;
+}
+
+export function pausedRemaining(deadline: Date | null, now: Date, fallbackMs = 0) {
+  if (!deadline) return Math.max(0, fallbackMs);
+  return Math.max(0, deadline.getTime() - now.getTime());
+}
+
+export function resumedDeadline(remainingMs: number, now: Date) {
+  return new Date(now.getTime() + Math.max(0, remainingMs));
+}
+
 export function examDeadline(startedAt: Date, durationMinutes: number | null | undefined): Date | null {
   if (!durationMinutes || durationMinutes <= 0) return null;
   return new Date(startedAt.getTime() + durationMinutes * 60_000);

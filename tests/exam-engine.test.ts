@@ -7,6 +7,8 @@ import {
   canMutateAttempt,
   examDeadline,
   isPastDeadline,
+  pausedRemaining,
+  resumedDeadline,
   mergeAttemptAnswers,
   publicDiagramTargets,
 } from "../src/lib/exam-session";
@@ -86,6 +88,13 @@ test("a written answer follows its rubric and stays unmarked when a teacher is r
   const review = markAnswer(question({ type: "LONG_ANSWER", correctAnswer: JSON.stringify(""), markingGuide: guide, requiresTeacher: true }), "A set is a collection of elements.");
   assert.equal(review.status, "PENDING");
   assert.equal(review.points, 0);
+});
+
+test("pausing freezes the remaining time and resuming continues from that point", () => {
+  const now = new Date("2026-11-03T10:00:00.000Z");
+  const deadline = examDeadline(new Date("2026-11-03T09:40:00.000Z"), 30);
+  assert.equal(pausedRemaining(deadline, now, 0), 10 * 60_000);
+  assert.equal(resumedDeadline(10 * 60_000, now).toISOString(), "2026-11-03T10:10:00.000Z");
 });
 
 test("the deadline follows the server clock rather than a learner's device clock", () => {

@@ -14,6 +14,7 @@ export default async function AttemptPage({ params }: { params: Promise<{ attemp
     include: {
       paper: { include: { subject: { include: { classGrade: true } } } },
       answers: { include: { question: true }, orderBy: { createdAt: "asc" } },
+      logs: { orderBy: { createdAt: "asc" } },
     },
   });
   if (!attempt) notFound();
@@ -33,6 +34,7 @@ export default async function AttemptPage({ params }: { params: Promise<{ attemp
           {attempt.pendingCount ? ` · ${attempt.pendingCount} awaiting teacher` : ""}
         </p>
         {attempt.finalizedAt && <p className="mt-2 text-sm text-muted-foreground">Submitted {attempt.finalizedAt.toLocaleString("en-UG")}. This result stays fixed unless a teacher reviews it.</p>}
+        {attempt.logs.length > 0 && <ol className="mt-3 space-y-1 text-sm text-muted-foreground">{attempt.logs.map((entry) => <li key={entry.id}>{entry.createdAt.toLocaleString("en-UG")} · {entry.message}</li>)}</ol>}
       </header>
       {attempt.answers.some((answer) => answer.isCorrect === false) && (
         <section className="rounded-[1.6rem] bg-white border p-5">

@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { questionsFromPaperText, schemeMatchKey, schemeStatus, type MarkingSchemeFile } from "../src/lib/marking-scheme";
+import { examQuestionText, questionsFromPaperText, schemeMatchKey, schemeStatus, type MarkingSchemeFile } from "../src/lib/marking-scheme";
 
 const root = process.cwd();
 const library = path.join(root, "data", "fresh-teacher", "library");
@@ -50,7 +50,8 @@ async function main() {
     const guideBlob = guides.get(`${file.classSlug || ""}:${schemeMatchKey(file.path)}`) || null;
     const paperText = pdfText(path.join(library, `${blob}.pdf`));
     const guideText = guideBlob ? pdfText(path.join(library, `${guideBlob}.pdf`)) : null;
-    const questions = questionsFromPaperText(paperText, guideText);
+    const prepared = examQuestionText(paperText);
+    const questions = questionsFromPaperText(prepared.text, guideText);
     const scheme: MarkingSchemeFile = {
       version: 1,
       gitBlob: blob,
@@ -61,6 +62,7 @@ async function main() {
       collection: file.collection as MarkingSchemeFile["collection"],
       title: path.posix.basename(file.path).replace(/\.pdf$/i, ""),
       year: file.year,
+      durationMinutes: prepared.durationMinutes,
       guideBlob,
       status: schemeStatus(questions),
       questions,

@@ -21,6 +21,7 @@ export type MarkingSchemeFile = {
   collection: Extract<PaperCollection, "past-paper" | "holiday" | "exam">;
   title: string;
   year: number | null;
+  durationMinutes: number | null;
   guideBlob: string | null;
   status: "draft" | "ready";
   questions: SchemeQuestion[];
@@ -39,8 +40,27 @@ export function schemeMatchKey(filePath: string) {
     .trim();
 }
 
+const coverMark = /candidate|index\s*(?:no|number)|school\s*name|district|signature|for official use|do not write|random\s*number|centre\s*(?:no|number)|center\s*(?:no|number)|name of (?:the )?candidate/i;
+
+export function readDurationMinutes(text: string) {
+  const head = text.slice(0, 3000);
+  const hours = head.match(/time(?:\s+allowed)?\s*[:\-]?\s*(\d+)\s*(?:hours?|hrs?)(?:\s*(\d+)\s*(?:minutes?|mins?))?/i);
+  if (hours) return Number(hours[1]) * 60 + (hours[2] ? Number(hours[2]) : 0);
+  const minutes = head.match(/time(?:\s+allowed)?\s*[:\-]?\s*(\d+)\s*(?:minutes?|mins?)/i);
+  return minutes ? Number(minutes[1]) : null;
+}
+
+/** Drop the identifier cover so question numbering starts at the paper itself. */
+export function examQuestionText(text: string) {
+  const durationMinutes = readDurationMinutes(text);
+  const match = text.match(/\n\s*(section\s+[a-z0-9]+\b|question\s+1\b|1\s*[.)]\s+\S)/i);
+  if (!match || match.index == null || match.index < 40) return { text, durationMinutes };
+  if (!coverMark.test(text.slice(0, match.index))) return { text, durationMinutes };
+  return { text: text.slice(match.index).replace(/^\s+/, ""), durationMinutes };
+}
+
 export function questionsFromPaperText(paperText: string, guideText: string | null): SchemeQuestion[] {
-  const split = splitAnswers(paperText);
+  const split = splitAnswers(examQuestionText(paperText).text);
   const body = split.body;
   const answerText = [guideText, split.answers].filter(Boolean).join("\n");
   const answers = answerMap(answerText);

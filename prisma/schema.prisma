@@ -320,12 +320,16 @@ model Attempt {
   timeSpentSeconds Int?
   startedAt        DateTime  @default(now())
   deadlineAt       DateTime?
+  pausedAt         DateTime?
+  timerRemainingMs Int?
+  durationMs       Int?
   completedAt      DateTime?
   finalizedAt      DateTime?
   gradedAt         DateTime?
   markingVersion   Int       @default(1)
 
   answers Answer[]
+  logs    AttemptLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -334,6 +338,17 @@ model Attempt {
   @@index([userId, status])
   @@index([userId, paperId, status])
   @@index([paperId])
+}
+
+model AttemptLog {
+  id        String   @id @default(cuid())
+  attemptId String
+  attempt   Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  kind      String
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([attemptId, createdAt])
 }
 
 model Answer {

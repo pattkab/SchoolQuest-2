@@ -7,9 +7,12 @@ import {
   answerWriteDecision,
   canMutateAttempt,
   examDeadline,
+  examMinutes,
   isPastDeadline,
   mergeAttemptAnswers,
+  pausedRemaining,
   remainingMs,
+  resumedDeadline,
   type VersionedAnswer,
 } from "@/lib/exam-session";
 import { FREE_EXAM_USED, hasPremium } from "@/lib/entitlements";
@@ -30,6 +33,7 @@ export type ExamSession = {
   serverNow: string;
   deadlineAt: string | null;
   remainingMs: number | null;
+  paused: boolean;
   answers: Record<string, string>;
   versions: Record<string, number>;
   result: ExamResult | null;
@@ -42,18 +46,42 @@ type AttemptRow = {
   status: string;
   finalizedAt: Date | null;
   deadlineAt: Date | null;
+  pausedAt: Date | null;
+  timerRemainingMs: number | null;
+  durationMs: number | null;
   startedAt: Date;
   score: number;
   maxScore: number;
   pendingCount: number;
 };
 
-function clock(attempt: { deadlineAt: Date | null }, now = new Date()) {
+function clock(attempt: { deadlineAt: Date | null; pausedAt?: Date | null; timerRemainingMs?: number | null }, now = new Date()) {
+  if (attempt.pausedAt) {
+    return {
+      serverNow: now.toISOString(),
+      deadlineAt: null,
+      remainingMs: Math.max(0, attempt.timerRemainingMs ?? 0),
+      paused: true,
+    };
+  }
   return {
     serverNow: now.toISOString(),
     deadlineAt: attempt.deadlineAt?.toISOString() ?? null,
     remainingMs: remainingMs(attempt.deadlineAt, now),
+    paused: false,
   };
+}
+
+async function logProgress(attemptId: string, kind: string, message: string) {
+  await db.attemptLog.create({ data: { attemptId, kind, message } });
+}
+
+function activeSeconds(attempt: { startedAt: Date; durationMs: number | null; pausedAt: Date | null; timerRemainingMs: number | null; deadlineAt: Date | null }, now: Date) {
+  if (!attempt.durationMs) return Math.max(0, Math.round((now.getTime() - attempt.startedAt.getTime()) / 1000));
+  const remaining = attempt.pausedAt
+    ? attempt.timerRemainingMs ?? 0
+    : pausedRemaining(attempt.deadlineAt, now, attempt.timerRemainingMs ?? attempt.durationMs);
+  return Math.max(0, Math.round((attempt.durationMs - remaining) / 1000));
 }
 
 async function loadResult(attemptId: string): Promise<ExamResult> {
@@ -112,14 +140,16 @@ export async function openExamAttempt(userId: string, paperId: string): Promise<
       if (grant) throw new Error(FREE_EXAM_USED);
     }
     const startedAt = new Date();
+    const minutes = examMinutes(paper.durationMinutes);
     const attempt = await tx.attempt.create({
       data: {
         userId,
         paperId,
         status: "IN_PROGRESS",
-        mode: "PRACTICE",
+        mode: "EXAM",
         startedAt,
-        deadlineAt: examDeadline(startedAt, paper.durationMinutes),
+        durationMs: minutes * 60_000,
+        deadlineAt: examDeadline(startedAt, minutes),
       },
     });
     if (!premium) await tx.freeExamGrant.create({ data: { userId, subjectId: paper.subjectId, attemptId: attempt.id } });
@@ -132,14 +162,72 @@ export async function openExamAttempt(userId: string, paperId: string): Promise<
     return existing;
   });
 
-  if (isPastDeadline(open.deadlineAt, new Date())) {
+  if (!open.deadlineAt && !open.pausedAt) {
+    const minutes = examMinutes(paper.durationMinutes);
+    const startedAt = new Date();
+    const deadlineAt = examDeadline(startedAt, minutes);
+    await db.attempt.update({
+      where: { id: open.id },
+      data: { durationMs: open.durationMs || minutes * 60_000, deadlineAt, mode: "EXAM" },
+    });
+    open.deadlineAt = deadlineAt;
+    open.durationMs = open.durationMs || minutes * 60_000;
+  }
+  if (!open.pausedAt && isPastDeadline(open.deadlineAt, new Date())) {
     const result = await finalizeExam(userId, open.id, {}, {});
     const answers = await db.answer.findMany({ where: { attemptId: open.id }, select: { questionId: true, studentAnswer: true, version: true, gradingStatus: true } });
     const fresh = await ownedAttempt(userId, open.id);
     return sessionFrom(fresh, answers, result);
   }
   const answers = await db.answer.findMany({ where: { attemptId: open.id }, select: { questionId: true, studentAnswer: true, version: true, gradingStatus: true } });
+  const started = await db.attemptLog.findFirst({ where: { attemptId: open.id, kind: "STARTED" }, select: { id: true } });
+  if (!started) await logProgress(open.id, "STARTED", `Timed exam started. ${examMinutes(paper.durationMinutes)} minutes.`);
   return sessionFrom(open, answers, null);
+}
+
+export async function pauseExamAttempt(userId: string, attemptId: string) {
+  const attempt = await ownedAttempt(userId, attemptId);
+  if (!canMutateAttempt(attempt.status, attempt.finalizedAt)) throw new Error("This examination is already submitted.");
+  if (attempt.pausedAt) {
+    const answers = await db.answer.findMany({ where: { attemptId }, select: { questionId: true, studentAnswer: true, version: true, gradingStatus: true } });
+    return sessionFrom(attempt, answers, null);
+  }
+  const now = new Date();
+  const remaining = pausedRemaining(attempt.deadlineAt, now, attempt.timerRemainingMs ?? attempt.durationMs ?? 0);
+  const paused = await db.attempt.update({
+    where: { id: attempt.id },
+    data: { pausedAt: now, timerRemainingMs: remaining, deadlineAt: null, timeSpentSeconds: activeSeconds({ ...attempt, pausedAt: now, timerRemainingMs: remaining }, now) },
+  });
+  const minutes = Math.floor(remaining / 60000);
+  const seconds = Math.floor((remaining % 60000) / 1000);
+  await logProgress(attempt.id, "PAUSED", `Paused with ${minutes}:${String(seconds).padStart(2, "0")} left. Answers stay saved.`);
+  const answers = await db.answer.findMany({ where: { attemptId }, select: { questionId: true, studentAnswer: true, version: true, gradingStatus: true } });
+  return sessionFrom(paused, answers, null);
+}
+
+export async function resumeExamAttempt(userId: string, attemptId: string) {
+  const attempt = await ownedAttempt(userId, attemptId);
+  if (!canMutateAttempt(attempt.status, attempt.finalizedAt)) throw new Error("This examination is already submitted.");
+  if (!attempt.pausedAt) {
+    const answers = await db.answer.findMany({ where: { attemptId }, select: { questionId: true, studentAnswer: true, version: true, gradingStatus: true } });
+    return sessionFrom(attempt, answers, null);
+  }
+  const now = new Date();
+  const remaining = Math.max(0, attempt.timerRemainingMs ?? 0);
+  if (remaining <= 0) {
+    const result = await finalizeExam(userId, attempt.id, {}, {});
+    const answers = await db.answer.findMany({ where: { attemptId }, select: { questionId: true, studentAnswer: true, version: true, gradingStatus: true } });
+    const fresh = await ownedAttempt(userId, attempt.id);
+    return sessionFrom(fresh, answers, result);
+  }
+  const deadlineAt = resumedDeadline(remaining, now);
+  const resumed = await db.attempt.update({
+    where: { id: attempt.id },
+    data: { pausedAt: null, deadlineAt, timerRemainingMs: remaining },
+  });
+  await logProgress(attempt.id, "RESUMED", "Timer resumed.");
+  const answers = await db.answer.findMany({ where: { attemptId }, select: { questionId: true, studentAnswer: true, version: true, gradingStatus: true } });
+  return sessionFrom(resumed, answers, null);
 }
 
 async function applyWrites(attemptId: string, writes: { questionId: string; value: string; version: number }[]) {
@@ -180,17 +268,19 @@ export async function saveExamAnswers(
   if (!canMutateAttempt(attempt.status, attempt.finalizedAt)) {
     return { saved: false, expired: true, stale: [] as string[], versions: {}, ...clock(attempt), result: await loadResult(attempt.id) };
   }
-  if (isPastDeadline(attempt.deadlineAt, new Date())) {
+  if (!attempt.pausedAt && isPastDeadline(attempt.deadlineAt, new Date())) {
     const result = await finalizeExam(userId, attempt.id, {}, {});
     return { saved: false, expired: true, stale: [] as string[], versions: {}, ...clock(attempt, new Date()), remainingMs: 0, result };
   }
   const applied = await applyWrites(attempt.id, writes);
+  const recent = await db.attemptLog.findFirst({ where: { attemptId, kind: "SAVED", createdAt: { gte: new Date(Date.now() - 60_000) } }, select: { id: true } });
+  if (!recent && writes.length) await logProgress(attempt.id, "SAVED", "Progress saved.");
   return { saved: true, expired: false, ...applied, ...clock(attempt, new Date()), result: null };
 }
 
 export async function readExamClock(userId: string, attemptId: string) {
   const attempt = await ownedAttempt(userId, attemptId);
-  if (canMutateAttempt(attempt.status, attempt.finalizedAt) && isPastDeadline(attempt.deadlineAt, new Date())) {
+  if (canMutateAttempt(attempt.status, attempt.finalizedAt) && !attempt.pausedAt && isPastDeadline(attempt.deadlineAt, new Date())) {
     const result = await finalizeExam(userId, attempt.id, {}, {});
     return { expired: true, ...clock(attempt, new Date()), remainingMs: 0, result };
   }
@@ -259,7 +349,7 @@ export async function finalizeExam(
   const savedRows = await db.answer.findMany({ where: { attemptId }, select: { questionId: true, studentAnswer: true, version: true } });
   const saved: Record<string, VersionedAnswer> = {};
   for (const row of savedRows) saved[row.questionId] = { value: row.studentAnswer || "", version: row.version };
-  const deadlinePassed = isPastDeadline(attempt.deadlineAt, new Date());
+  const deadlinePassed = !attempt.pausedAt && isPastDeadline(attempt.deadlineAt, new Date());
   const merged = deadlinePassed ? {} : Object.keys(incoming).length ? mergeAttemptAnswers(saved, incoming) : { ...fallbackAnswers };
   for (const [questionId, value] of Object.entries(saved)) {
     if (merged[questionId] === undefined) merged[questionId] = value.value;
@@ -297,9 +387,11 @@ export async function finalizeExam(
       completedAt: now,
       finalizedAt: now,
       gradedAt: graded.pendingCount ? null : now,
-      timeSpentSeconds: Math.max(0, Math.round((now.getTime() - attempt.startedAt.getTime()) / 1000)),
+      timeSpentSeconds: activeSeconds(attempt, now),
+      pausedAt: null,
     },
   });
+  await logProgress(attempt.id, "SUBMITTED", "Exam submitted.");
   await db.user.update({ where: { id: userId }, data: { xp: { increment: Math.round(graded.score * 4) }, lastActiveOn: now } });
   return { attemptId, score: graded.score, maxScore: graded.maxScore, pendingCount: graded.pendingCount, totalQuestions: questions.length };
 }

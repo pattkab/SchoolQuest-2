@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { canReviewLearner, canViewContent } from "@/lib/access";
 import { isAccreditedTeacher } from "@/lib/session";
-import { finalizeExam, openExamAttempt, readExamClock, regradeFinalizedAttempt, saveExamAnswers } from "@/lib/exam-attempts";
+import { finalizeExam, openExamAttempt, pauseExamAttempt, readExamClock, regradeFinalizedAttempt, resumeExamAttempt, saveExamAnswers } from "@/lib/exam-attempts";
 import { offlineExpiry, signOfflinePass } from "@/lib/offline-pass";
 import { toPublicQuestion } from "@/lib/public-question";
 import { shortSubjectName } from "@/lib/taxonomy";
@@ -26,6 +26,14 @@ export async function saveExamProgress(payload: { attemptId: string; writes: { q
 
 export async function examClock(attemptId: string) {
   return readExamClock(await signedIn(), attemptId);
+}
+
+export async function pauseExam(attemptId: string) {
+  return pauseExamAttempt(await signedIn(), attemptId);
+}
+
+export async function resumeExam(attemptId: string) {
+  return resumeExamAttempt(await signedIn(), attemptId);
 }
 
 export async function downloadExamPack(paperId: string) {

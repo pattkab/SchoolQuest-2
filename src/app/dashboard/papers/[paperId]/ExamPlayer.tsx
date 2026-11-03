@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { questionTypeLabel } from "@/lib/marking";
-import { downloadExamPack, examClock, saveExamProgress, startOrResumeExam, submitExam } from "@/app/actions/marking";
+import { downloadExamPack, examClock, pauseExam, resumeExam, saveExamProgress, startOrResumeExam, submitExam } from "@/app/actions/marking";
 import { canOpenOfflinePack } from "@/lib/offline-pass";
 import { readOfflinePack, saveOfflinePack } from "@/lib/offline-store";
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
@@ -75,6 +75,7 @@ export default function ExamPlayer({
   const [versions, setVersions] = useState<Record<string, number>>({});
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [paused, setPaused] = useState(false);
   const [deadlineAt, setDeadlineAt] = useState<string | null>(null);
   const [saveState, setSaveState] = useState("Starting");
   const [offline, setOffline] = useState(false);
@@ -88,11 +89,18 @@ export default function ExamPlayer({
   const submitted = useRef(false);
   const endsAt = useRef<number | null>(null);
   const skew = useRef(0);
-  const adoptClock = (serverNow: string, deadline: string | null) => {
-    skew.current = new Date(serverNow).getTime() - Date.now();
-    endsAt.current = deadline ? new Date(deadline).getTime() : null;
-    setDeadlineAt(deadline);
-    setRemaining(endsAt.current == null ? null : Math.max(0, endsAt.current - (Date.now() + skew.current)));
+  const adoptClock = (clock: { serverNow: string; deadlineAt: string | null; remainingMs: number | null; paused?: boolean }) => {
+    skew.current = new Date(clock.serverNow).getTime() - Date.now();
+    setPaused(Boolean(clock.paused));
+    if (clock.paused) {
+      endsAt.current = null;
+      setDeadlineAt(null);
+      setRemaining(clock.remainingMs);
+      return;
+    }
+    endsAt.current = clock.deadlineAt ? new Date(clock.deadlineAt).getTime() : null;
+    setDeadlineAt(clock.deadlineAt);
+    setRemaining(endsAt.current == null ? clock.remainingMs : Math.max(0, endsAt.current - (Date.now() + skew.current)));
   };
   useEffect(() => {
     answersRef.current = answers;
@@ -125,8 +133,8 @@ export default function ExamPlayer({
         setAnswers(nextAnswers);
         setVersions(nextVersions);
         setAttemptId(session.attemptId);
-        adoptClock(session.serverNow, session.deadlineAt);
-        setSaveState(session.finalized ? "Submitted" : "Saved");
+        adoptClock(session);
+        setSaveState(session.finalized ? "Submitted" : session.paused ? "Paused. Progress is saved." : "Saved");
         hydrated.current = true;
         if (session.result) setResult(session.result);
       }).catch(async (error) => {
@@ -164,7 +172,7 @@ export default function ExamPlayer({
         void saveExamProgress({ attemptId, writes }).then((saved) => {
           setVersions((current) => ({ ...current, ...saved.versions }));
           setSaveState(saved.expired ? "Time is up" : "Saved");
-          adoptClock(saved.serverNow, saved.deadlineAt);
+          adoptClock(saved);
           if (saved.result) setResult(saved.result);
         }).catch(() => {
           setSaveState("Saved on this device");
@@ -180,20 +188,20 @@ export default function ExamPlayer({
   }, [answers, attemptId, result]);
 
   useEffect(() => {
-    if (!deadlineAt || result) return;
+    if (!deadlineAt || result || paused) return;
     const timer = window.setInterval(() => {
       if (endsAt.current == null) return;
       setRemaining(Math.max(0, endsAt.current - (Date.now() + skew.current)));
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [deadlineAt, result]);
+  }, [deadlineAt, paused, result]);
 
   useEffect(() => {
     if (!attemptId || result) return;
     const timer = window.setInterval(() => {
       startTransition(() => {
         void examClock(attemptId).then((clock) => {
-          adoptClock(clock.serverNow, clock.deadlineAt);
+          adoptClock(clock);
           if (clock.result) setResult(clock.result);
         }).catch(() => undefined);
       });
@@ -244,10 +252,10 @@ export default function ExamPlayer({
   }
 
   useEffect(() => {
-    if (remaining === 0 && attemptId && !result) void send();
+    if (remaining === 0 && !paused && attemptId && !result) void send();
     // The timer reaches zero once per deadline. send() ignores a second call.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, attemptId, result]);
+  }, [remaining, paused, attemptId, result]);
 
   if (!questions.length) {
     return (
@@ -280,7 +288,7 @@ export default function ExamPlayer({
             sessionStorage.removeItem(`sq-exam-${paper.id}`);
             void startOrResumeExam(paper.id).then((session) => {
               setAttemptId(session.attemptId);
-              adoptClock(session.serverNow, session.deadlineAt);
+              adoptClock(session);
               hydrated.current = true;
               setSaveState("Saved");
             });
@@ -303,7 +311,14 @@ export default function ExamPlayer({
           <Link href={paper.backHref} className="text-sm font-bold text-primary">← {paper.className} {paper.subject}</Link>
           <span className="flex items-center gap-2">
             {offline && <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-bold">Offline</span>}
-            {clockLabel && <p className="rounded-full bg-white border px-3 py-1 text-sm font-bold" aria-live="polite">Time left {clockLabel}</p>}
+            {clockLabel && <p className="rounded-full bg-white border px-3 py-1 text-sm font-bold" aria-live="polite">{paused ? "Paused" : "Time left"} {clockLabel}</p>}
+            {attemptId && !result && <button type="button" className="rounded-full border bg-white px-3 py-1 text-sm font-bold" onClick={() => void (async () => {
+              const writes = Object.entries(answersRef.current).map(([questionId, value]) => ({ questionId, value, version: versionsRef.current[questionId] ?? 0 }));
+              await saveExamProgress({ attemptId, writes }).catch(() => undefined);
+              const session = paused ? await resumeExam(attemptId) : await pauseExam(attemptId);
+              adoptClock(session);
+              setSaveState(paused ? "Saved" : "Paused. Progress is saved.");
+            })()}>{paused ? "Resume" : "Pause"}</button>}
             <button type="button" className="rounded-full border bg-white px-3 py-1 text-sm font-bold" aria-pressed={saver} onClick={() => { const next = !saver; localStorage.setItem("schoolquest.dataSaver", next ? "1" : "0"); window.dispatchEvent(new Event("schoolquest:data-saver")); }}>Data saver</button>
             <button type="button" className="rounded-full border bg-white px-3 py-1 text-sm font-bold" onClick={() => void keepCopy()}>Save offline</button>
           </span>

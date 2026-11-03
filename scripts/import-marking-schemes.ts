@@ -32,6 +32,7 @@ async function main() {
         title: scheme.title,
         kind: paperKindFor(scheme.collection),
         year: scheme.year,
+        durationMinutes: scheme.durationMinutes,
         subjectId: subject.id,
         classGradeId: subject.classGradeId,
         externalId: scheme.gitBlob,
