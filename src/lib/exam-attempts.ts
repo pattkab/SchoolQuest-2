@@ -185,6 +185,81 @@ export async function openExamAttempt(userId: string, paperId: string): Promise<
   return sessionFrom(open, answers, null);
 }
 
+export async function openQuizAttempt(userId: string, paperId: string) {
+  const paper = await db.paper.findUnique({ where: { id: paperId }, select: { status: true, kind: true } });
+  if (!paper || paper.status !== "PUBLISHED") throw new Error("This quiz is not published.");
+  if (paper.kind !== "TOPIC_QUIZ") throw new Error("Open this paper as an exam.");
+  let attempt = await db.attempt.findFirst({
+    where: { userId, paperId, status: "IN_PROGRESS", finalizedAt: null, mode: "PRACTICE" },
+    orderBy: { startedAt: "desc" },
+  });
+  if (!attempt) {
+    attempt = await db.attempt.create({
+      data: { userId, paperId, status: "IN_PROGRESS", mode: "PRACTICE", startedAt: new Date() },
+    });
+    await logProgress(attempt.id, "STARTED", "Short quiz started.");
+  }
+  const answers = await db.answer.findMany({ where: { attemptId: attempt.id }, select: { questionId: true } });
+  return { attemptId: attempt.id, answered: answers.map((answer) => answer.questionId) };
+}
+
+export async function answerQuizQuestion(userId: string, attemptId: string, questionId: string, value: string) {
+  const attempt = await ownedAttempt(userId, attemptId);
+  if (attempt.mode !== "PRACTICE") throw new Error("This is an exam, not a quiz.");
+  if (!canMutateAttempt(attempt.status, attempt.finalizedAt)) throw new Error("This quiz is already finished.");
+  const question = await db.question.findFirst({ where: { id: questionId, paperId: attempt.paperId } });
+  if (!question) throw new Error("This question is not in the quiz.");
+  const marked = markAnswer(question, value);
+  const gradingStatus = marked.status === "AUTO" ? "AUTO" : marked.status === "UNANSWERED" ? "UNANSWERED" : "PENDING_TEACHER";
+  await db.answer.upsert({
+    where: { attemptId_questionId: { attemptId, questionId } },
+    create: {
+      attemptId,
+      questionId,
+      studentAnswer: value,
+      isCorrect: marked.isCorrect,
+      pointsAwarded: gradingStatus === "PENDING_TEACHER" ? null : marked.points,
+      gradingStatus,
+      feedback: marked.feedback,
+    },
+    update: {
+      studentAnswer: value,
+      isCorrect: marked.isCorrect,
+      pointsAwarded: gradingStatus === "PENDING_TEACHER" ? null : marked.points,
+      gradingStatus,
+      feedback: marked.feedback,
+    },
+  });
+  return { correct: marked.isCorrect, points: marked.points, feedback: marked.feedback, pending: gradingStatus === "PENDING_TEACHER" };
+}
+
+export async function finishQuiz(userId: string, attemptId: string): Promise<ExamResult> {
+  const attempt = await ownedAttempt(userId, attemptId);
+  if (attempt.mode !== "PRACTICE") throw new Error("This is an exam, not a quiz.");
+  if (!canMutateAttempt(attempt.status, attempt.finalizedAt)) return loadResult(attempt.id);
+  const answers = await db.answer.findMany({ where: { attemptId }, include: { question: true } });
+  const score = answers.reduce((sum, answer) => sum + (answer.pointsAwarded || 0), 0);
+  const maxScore = answers.reduce((sum, answer) => sum + answer.question.points, 0);
+  const pendingCount = answers.filter((answer) => answer.gradingStatus === "PENDING_TEACHER").length;
+  const now = new Date();
+  await db.attempt.update({
+    where: { id: attempt.id },
+    data: {
+      score,
+      maxScore,
+      pendingCount,
+      status: pendingCount ? "NEEDS_REVIEW" : "GRADED",
+      completedAt: now,
+      finalizedAt: now,
+      gradedAt: pendingCount ? null : now,
+      timeSpentSeconds: activeSeconds(attempt, now),
+    },
+  });
+  await logProgress(attempt.id, "SUBMITTED", "Short quiz finished.");
+  await db.user.update({ where: { id: userId }, data: { xp: { increment: Math.round(score * 4) }, lastActiveOn: now } });
+  return { attemptId, score, maxScore, pendingCount, totalQuestions: answers.length };
+}
+
 export async function pauseExamAttempt(userId: string, attemptId: string) {
   const attempt = await ownedAttempt(userId, attemptId);
   if (!canMutateAttempt(attempt.status, attempt.finalizedAt)) throw new Error("This examination is already submitted.");

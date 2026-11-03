@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { shortSubjectName } from "@/lib/taxonomy";
 
-export type LearnItem = { id: string; title: string; term: number | null; kind: "note" | "paper"; href: string };
+export type LearnItem = { id: string; title: string; term: number | null; kind: "note" | "paper"; play?: "quiz" | "paper"; href: string };
 export type LearnSubject = { slug: string; name: string; items: LearnItem[] };
 export type LearnClass = { slug: string; shortName: string; subjects: LearnSubject[] };
 
@@ -85,7 +85,7 @@ export function LearnPicker({
       </div>
       {rows.length ? (
         <div className="learn-list">
-          {rows.map((item) => <Link key={item.id} href={item.href}>{item.title}</Link>)}
+          {rows.map((item) => <Link key={item.id} href={item.href}>{item.play === "quiz" ? `Quiz · ${item.title}` : item.title}</Link>)}
         </div>
       ) : (
         <p className="rounded-2xl border bg-white px-4 py-6 text-center font-bold">Nothing for {title} in Term {term} yet. Try another term.</p>

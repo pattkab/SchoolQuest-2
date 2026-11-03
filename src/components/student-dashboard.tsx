@@ -9,11 +9,12 @@ import { ArrowRight, BookOpen, Flame, Sparkles, Trophy, ChevronRight, Calculator
 const subjectIcons = [Calculator, Languages, FlaskConical, Globe, BookOpen, Compass];
 export default async function StudentDashboard() {
   const user = await requireUser();
-  const [subjects, completed, recent, continuing] = await Promise.all([
+  const [subjects, completed, recent, continuing, quiz] = await Promise.all([
     user.classGradeId ? db.subject.findMany({ where: { classGradeId: user.classGradeId }, orderBy: { order: 'asc' }, include: { _count: { select: { notes: { where: { status: 'PUBLISHED' } }, papers: { where: { status: 'PUBLISHED' } } } }, notes: { where: { status: 'PUBLISHED' }, orderBy: { order: 'asc' }, take: 1, select: { id: true, title: true } }, papers: { where: { status: 'PUBLISHED' }, take: 1, select: { id: true } } } }) : [],
     db.attempt.count({ where: { userId: user.id, completedAt: { not: null } } }),
     db.attempt.findMany({ where: { userId: user.id, completedAt: { not: null } }, orderBy: { completedAt: 'desc' }, take: 3, include: { paper: { include: { subject: true } } } }),
     db.attempt.findFirst({ where: { userId: user.id, status: 'IN_PROGRESS', completedAt: null, paper: { status: 'PUBLISHED' } }, orderBy: { startedAt: 'desc' }, include: { paper: true } }),
+    user.classGradeId ? db.paper.findFirst({ where: { classGradeId: user.classGradeId, status: 'PUBLISHED', kind: 'TOPIC_QUIZ' }, orderBy: { title: 'asc' }, select: { id: true, title: true } }) : null,
   ]);
   const firstNote = subjects.find(subject => subject.notes.length)?.notes[0];
   const nextHref = continuing ? `/dashboard/papers/${continuing.paperId}` : firstNote ? `/dashboard/notes/${firstNote.id}` : '/dashboard/learn';
@@ -29,6 +30,7 @@ export default async function StudentDashboard() {
       <div className="relative z-10 min-w-0"><h2 className="font-display max-w-md text-2xl">Continue where you left off</h2><Link href={nextHref} className="quest-button quest-button-light mt-4">{continuing ? 'Continue' : 'Start'}<ArrowRight className="h-4 w-4" /></Link></div>
       <QuestArt compact />
     </section>
+    {quiz && <Link href={`/dashboard/papers/${quiz.id}`} className="flex items-center justify-between rounded-3xl border bg-white px-4 py-3"><span><span className="block text-xs font-bold uppercase tracking-widest text-primary">Short quiz</span><span className="font-bold">{quiz.title}</span></span><span className="font-bold text-primary">Play</span></Link>}
     <section aria-label="Your learning progress" className="grid grid-cols-3 gap-2.5 sm:gap-4">
       {[{ icon: Flame, value: user.currentStreak, label: 'Day streak', tone: 'peach' }, { icon: Sparkles, value: user.xp, label: 'Learning XP', tone: 'lilac' }, { icon: Trophy, value: completed, label: 'Papers completed', tone: 'mint' }].map(({ icon: Icon, value, label, tone }) => <Link href="/dashboard/progress" key={label} className={`metric-card tone-${tone}`}><span className="metric-icon"><Icon className="h-5 w-5" /></span><strong>{value.toLocaleString()}</strong><span>{label}</span></Link>)}
     </section>

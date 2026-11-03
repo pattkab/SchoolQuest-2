@@ -15,7 +15,7 @@ function currentTerm() {
 function itemsFor(subject: {
   topics: LinkedTopic[];
   notes: { id: string; title: string }[];
-  papers: { id: string; title: string }[];
+  papers: { id: string; title: string; kind: string }[];
 }): LearnItem[] {
   const seen = new Set<string>();
   const items: LearnItem[] = [];
@@ -30,7 +30,7 @@ function itemsFor(subject: {
       const key = `paper:${paper.id}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      items.push({ id: paper.id, title: paper.title, term: topic.term, kind: "paper", href: `/dashboard/papers/${paper.id}` });
+      items.push({ id: paper.id, title: paper.title, term: topic.term, kind: "paper", play: paper.kind === "TOPIC_QUIZ" ? "quiz" : "paper", href: `/dashboard/papers/${paper.id}` });
     }
   }
   return items;
@@ -56,11 +56,11 @@ export default async function LearnHome({ query }: { query: { class?: string; su
               name: true,
               term: true,
               notes: { where: { status: "PUBLISHED" }, orderBy: { order: "asc" }, select: { id: true, title: true } },
-              papers: { where: { status: "PUBLISHED" }, orderBy: { createdAt: "asc" }, select: { id: true, title: true } },
+              papers: { where: { status: "PUBLISHED" }, orderBy: { createdAt: "asc" }, select: { id: true, title: true, kind: true } },
             },
           },
           notes: { where: { status: "PUBLISHED", topicId: null }, select: { id: true, title: true } },
-          papers: { where: { status: "PUBLISHED", topicId: null }, select: { id: true, title: true } },
+          papers: { where: { status: "PUBLISHED", topicId: null }, select: { id: true, title: true, kind: true } },
         },
       },
     },

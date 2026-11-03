@@ -3,8 +3,10 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { canViewContent } from "@/lib/access";
 import ExamPlayer from "./ExamPlayer";
+import QuizGame from "./QuizGame";
 import { shortSubjectName } from "@/lib/taxonomy";
 import { toPublicQuestion } from "@/lib/public-question";
+import { quizQuestions } from "@/lib/quiz-game";
 
 export default async function PaperPage({ params }: { params: Promise<{ paperId: string }> }) {
   const user = await requireUser();
@@ -18,6 +20,21 @@ export default async function PaperPage({ params }: { params: Promise<{ paperId:
     },
   });
   if (!paper || !canViewContent(user, paper)) notFound();
+  const publicQuestions = paper.questions.map(toPublicQuestion);
+  if (paper.kind === "TOPIC_QUIZ") {
+    return (
+      <QuizGame
+        paper={{
+          id: paper.id,
+          title: paper.title,
+          subject: shortSubjectName(paper.subject.name),
+          className: paper.subject.classGrade.shortName,
+          backHref: `/dashboard/classes/${paper.subject.classGrade.slug}/${paper.subject.slug}`,
+        }}
+        questions={quizQuestions(publicQuestions)}
+      />
+    );
+  }
 
   return (
     <ExamPlayer
@@ -31,7 +48,7 @@ export default async function PaperPage({ params }: { params: Promise<{ paperId:
         durationMinutes: paper.durationMinutes,
         backHref: `/dashboard/classes/${paper.subject.classGrade.slug}/${paper.subject.slug}`,
       }}
-      questions={paper.questions.map(toPublicQuestion)}
+      questions={publicQuestions}
     />
   );
 }

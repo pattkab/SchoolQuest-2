@@ -42,7 +42,7 @@ export default async function NotePage({ params }: { params: Promise<{ noteId: s
       </article>
       {quiz && (
         <Link href={`/dashboard/papers/${quiz.id}`} className="block rounded-3xl bg-primary text-white px-6 py-4 font-bold">
-          Practice
+          {quiz.kind === "TOPIC_QUIZ" ? "Play a short quiz" : "Practice"}
         </Link>
       )}
     </div>

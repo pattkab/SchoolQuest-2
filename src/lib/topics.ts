@@ -1,4 +1,4 @@
-export type TopicLink = { id: string; title: string };
+export type TopicLink = { id: string; title: string; kind?: string };
 
 export type LinkedTopic = {
   id: string;

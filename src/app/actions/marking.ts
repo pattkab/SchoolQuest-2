@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { canReviewLearner, canViewContent } from "@/lib/access";
 import { isAccreditedTeacher } from "@/lib/session";
-import { finalizeExam, openExamAttempt, pauseExamAttempt, readExamClock, regradeFinalizedAttempt, resumeExamAttempt, saveExamAnswers } from "@/lib/exam-attempts";
+import { answerQuizQuestion, finalizeExam, finishQuiz, openExamAttempt, openQuizAttempt, pauseExamAttempt, readExamClock, regradeFinalizedAttempt, resumeExamAttempt, saveExamAnswers } from "@/lib/exam-attempts";
 import { offlineExpiry, signOfflinePass } from "@/lib/offline-pass";
 import { toPublicQuestion } from "@/lib/public-question";
 import { shortSubjectName } from "@/lib/taxonomy";
@@ -18,6 +18,18 @@ async function signedIn() {
 
 export async function startOrResumeExam(paperId: string) {
   return openExamAttempt(await signedIn(), paperId);
+}
+
+export async function startQuiz(paperId: string) {
+  return openQuizAttempt(await signedIn(), paperId);
+}
+
+export async function checkQuizAnswer(payload: { attemptId: string; questionId: string; value: string }) {
+  return answerQuizQuestion(await signedIn(), payload.attemptId, payload.questionId, payload.value);
+}
+
+export async function completeQuiz(attemptId: string) {
+  return finishQuiz(await signedIn(), attemptId);
 }
 
 export async function saveExamProgress(payload: { attemptId: string; writes: { questionId: string; value: string; version: number }[] }) {
