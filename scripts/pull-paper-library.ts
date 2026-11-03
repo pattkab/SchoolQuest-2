@@ -1,12 +1,13 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { classifyFreshTeacherPath, collectionFor, isAnswerKey, isQuestionPaperWithAnswers, LIBRARY_COLLECTIONS } from "../src/lib/fresh-teacher-catalog";
+import { classifyFreshTeacherPath, collectionFor, isAnswerKey, isQuestionPaperWithAnswers, learningKind, LIBRARY_COLLECTIONS } from "../src/lib/fresh-teacher-catalog";
 
 const root = process.cwd();
-const library = path.join(root, "data", "fresh-teacher", "library");
 const guidesOnly = process.argv.includes("--guides");
-const indexPath = path.join(root, "data", "fresh-teacher", guidesOnly ? "guides-index.json" : "library-index.json");
+const learningOnly = process.argv.includes("--learning");
+const library = path.join(root, "data", "fresh-teacher", learningOnly ? "learning" : "library");
+const indexPath = path.join(root, "data", "fresh-teacher", learningOnly ? "learning-index.json" : guidesOnly ? "guides-index.json" : "library-index.json");
 
 type InventoryDocument = {
   gitBlob: string;
@@ -57,6 +58,11 @@ async function main() {
     const classified = classifyFreshTeacherPath(filePath);
     const collection = collectionFor(filePath, classified.kind);
     if (document.bytes > 15_000_000 || document.bytes < 1000) return [];
+    if (learningOnly) {
+      const learning = learningKind(filePath);
+      if (!learning) return [];
+      return [{ document, filePath, classified, collection: learning }];
+    }
     if (guidesOnly) {
       const markingSource = isAnswerKey(filePath) || isQuestionPaperWithAnswers(filePath);
       if (!markingSource || /interview/.test(filePath) || queuedByPaperPull(filePath)) return [];

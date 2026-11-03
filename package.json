@@ -20,6 +20,7 @@
     "mobile:test": "tsx --test tests/mobile-config.test.ts",
     "papers:pull": "tsx scripts/pull-paper-library.ts",
     "papers:guides": "tsx scripts/pull-paper-library.ts --guides",
+    "content:pull": "tsx scripts/pull-paper-library.ts --learning",
     "papers:schemes": "tsx scripts/build-marking-schemes.ts",
     "papers:import": "tsx scripts/import-marking-schemes.ts"
   },

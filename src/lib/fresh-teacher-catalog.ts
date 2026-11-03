@@ -100,6 +100,20 @@ export function isAnswerKey(filePath: string) {
   return answerKey.test(text);
 }
 
+/** Lesson notes, schemes of work, lesson plans, and syllabi kept as a local copy. */
+export function learningKind(filePath: string): "notes" | "scheme" | "plan" | "syllabus" | null {
+  const text = catalogText(filePath);
+  if (isAnswerKey(filePath) || isQuestionPaperWithAnswers(filePath)) return null;
+  if (/scheme of work|\bschemes\b/.test(text) && !/marking scheme/.test(text)) return "scheme";
+  if (/lesson plan/.test(text)) return "plan";
+  if (/syllabus|\bcurriculum\b/.test(text)) {
+    if (/\bexam\b|question paper|past paper|composition|mock|marking/.test(text)) return null;
+    return "syllabus";
+  }
+  if (/lesson note|\bnotes\b/.test(text) || collectionFor(filePath) === "notes") return "notes";
+  return null;
+}
+
 export function collectionFor(filePath: string, kind: CatalogKind = classifyFreshTeacherPath(filePath).kind): PaperCollection {
   const text = catalogText(filePath);
   if (isAnswerKey(filePath)) return "guide";

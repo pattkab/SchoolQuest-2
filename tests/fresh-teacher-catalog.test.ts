@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { classifyFreshTeacherPath, summarizeCatalog } from "../src/lib/fresh-teacher-catalog";
+import { classifyFreshTeacherPath, learningKind, summarizeCatalog } from "../src/lib/fresh-teacher-catalog";
 import { parseGrade } from "../src/lib/gemini";
 
 test("a Fresh Teacher path becomes a class, subject, and paper kind", () => {
@@ -12,6 +12,15 @@ test("a Fresh Teacher path becomes a class, subject, and paper kind", () => {
   const senior = classifyFreshTeacherPath("s6/Macadita UACE Economics 2 2023.pdf");
   assert.equal(senior.classSlug, "s6");
   assert.equal(senior.subjectSlug, "economics");
+});
+
+test("notes and schemes of work are kept as learning copies", () => {
+  assert.equal(learningKind("Baby Class English Term 2 Lesson Notes.pdf"), "notes");
+  assert.equal(learningKind("All Schemes of Work P.3 TERM THREE.pdf"), "scheme");
+  assert.equal(learningKind("nurseriez/TOP CLASS LESSON PLAN WHOLE YEAR 2019.pdf"), "plan");
+  assert.equal(learningKind("Uganda-English-Syllabus-Final.pdf"), "syllabus");
+  assert.equal(learningKind("p7/P.7 ENGLISH END OF TERM ONE, SET ONE, 2023.pdf"), null);
+  assert.equal(learningKind("NEW CURRICULUM EXAM COMPOSITION.pdf"), null);
 });
 
 test("the catalog summary counts papers separately from guides", () => {
