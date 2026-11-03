@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 
-export const SCHOOLQUEST_HOSTED_URL = 'https://schoolquestweb.netlify.app';
+export const SCHOOLQUEST_HOSTED_URL = 'https://schoolquest.cc';
 
 export function hostedUrl(value: string | undefined): string {
   if (!value) throw new Error('Set SCHOOLQUEST_APP_URL to your deployed HTTPS SchoolQuest address.');

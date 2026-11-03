@@ -4,7 +4,6 @@
 [build.environment]
   NODE_VERSION = "22"
   AUTH_TRUST_HOST = "true"
-  AUTH_URL = "https://schoolquestweb.netlify.app"
 
 # School search reads the register from disk at runtime.
 [functions]

@@ -4,7 +4,7 @@ import Capacitor
 #if DEBUG
 private let schoolQuestServer = "http://127.0.0.1:3000"
 #else
-private let schoolQuestServer = "https://schoolquestweb.netlify.app"
+private let schoolQuestServer = "https://schoolquest.cc"
 #endif
 
 class SchoolQuestViewController: CAPBridgeViewController {

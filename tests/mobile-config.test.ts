@@ -7,9 +7,9 @@ import { spawnSync } from 'node:child_process';
 import { hostedUrl, mobileServer } from '../scripts/mobile-config';
 
 test('local simulator configuration is explicit and hosted mode cannot silently fall back', () => {
-  assert.deepEqual(mobileServer({}), { url: 'https://schoolquestweb.netlify.app', cleartext: false });
+  assert.deepEqual(mobileServer({}), { url: 'https://schoolquest.cc', cleartext: false });
   assert.deepEqual(mobileServer({ SCHOOLQUEST_MOBILE_MODE: 'hosted' }),
-    { url: 'https://schoolquestweb.netlify.app', cleartext: false });
+    { url: 'https://schoolquest.cc', cleartext: false });
   assert.deepEqual(mobileServer({ SCHOOLQUEST_MOBILE_MODE: 'local' }),
     { url: 'http://localhost:3001', cleartext: true });
   assert.throws(() => mobileServer({ SCHOOLQUEST_MOBILE_MODE: 'typo' }));
